@@ -1,0 +1,201 @@
+specVersion: "0.8"
+id: m2k
+version: '1.0'
+name: Move2Kube workflow
+description: Workflow to execute Move2Kube
+dataInputSchema: schemas/input.json
+start: CreatePlanning
+events:
+  - name: errorEvent
+    source: ''
+    type: error_event_type
+  - name: planCreatedEvent
+    source: ''
+    type: plan_created_event_type
+  - name: transformationSavedEvent
+    source: ''
+    type: transformation_saved_event_type
+functions:
+  - name: sendEmail
+    operation: 'specs/mailtrap.yaml#sendEmail'
+  - name: systemOut
+    type: custom
+    operation: sysout
+  - name: startPlanning
+    type: custom
+    operation: rest:post:http://move2kube-svc.default.svc.cluster.local:8080/api/v1/workspaces/{workspace-id}/projects/{project-id}/plan #start-planning
+  - name: getPlanning
+    type: custom
+    operation: rest:get:http://move2kube-svc.default.svc.cluster.local:8080/api/v1/workspaces/{workspace-id}/projects/{project-id}/plan #get-plan
+  - name: startTransformation
+    type: custom
+    operation: rest:post:http://move2kube-svc.default.svc.cluster.local:8080/api/v1/workspaces/{workspace-id}/projects/{project-id}/outputs #start-transformation
+  #- name: sendCloudEvent
+  #  type: custom
+  #  operation: knative:brokers.v1.eventing.knative.dev/m2k/default?asCloudEvent=true
+  - name: sendCloudEvent
+    type: custom
+    operation: rest:post:http://broker-ingress.knative-eventing.svc.cluster.local/m2k/default
+states:
+  - name: CreatePlanning
+    type: operation
+    actions:
+      - functionRef:
+          refName: sendCloudEvent
+          arguments:
+            HEADER_Ce-Id: "1234"
+            HEADER_Ce-Specversion: "1.0"
+            HEADER_Ce-Type: "create-plan"
+            HEADER_Ce-Source: "m2k_swf"
+            HEADER_Content-Type: "application/json"
+            githubRepo: .repo
+            branch: .sourceBranch
+            token: .token
+            workspaceId: .workspaceId
+            projectId: .projectId
+            workflowCallerId: $WORKFLOW.instanceId
+    transition: WaitForCreatePlanCompletion
+  - name: WaitForCreatePlanCompletion
+    type: switch
+    eventConditions:
+      - eventRef: planCreatedEvent
+        transition: StartPlanning
+      - eventRef: errorEvent
+        transition: PlanCreationError
+    defaultCondition:
+      transition: PlanCreationError
+    timeouts:
+      eventTimeout: PT5M
+  - name: PlanCreationError
+    type: inject
+    data:
+      exitMessage: '"Error while creating plan. If no context, it was due to timeout expiration"'
+    transition: PrintExitErrorMessage
+  - name: StartPlanning
+    type: operation
+    actions:
+      - functionRef:
+          refName: startPlanning
+          arguments:
+            workspace-id: ".workspaceId"
+            project-id: ".projectId"
+        sleep:
+          before: PT5S
+    transition: GetPlanning
+  - name: GetPlanning
+    type: operation
+    actions:
+      - functionRef:
+          refName: getPlanning
+          arguments:
+            workspace-id: ".workspaceId"
+            project-id: ".projectId"
+        actionDataFilter:
+          toStateData: .
+        sleep:
+          before: PT5S
+    transition: PlanRetrievedCheck
+  - name: PlanRetrievedCheck
+    type: switch
+    dataConditions:
+      - condition: (has("plan") and .plan != "")
+        transition:
+          nextState: StartTransformation
+    defaultCondition:
+      transition: GetPlanning
+  - name: StartTransformation
+    type: operation
+    actions:
+      - functionRef:
+          refName: startTransformation
+          arguments:
+            workspace-id: ".workspaceId"
+            project-id: ".projectId"
+            plan: .plan
+        actionDataFilter:
+          results: .id
+          toStateData: .transformId
+    transition: PrintTransformationIdMessage
+  - name: PrintTransformationIdMessage
+    type: operation
+    actions:
+      - name: printSystemOut
+        functionRef:
+          refName: systemOut
+          arguments:
+            message: '${"m2k workflow: " + $WORKFLOW.instanceId + " transformation ID: " + .transformId }'
+    transition: SendEmail
+  - name: SendEmail
+    type: operation
+    actions:
+    - functionRef:
+        refName: sendEmail
+        arguments:
+          inbox_id: $SECRET.mailtrap_inbox_id | tonumber
+          to:
+            - email: .user
+              name: "user"
+          from:
+            email: $SECRET.sender_email
+            name: "Move2Kube"
+          subject: " \"Transformation \" + .transformationId "
+          html: '"Please go to your <a href=\"" + $SECRET.move2kube_url + "/workspaces/"+ .workspaceId + "/projects/" + .projectId + "/outputs/"+ .transformId + "\">Move2Kube instance</a> and answers to questions in order to continue the Move2Kube workflow"'
+    transition: SaveTransformationOutput
+  - name: SaveTransformationOutput
+    type: operation
+    actions:
+      - functionRef:
+          refName: sendCloudEvent
+          arguments:
+            HEADER_Ce-Id: "5678"
+            HEADER_Ce-Specversion: "1.0"
+            HEADER_Ce-Type: "save-transformation"
+            HEADER_Ce-Source: "m2k_swf"
+            HEADER_Content-Type: "application/json"
+            githubRepo: .repo
+            branch: .targetBranch
+            token: .token
+            workspaceId: .workspaceId
+            projectId: .projectId
+            transformId: .transformId
+            workflowCallerId: $WORKFLOW.instanceId
+    transition: WaitForSaveTransformationCompletion
+  - name: WaitForSaveTransformationCompletion
+    type: switch
+    eventConditions:
+      - eventRef: transformationSavedEvent
+        transition: TransformationSaved
+      - eventRef: errorEvent
+        transition: TransformationError
+    defaultCondition:
+      transition: TransformationError
+    timeouts:
+      eventTimeout: PT3M
+  - name: TransformationSaved
+    type: inject
+    data:
+      exitMessage: Transformation successful.
+    transition: PrintExitSuccessMessage
+  - name: TransformationError
+    type: inject
+    data:
+      exitMessage: '"Error while saving transformation output. If no context, it was due to timeout expiration"'
+    transition: PrintExitErrorMessage
+  - name: PrintExitErrorMessage
+    type: operation
+    actions:
+      - name: printSystemOut
+        functionRef:
+          refName: systemOut
+          arguments:
+            message: '${"m2k workflow: " + $WORKFLOW.instanceId + " has finalized with error. Exit message: " + .exitMessage + " -- Context: "  + .error }'
+    end: true
+  - name: PrintExitSuccessMessage
+    type: operation
+    actions:
+     - name: printSystemOut
+       functionRef:
+         refName: systemOut
+         arguments:
+           message: '${"m2k workflow: " + $WORKFLOW.instanceId + " has finalized successfully}"'
+    end: true

@@ -1,0 +1,2588 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Move2Kube API",
+    "description": "This is a documentation of the Move2Kube REST API.\nAll API calls expect the `Authorization: Bearer <access-token>` HTTP header unless specified otherwise.\nThe access token can be obtained in the same way as OAuth 2.0 using the token endpoint in the admin section.\n",
+    "contact": {
+      "email": "move2kube-dev@googlegroups.com"
+    },
+    "license": {
+      "name": "Apache 2.0",
+      "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+    },
+    "version": "v1.0.0"
+  },
+  "externalDocs": {
+    "description": "Find out more about Swagger",
+    "url": "http://swagger.io"
+  },
+  "servers": [
+    {
+      "url": "/api/v1"
+    }
+  ],
+  "tags": [
+    {
+      "name": "move2kube",
+      "description": "Helps migrate your app to Kubernetes.",
+      "externalDocs": {
+        "description": "Find out more",
+        "url": "https://move2kube.konveyor.io/"
+      }
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "paths": {
+    "/token": {
+      "post": {
+        "security": [
+          {
+            "basicAuth": []
+          }
+        ],
+        "tags": [
+          "admin"
+        ],
+        "summary": "Get an access token using client ID and client secret (for use with trusted clients).",
+        "description": "Get an access token using client ID and client secret (for use with trusted clients).",
+        "operationId": "get-tokens",
+        "requestBody": {
+          "description": "Use `grant_type=client_credentials` in the body and set the header  \n`Authorization: Basic base64(client_id + \":\" + client_secret)`\n",
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "grant_type"
+                ],
+                "properties": {
+                  "grant_type": {
+                    "type": "string",
+                    "enum": [
+                      "client_credentials"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/Token"
+          },
+          "400": {
+            "description": "Invalid format or validation error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "description": "Don't have authorization to get the access token."
+          }
+        }
+      }
+    },
+    "/support": {
+      "get": {
+        "tags": [
+          "support"
+        ],
+        "summary": "Returns some support information like CLI, API and UI version info.",
+        "description": "Returns some support information like CLI, API and UI version info.",
+        "operationId": "get-support-info",
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "cli_version": {
+                      "type": "string",
+                      "description": "The version, commit hash, etc. of the Move2Kube CLI tool being used.",
+                      "example": "version: v0.3.0+unreleased\ngitCommit: 0ccc6c4c6ea8ccd8fb8f999d37f81cdf0fdf22e6\ngitTreeState: clean\ngoVersion: go1.18.1\nplatform: darwin/amd64"
+                    },
+                    "api_version": {
+                      "type": "string",
+                      "description": "The version, commit hash, etc. of the Move2Kube API server being used.",
+                      "example": "version: v0.1.0+unreleased\ngitCommit: d21d2503e136fd85d5b166d5899d4058083cf0ce\ngitTreeState: clean\ngoVersion: go1.18.1\nplatform: darwin/amd64"
+                    },
+                    "ui_version": {
+                      "type": "string",
+                      "description": "The version, commit hash, etc. of the Move2Kube UI website being used.",
+                      "example": "unknown"
+                    },
+                    "docker": {
+                      "type": "string",
+                      "description": "Whether the docker socket '/var/run/docker.sock' is mounted when running as a container.",
+                      "example": "docker socket is not mounted"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/workspaces": {
+      "get": {
+        "tags": [
+          "workspaces"
+        ],
+        "summary": "Get all the workspaces you have access to.",
+        "description": "Get all the workspaces you have access to.",
+        "operationId": "get-workspaces",
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Workspace"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "description": "Don't have authorization to get all the workspaces."
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "workspaces"
+        ],
+        "summary": "Create a new workspace. The ID will be generated by the server.",
+        "description": "Create a new workspace. The ID will be generated by the server.",
+        "operationId": "create-workspace",
+        "requestBody": {
+          "description": "The metadata of the workspace.\nLeave the ID blank, it will be generated.\nLeave the projects blank, projects are managed through a different set of endpoints.\n",
+          "content": {
+            "application/json": {
+              "example": {
+                "name": "Team 1 Workspace",
+                "description": "The workspace team 1 uses."
+              },
+              "schema": {
+                "$ref": "#/components/schemas/Workspace"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "ID of the new workspace.",
+                      "example": "work-1234"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid format or validation error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "description": "Don't have authorization to create a new workspace."
+          }
+        },
+        "x-codegen-request-body-name": "body"
+      }
+    },
+    "/workspaces/{workspace-id}": {
+      "get": {
+        "tags": [
+          "workspaces"
+        ],
+        "summary": "Get the workspace with the given ID.",
+        "description": "Get the workspace with the given ID.",
+        "operationId": "get-workspace",
+        "parameters": [
+          {
+            "name": "workspace-id",
+            "in": "path",
+            "description": "ID of the workspace to get.",
+            "required": true,
+            "example": "work-1234",
+            "schema": {
+              "$ref": "#/components/schemas/ID"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Workspace"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "description": "Don't have authorization to get this workspace."
+          },
+          "404": {
+            "description": "Workspace not found."
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "workspaces"
+        ],
+        "summary": "Update a workspace. The workspace will be created if it doesn't exist.",
+        "description": "Update a workspace. The workspace will be created if it doesn't exist.",
+        "operationId": "update-workspace",
+        "parameters": [
+          {
+            "name": "workspace-id",
+            "in": "path",
+            "description": "ID of the workspace to update.",
+            "required": true,
+            "example": "work-1",
+            "schema": {
+              "$ref": "#/components/schemas/ID"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "The metadata of the workspace.\nLeave the ID blank, it will be generated.\nLeave the projects blank, projects are managed through a different set of endpoints.\n",
+          "content": {
+            "application/json": {
+              "example": {
+                "name": "Team 1 Workspace. Update Name.",
+                "description": "The workspace team 1 uses. Updated description."
+              },
+              "schema": {
+                "$ref": "#/components/schemas/Workspace"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created."
+          },
+          "204": {
+            "description": "Updated."
+          },
+          "400": {
+            "description": "Invalid format or validation error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "description": "Don't have authorization to create/update this workspace."
+          },
+          "404": {
+            "description": "Workspace not found."
+          }
+        },
+        "x-codegen-request-body-name": "body"
+      },
+      "delete": {
+        "tags": [
+          "workspaces"
+        ],
+        "summary": "Delete an existing workspace.",
+        "description": "Delete an existing workspace.",
+        "operationId": "delete-workspace",
+        "parameters": [
+          {
+            "name": "workspace-id",
+            "in": "path",
+            "description": "ID of the workspace to delete.",
+            "required": true,
+            "example": "work-1",
+            "schema": {
+              "$ref": "#/components/schemas/ID"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted."
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "description": "Don't have authorization to delete this workspace."
+          },
+          "404": {
+            "description": "Workspace not found."
+          }
+        }
+      }
+    },
+    "/workspaces/{workspace-id}/inputs": {
+      "post": {
+        "tags": [
+          "workspace-inputs"
+        ],
+        "summary": "Create a new input for this workspace. All the projects in this workspace will be able to use it. The ID will be generated by the server.",
+        "description": "Create a new input for this workspace. All the projects in this workspace will be able to use it. The ID will be generated by the server.",
+        "operationId": "create-workspace-input",
+        "parameters": [
+          {
+            "name": "workspace-id",
+            "in": "path",
+            "description": "ID of the workspace to create the input in.",
+            "required": true,
+            "example": "work-1234",
+            "schema": {
+              "$ref": "#/components/schemas/ID"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "The metadata of the workspace input.\nLeave the ID blank, it will be generated.\n",
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "sources",
+                      "customizations",
+                      "configs"
+                    ],
+                    "description": "The type of the input."
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "A description for the input."
+                  },
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "The actual content of the input file."
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "ID of the new workspace input.",
+                      "example": "work-input-1234"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid format or validation error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "description": "Don't have authorization to create an input for this project."
+          }
+        },
+        "x-codegen-request-body-name": "body"
+      }
+    },
+    "/workspaces/{workspace-id}/inputs/{input-id}": {
+      "get": {
+        "tags": [
+          "workspace-inputs"
+        ],
+        "summary": "Get the input of the project with the given ID.",
+        "description": "Get the input of the project with the given ID.",
+        "operationId": "get-workspace-input",
+        "parameters": [
+          {
+            "name": "workspace-id",
+            "in": "path",
+            "description": "ID of the workspace the project is in.",
+            "required": true,
+            "example": "work-1234",
+            "schema": {
+              "$ref": "#/components/schemas/ID"
+            }
+          },
+          {
+            "name": "input-id",
+            "in": "path",
+            "description": "ID of the input to get.",
+            "required": true,
+            "example": "work-input-1234",
+            "schema": {
+              "$ref": "#/components/schemas/ID"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "description": "Don't have authorization to get this project input."
+          },
+          "404": {
+            "description": "Workspace, project or input not found."
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "workspace-inputs"
+        ],
+        "summary": "Delete the input of the project.",
+        "description": "Delete the input of the project.",
+        "operationId": "delete-workspace-input",
+        "parameters": [
+          {
+            "name": "workspace-id",
+            "in": "path",
+            "description": "ID of the workspace the project is in.",
+            "required": true,
+            "example": "work-1234",
+            "schema": {
+              "$ref": "#/components/schemas/ID"
+            }
+          },
+          {
+            "name": "input-id",
+            "in": "path",
+            "description": "ID of the input to delete.",
+            "required": true,
+            "example": "work-input-1234",
+            "schema": {
+              "$ref": "#/components/schemas/ID"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted."
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "description": "Don't have authorization to delete this project input."
+          },
+          "404": {
+            "description": "Workspace, project or input not found."
+          }
+        },
+        "x-codegen-request-body-name": "body"
+      }
+    },
+    "/workspaces/{workspace-id}/projects": {
+      "get": {
+        "tags": [
+          "projects"
+        ],
+        "summary": "Get all the projects you have access to in this workspace.",
+        "description": "Get all the projects you have access to in this workspace.",
+        "operationId": "get-projects",
+        "parameters": [
+          {
+            "name": "workspace-id",
+            "in": "path",
+            "description": "ID of the workspace to get the projects from.",
+            "required": true,
+            "example": "work-1234",
+            "schema": {
+              "$ref": "#/components/schemas/ID"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Project"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "description": "Don't have authorization to get all the projects in this workspace."
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "projects"
+        ],
+        "summary": "Create a new project in this workspace. The ID will be generated by the server.",
+        "description": "Create a new project in this workspace. The ID will be generated by the server.",
+        "operationId": "create-project",
+        "parameters": [
+          {
+            "name": "workspace-id",
+            "in": "path",
+            "description": "ID of the workspace to create the project in.",
+            "required": true,
+            "example": "work-1234",
+            "schema": {
+              "$ref": "#/components/schemas/ID"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "The metadata of the project.\nLeave the ID blank, it will be generated.\n",
+          "content": {
+            "application/json": {
+              "example": {
+                "name": "My Web App 1",
+                "description": "Project to transform my web app 1 to run on K8s."
+              },
+              "schema": {
+                "$ref": "#/components/schemas/Project"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "ID of the new project.",
+                      "example": "proj-1234"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid format or validation error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "description": "Don't have authorization to create a new project in this workspace."
+          }
+        },
+        "x-codegen-request-body-name": "body"
+      }
+    },
+    "/workspaces/{workspace-id}/projects/{project-id}": {
+      "get": {
+        "tags": [
+          "projects"
+        ],
+        "summary": "Get the project with the given ID.",
+        "description": "Get the project with the given ID.",
+        "operationId": "get-project",
+        "parameters": [
+          {
+            "name": "workspace-id",
+            "in": "path",
+            "description": "ID of the workspace the project is in.",
+            "required": true,
+            "example": "work-1234",
+            "schema": {
+              "$ref": "#/components/schemas/ID"
+            }
+          },
+          {
+            "name": "project-id",
+            "in": "path",
+            "description": "ID of the project to get.",
+            "required": true,
+            "example": "proj-1234",
+            "schema": {
+              "$ref": "#/components/schemas/ID"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Project"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "description": "Don't have authorization to get this project."
+          },
+          "404": {
+            "description": "Workspace or project not found."
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "projects"
+        ],
+        "summary": "Update a project. The project will be created if it doesn't exist.",
+        "description": "Update a project. The project will be created if it doesn't exist.",
+        "operationId": "update-project",
+        "parameters": [
+          {
+            "name": "workspace-id",
+            "in": "path",
+            "description": "ID of the workspace the project is in.",
+            "required": true,
+            "example": "work-1234",
+            "schema": {
+              "$ref": "#/components/schemas/ID"
+            }
+          },
+          {
+            "name": "project-id",
+            "in": "path",
+            "description": "ID of the project to update.",
+            "required": true,
+            "example": "proj-1234",
+            "schema": {
+              "$ref": "#/components/schemas/ID"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "The metadata of the project.\nLeave the ID blank.\n",
+          "content": {
+            "application/json": {
+              "example": {
+                "name": "My Web App 1. Updated Name.",
+                "description": "Project to transform my web app 1. Updated description."
+              },
+              "schema": {
+                "$ref": "#/components/schemas/Project"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created."
+          },
+          "204": {
+            "description": "Updated."
+          },
+          "400": {
+            "description": "Invalid format or validation error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "description": "Don't have authorization to create/update this project."
+          },
+          "404": {
+            "description": "Workspace or project not found."
+          }
+        },
+        "x-codegen-request-body-name": "body"
+      },
+      "delete": {
+        "tags": [
+          "projects"
+        ],
+        "summary": "Delete an existing workspace.",
+        "description": "Delete an existing workspace.",
+        "operationId": "delete-project",
+        "parameters": [
+          {
+            "name": "workspace-id",
+            "in": "path",
+            "description": "ID of the workspace the project is in.",
+            "required": true,
+            "example": "work-1234",
+            "schema": {
+              "$ref": "#/components/schemas/ID"
+            }
+          },
+          {
+            "name": "project-id",
+            "in": "path",
+            "description": "ID of the project to delete.",
+            "required": true,
+            "example": "proj-1234",
+            "schema": {
+              "$ref": "#/components/schemas/ID"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted."
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "description": "Don't have authorization to delete this project."
+          },
+          "404": {
+            "description": "Workspace or project not found."
+          }
+        }
+      }
+    },
+    "/workspaces/{workspace-id}/projects/{project-id}/inputs": {
+      "post": {
+        "tags": [
+          "project-inputs"
+        ],
+        "summary": "Create a new input for this project. The ID will be generated by the server.",
+        "description": "Create a new input for this project. The ID will be generated by the server.",
+        "operationId": "create-project-input",
+        "parameters": [
+          {
+            "name": "workspace-id",
+            "in": "path",
+            "description": "ID of the workspace the project is in.",
+            "required": true,
+            "example": "work-1234",
+            "schema": {
+              "$ref": "#/components/schemas/ID"
+            }
+          },
+          {
+            "name": "project-id",
+            "in": "path",
+            "description": "ID of the project to create the input in.",
+            "required": true,
+            "example": "proj-1234",
+            "schema": {
+              "$ref": "#/components/schemas/ID"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "The metadata of the project input.\nLeave the ID blank, it will be generated.\n",
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "sources",
+                      "customizations",
+                      "configs",
+                      "reference"
+                    ],
+                    "description": "The type of the input."
+                  },
+                  "id": {
+                    "type": "string",
+                    "description": "If the input is of type 'reference', then this field indicates the id of the workspace input that it is referencing."
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "A description for the input."
+                  },
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "The actual content of the input file."
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "ID of the new project input.",
+                      "example": "proj-input-1234"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid format or validation error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "description": "Don't have authorization to create an input for this project."
+          }
+        },
+        "x-codegen-request-body-name": "body"
+      }
+    },
+    "/workspaces/{workspace-id}/projects/{project-id}/inputs/{input-id}": {
+      "get": {
+        "tags": [
+          "project-inputs"
+        ],
+        "summary": "Get the input of the project with the given ID.",
+        "description": "Get the input of the project with the given ID.",
+        "operationId": "get-project-input",
+        "parameters": [
+          {
+            "name": "workspace-id",
+            "in": "path",
+            "description": "ID of the workspace the project is in.",
+            "required": true,
+            "example": "work-1234",
+            "schema": {
+              "$ref": "#/components/schemas/ID"
+            }
+          },
+          {
+            "name": "project-id",
+            "in": "path",
+            "description": "ID of the project the input is in.",
+            "required": true,
+            "example": "proj-1234",
+            "schema": {
+              "$ref": "#/components/schemas/ID"
+            }
+          },
+          {
+            "name": "input-id",
+            "in": "path",
+            "description": "ID of the input to get.",
+            "required": true,
+            "example": "proj-input-1234",
+            "schema": {
+              "$ref": "#/components/schemas/ID"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "description": "Don't have authorization to get this project input."
+          },
+          "404": {
+            "description": "Workspace, project or input not found."
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "project-inputs"
+        ],
+        "summary": "Delete the input of the project.",
+        "description": "Delete the input of the project.",
+        "operationId": "delete-project-input",
+        "parameters": [
+          {
+            "name": "workspace-id",
+            "in": "path",
+            "description": "ID of the workspace the project is in.",
+            "required": true,
+            "example": "work-1234",
+            "schema": {
+              "$ref": "#/components/schemas/ID"
+            }
+          },
+          {
+            "name": "project-id",
+            "in": "path",
+            "description": "ID of the project the input is in.",
+            "required": true,
+            "example": "proj-1234",
+            "schema": {
+              "$ref": "#/components/schemas/ID"
+            }
+          },
+          {
+            "name": "input-id",
+            "in": "path",
+            "description": "ID of the input to delete.",
+            "required": true,
+            "example": "proj-input-1234",
+            "schema": {
+              "$ref": "#/components/schemas/ID"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted."
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "description": "Don't have authorization to delete this project input."
+          },
+          "404": {
+            "description": "Workspace, project or input not found."
+          }
+        },
+        "x-codegen-request-body-name": "body"
+      }
+    },
+    "/workspaces/{workspace-id}/projects/{project-id}/plan": {
+      "post": {
+        "tags": [
+          "plan"
+        ],
+        "summary": "Start planning on this project's inputs.",
+        "description": "Start planning on this project's inputs.",
+        "operationId": "start-planning",
+        "parameters": [
+          {
+            "name": "workspace-id",
+            "in": "path",
+            "description": "ID of the workspace the project is in.",
+            "required": true,
+            "example": "work-1234",
+            "schema": {
+              "$ref": "#/components/schemas/ID"
+            }
+          },
+          {
+            "name": "project-id",
+            "in": "path",
+            "description": "ID of the project to start planning in.",
+            "required": true,
+            "example": "proj-1234",
+            "schema": {
+              "$ref": "#/components/schemas/ID"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Accepted."
+          },
+          "400": {
+            "description": "Invalid format or validation error."
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "description": "Don't have authorization to start planning for this project."
+          },
+          "404": {
+            "description": "Workspace or project not found."
+          }
+        },
+        "x-codegen-request-body-name": "body"
+      },
+      "get": {
+        "tags": [
+          "plan"
+        ],
+        "summary": "Get the plan file.",
+        "description": "Get the plan file.",
+        "operationId": "get-plan",
+        "parameters": [
+          {
+            "name": "workspace-id",
+            "in": "path",
+            "description": "ID of the workspace the project is in.",
+            "required": true,
+            "example": "work-1234",
+            "schema": {
+              "$ref": "#/components/schemas/ID"
+            }
+          },
+          {
+            "name": "project-id",
+            "in": "path",
+            "description": "ID of the project to get the plan from.",
+            "required": true,
+            "example": "proj-1234",
+            "schema": {
+              "$ref": "#/components/schemas/ID"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Accepted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "plan": {
+                      "type": "string",
+                      "description": "The plan file in YAML format."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid format or validation error."
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "description": "Don't have authorization to start planning for this project."
+          },
+          "404": {
+            "description": "Workspace or project not found."
+          },
+          "409": {
+            "description": "Conflict, because planning is already on-going for this project."
+          }
+        },
+        "x-codegen-request-body-name": "body"
+      },
+      "put": {
+        "tags": [
+          "plan"
+        ],
+        "summary": "Update the plan for this project.",
+        "description": "Update the plan for this project.",
+        "operationId": "update-plan",
+        "parameters": [
+          {
+            "name": "workspace-id",
+            "in": "path",
+            "description": "ID of the workspace the project is in.",
+            "required": true,
+            "example": "work-1234",
+            "schema": {
+              "$ref": "#/components/schemas/ID"
+            }
+          },
+          {
+            "name": "project-id",
+            "in": "path",
+            "description": "ID of the project to update the plan for.",
+            "required": true,
+            "example": "proj-1234",
+            "schema": {
+              "$ref": "#/components/schemas/ID"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "plan": {
+                    "type": "string",
+                    "description": "The new plan file to use for this project."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Accepted."
+          },
+          "400": {
+            "description": "Invalid format or validation error."
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "description": "Don't have authorization to update the plan for this project."
+          },
+          "404": {
+            "description": "Workspace or project not found."
+          }
+        },
+        "x-codegen-request-body-name": "body"
+      },
+      "delete": {
+        "tags": [
+          "plan"
+        ],
+        "summary": "Delete the current plan for the project.",
+        "description": "Delete the current plan for the project.",
+        "operationId": "delete-plan",
+        "parameters": [
+          {
+            "name": "workspace-id",
+            "in": "path",
+            "description": "ID of the workspace the project is in.",
+            "required": true,
+            "example": "work-1234",
+            "schema": {
+              "$ref": "#/components/schemas/ID"
+            }
+          },
+          {
+            "name": "project-id",
+            "in": "path",
+            "description": "ID of the project to delete the plan from.",
+            "required": true,
+            "example": "proj-1234",
+            "schema": {
+              "$ref": "#/components/schemas/ID"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted."
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "description": "Don't have authorization to delete the plan for this project."
+          },
+          "404": {
+            "description": "Workspace or project not found."
+          }
+        }
+      }
+    },
+    "/workspaces/{workspace-id}/projects/{project-id}/outputs": {
+      "post": {
+        "tags": [
+          "project-outputs"
+        ],
+        "summary": "Start transformation for this project. Planning must be completed before this.",
+        "description": "Start transformation for this project. Planning must be completed before this.",
+        "operationId": "start-transformation",
+        "parameters": [
+          {
+            "name": "workspace-id",
+            "in": "path",
+            "description": "ID of the workspace the project is in.",
+            "required": true,
+            "example": "work-1234",
+            "schema": {
+              "$ref": "#/components/schemas/ID"
+            }
+          },
+          {
+            "name": "project-id",
+            "in": "path",
+            "description": "ID of the project to start the transformation for.",
+            "required": true,
+            "example": "proj-1234",
+            "schema": {
+              "$ref": "#/components/schemas/ID"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "A plan to use for the transformation. (Not required).\n",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "plan": {
+                    "type": "string",
+                    "description": "A plan to use for the transformation. (Not required)."
+                  }
+                }
+              }
+            }
+          },
+          "required": false
+        },
+        "responses": {
+          "202": {
+            "description": "Accept",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "ID of the new project output.",
+                      "example": "proj-output-1234"
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Name of the project output."
+                    },
+                    "description": {
+                      "type": "string",
+                      "description": "Description of the project output."
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "status": {
+                      "type": "string",
+                      "description": "The status of the transformation.",
+                      "enum": [
+                        "transforming",
+                        "done",
+                        "error"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid format or validation error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "description": "Don't have authorization to start transformation for this project."
+          },
+          "404": {
+            "description": "Workspace or project not found."
+          }
+        },
+        "x-codegen-request-body-name": "body"
+      }
+    },
+    "/workspaces/{workspace-id}/projects/{project-id}/outputs/{output-id}": {
+      "get": {
+        "tags": [
+          "project-outputs"
+        ],
+        "summary": "Get the output of the project with the given ID.",
+        "description": "Get the output of the project with the given ID.",
+        "operationId": "get-project-output",
+        "parameters": [
+          {
+            "name": "workspace-id",
+            "in": "path",
+            "description": "ID of the workspace the project is in.",
+            "required": true,
+            "example": "work-1234",
+            "schema": {
+              "$ref": "#/components/schemas/ID"
+            }
+          },
+          {
+            "name": "project-id",
+            "in": "path",
+            "description": "ID of the project the output is in.",
+            "required": true,
+            "example": "proj-1234",
+            "schema": {
+              "$ref": "#/components/schemas/ID"
+            }
+          },
+          {
+            "name": "output-id",
+            "in": "path",
+            "description": "ID of the output to get.",
+            "required": true,
+            "example": "proj-output-1234",
+            "schema": {
+              "$ref": "#/components/schemas/ID"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "204": {
+            "description": "The transformation is still on-going."
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "description": "Don't have authorization to get this project output."
+          },
+          "404": {
+            "description": "Workspace, project or output not found."
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "project-outputs"
+        ],
+        "summary": "Delete the output of the project.",
+        "description": "Delete the output of the project.",
+        "operationId": "delete-project-output",
+        "parameters": [
+          {
+            "name": "workspace-id",
+            "in": "path",
+            "description": "ID of the workspace the project is in.",
+            "required": true,
+            "example": "work-1234",
+            "schema": {
+              "$ref": "#/components/schemas/ID"
+            }
+          },
+          {
+            "name": "project-id",
+            "in": "path",
+            "description": "ID of the project the output is in.",
+            "required": true,
+            "example": "proj-1234",
+            "schema": {
+              "$ref": "#/components/schemas/ID"
+            }
+          },
+          {
+            "name": "output-id",
+            "in": "path",
+            "description": "ID of the output to delete.",
+            "required": true,
+            "example": "proj-output-1234",
+            "schema": {
+              "$ref": "#/components/schemas/ID"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted."
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "description": "Don't have authorization to delete this project output."
+          },
+          "404": {
+            "description": "Workspace, project or output not found."
+          }
+        },
+        "x-codegen-request-body-name": "body"
+      }
+    },
+    "/workspaces/{workspace-id}/projects/{project-id}/outputs/{output-id}/graph": {
+      "get": {
+        "tags": [
+          "project-output-graphs"
+        ],
+        "summary": "Get the graph of the transformers used while creating the output with the given ID.",
+        "description": "Get the graph of the transformers used while creating the output with the given ID.",
+        "operationId": "get-project-output-graph",
+        "parameters": [
+          {
+            "name": "workspace-id",
+            "in": "path",
+            "description": "ID of the workspace the project is in.",
+            "required": true,
+            "example": "work-1234",
+            "schema": {
+              "$ref": "#/components/schemas/ID"
+            }
+          },
+          {
+            "name": "project-id",
+            "in": "path",
+            "description": "ID of the project the output is in.",
+            "required": true,
+            "example": "proj-1234",
+            "schema": {
+              "$ref": "#/components/schemas/ID"
+            }
+          },
+          {
+            "name": "output-id",
+            "in": "path",
+            "description": "ID of the output whose graph we should get.",
+            "required": true,
+            "example": "proj-output-1234",
+            "schema": {
+              "$ref": "#/components/schemas/ID"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "204": {
+            "description": "The transformation is still on-going."
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "description": "Don't have authorization to get this project output."
+          },
+          "404": {
+            "description": "Workspace, project or output not found."
+          }
+        }
+      }
+    },
+    "/workspaces/{workspace-id}/projects/{project-id}/outputs/{output-id}/problems/current": {
+      "get": {
+        "tags": [
+          "qa"
+        ],
+        "summary": "Get the current question that needs to be answered for the transformation to proceed.",
+        "description": "Get the current question that needs to be answered for the transformation to proceed.",
+        "operationId": "get-current-question",
+        "parameters": [
+          {
+            "name": "workspace-id",
+            "in": "path",
+            "description": "ID of the workspace the project is in.",
+            "required": true,
+            "example": "work-1234",
+            "schema": {
+              "$ref": "#/components/schemas/ID"
+            }
+          },
+          {
+            "name": "project-id",
+            "in": "path",
+            "description": "ID of the project the output is in.",
+            "required": true,
+            "example": "proj-1234",
+            "schema": {
+              "$ref": "#/components/schemas/ID"
+            }
+          },
+          {
+            "name": "output-id",
+            "in": "path",
+            "description": "ID of the output whose transformation is on-going.",
+            "required": true,
+            "example": "proj-output-1234",
+            "schema": {
+              "$ref": "#/components/schemas/ID"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "question": {
+                      "type": "string",
+                      "description": "A JSON encoded string of the question object."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "204": {
+            "description": "All questions have finished."
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "description": "Don't have authorization to get this project output."
+          },
+          "404": {
+            "description": "Workspace, project or output not found. Might also be returned once the transformation has finished."
+          }
+        }
+      }
+    },
+    "/workspaces/{workspace-id}/projects/{project-id}/outputs/{output-id}/problems/current/solution": {
+      "post": {
+        "tags": [
+          "qa"
+        ],
+        "summary": "Post the answer to the current question for an on-going transformation given by the ID.",
+        "description": "Post the answer to the current question for an on-going transformation given by the ID.",
+        "operationId": "post-answer-to-question",
+        "parameters": [
+          {
+            "name": "workspace-id",
+            "in": "path",
+            "description": "ID of the workspace the project is in.",
+            "required": true,
+            "example": "work-1234",
+            "schema": {
+              "$ref": "#/components/schemas/ID"
+            }
+          },
+          {
+            "name": "project-id",
+            "in": "path",
+            "description": "ID of the project to start the transformation for.",
+            "required": true,
+            "example": "proj-1234",
+            "schema": {
+              "$ref": "#/components/schemas/ID"
+            }
+          },
+          {
+            "name": "output-id",
+            "in": "path",
+            "description": "ID of the output whose transformation is on-going.",
+            "required": true,
+            "example": "proj-output-1234",
+            "schema": {
+              "$ref": "#/components/schemas/ID"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "A plan to use for the transformation. (Not required).\n",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "solution": {
+                    "type": "string",
+                    "description": "A JSON encoded string containing the answer object."
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Answer was accepted"
+          },
+          "400": {
+            "description": "Invalid format or validation error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "description": "Don't have authorization to post an answer to the question for this project output."
+          },
+          "404": {
+            "description": "Workspace, project, or output not found."
+          }
+        },
+        "x-codegen-request-body-name": "body"
+      }
+    },
+    "/roles": {
+      "get": {
+        "tags": [
+          "roles"
+        ],
+        "summary": "Get all the roles.",
+        "description": "Get all the roles.",
+        "operationId": "get-roles",
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Role"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "description": "Don't have authorization to get all the roles."
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "roles"
+        ],
+        "summary": "Create a new role.",
+        "description": "Create a new role.",
+        "operationId": "create-role",
+        "requestBody": {
+          "description": "The metadata of the role. Leave the ID blank, it will be generated.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Role"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "ID of the new role.",
+                      "example": "role-1234"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid format or validation error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "description": "Don't have authorization to create a new role."
+          }
+        },
+        "x-codegen-request-body-name": "body"
+      }
+    },
+    "/roles/{role-id}": {
+      "get": {
+        "tags": [
+          "roles"
+        ],
+        "summary": "Get the role with the given ID.",
+        "description": "Get the role with the given ID.",
+        "operationId": "get-role",
+        "parameters": [
+          {
+            "name": "role-id",
+            "in": "path",
+            "description": "ID of the role to get.",
+            "required": true,
+            "example": "team-7",
+            "schema": {
+              "$ref": "#/components/schemas/ID"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Role"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "description": "Don't have authorization to get this role."
+          },
+          "404": {
+            "description": "Role not found."
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "roles"
+        ],
+        "summary": "Update a role. The role will be created if it doesn't exist.",
+        "description": "Update a role. The role will be created if it doesn't exist.",
+        "operationId": "update-role",
+        "parameters": [
+          {
+            "name": "role-id",
+            "in": "path",
+            "description": "ID of the role to update.",
+            "required": true,
+            "example": "team-1",
+            "schema": {
+              "$ref": "#/components/schemas/ID"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "The metadata of the role.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Role"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created."
+          },
+          "204": {
+            "description": "Updated."
+          },
+          "400": {
+            "description": "Invalid format or validation error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "description": "Don't have authorization to create/update this role."
+          },
+          "404": {
+            "description": "Role not found."
+          }
+        },
+        "x-codegen-request-body-name": "body"
+      },
+      "delete": {
+        "tags": [
+          "roles"
+        ],
+        "summary": "Delete an existing role",
+        "description": "Delete an existing role.",
+        "operationId": "delete-role",
+        "parameters": [
+          {
+            "name": "role-id",
+            "in": "path",
+            "description": "ID of the role to delete.",
+            "required": true,
+            "example": "team-1",
+            "schema": {
+              "$ref": "#/components/schemas/ID"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted."
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "description": "Don't have authorization to delete this role."
+          },
+          "404": {
+            "description": "Role not found."
+          }
+        }
+      }
+    },
+    "/idps/{idp-id}/users/{user-id}/roles": {
+      "get": {
+        "tags": [
+          "role-bindings"
+        ],
+        "summary": "Get all the roles for the given user.",
+        "description": "Get all the roles for the given user.",
+        "operationId": "get-roles-of-user",
+        "parameters": [
+          {
+            "name": "idp-id",
+            "in": "path",
+            "description": "ID of the identity provider.",
+            "required": true,
+            "example": "idp-1",
+            "schema": {
+              "$ref": "#/components/schemas/ID"
+            }
+          },
+          {
+            "name": "user-id",
+            "in": "path",
+            "description": "ID of the user as given by the identity provider.",
+            "required": true,
+            "example": "user-1",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "description": "List of role IDs assigned to the user.",
+                  "example": [
+                    "role-1",
+                    "role-2"
+                  ],
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "description": "Don't have authorization to get the roles for this user."
+          },
+          "404": {
+            "description": "User not found."
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "role-bindings"
+        ],
+        "summary": "Update the roles of the given user.",
+        "description": "Update the roles of the given user.",
+        "operationId": "update-roles-of-user",
+        "parameters": [
+          {
+            "name": "idp-id",
+            "in": "path",
+            "description": "ID of the identity provider.",
+            "required": true,
+            "example": "idp-1",
+            "schema": {
+              "$ref": "#/components/schemas/ID"
+            }
+          },
+          {
+            "name": "user-id",
+            "in": "path",
+            "description": "ID of the user as given by the identity provider.",
+            "required": true,
+            "example": "user-1",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Add, remove or overwrite the roles of the user.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "op": {
+                    "type": "string",
+                    "description": "add: add these roles to the existing roles the user has.  \nremove: remove these roles from the existing roles the user has.  \noverwrite: completely overwrite the existing roles the user has with these roles.\n",
+                    "enum": [
+                      "add",
+                      "remove",
+                      "overwrite"
+                    ]
+                  },
+                  "roles": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "List of role IDs",
+                    "example": [
+                      "role-1",
+                      "role-2"
+                    ]
+                  }
+                },
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Success."
+          },
+          "400": {
+            "description": "Invalid format or validation error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "description": "Don't have authorization to update the roles for this user."
+          },
+          "404": {
+            "description": "User not found."
+          }
+        },
+        "x-codegen-request-body-name": "body"
+      }
+    },
+    "/idps/{idp-id}/users/{user-id}/roles/{role-id}": {
+      "put": {
+        "tags": [
+          "role-bindings"
+        ],
+        "summary": "Add a role to a user.",
+        "description": "Add a role to a user.",
+        "operationId": "add-role-to-user",
+        "parameters": [
+          {
+            "name": "idp-id",
+            "in": "path",
+            "description": "ID of the identity provider.",
+            "required": true,
+            "example": "idp-1",
+            "schema": {
+              "$ref": "#/components/schemas/ID"
+            }
+          },
+          {
+            "name": "user-id",
+            "in": "path",
+            "description": "ID of the user as given by the identity provider.",
+            "required": true,
+            "example": "user-1",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "role-id",
+            "in": "path",
+            "description": "ID of the role to add to the user.",
+            "required": true,
+            "example": "team-7",
+            "schema": {
+              "$ref": "#/components/schemas/ID"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created."
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "description": "Don't have authorization to add this role to this user."
+          },
+          "404": {
+            "description": "User not found."
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "role-bindings"
+        ],
+        "summary": "Remove a role from a user.",
+        "description": "Remove a role from a user.",
+        "operationId": "remove-role-from-user",
+        "parameters": [
+          {
+            "name": "idp-id",
+            "in": "path",
+            "description": "ID of the identity provider.",
+            "required": true,
+            "example": "idp-1",
+            "schema": {
+              "$ref": "#/components/schemas/ID"
+            }
+          },
+          {
+            "name": "user-id",
+            "in": "path",
+            "description": "ID of the user as given by the identity provider.",
+            "required": true,
+            "example": "user-1",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "role-id",
+            "in": "path",
+            "description": "ID of the role to remove from the user.",
+            "required": true,
+            "example": "team-7",
+            "schema": {
+              "$ref": "#/components/schemas/ID"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted."
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "description": "Don't have authorization to remove this role from this user."
+          },
+          "404": {
+            "description": "User not found."
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "basicAuth": {
+        "type": "http",
+        "scheme": "basic"
+      },
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    },
+    "responses": {
+      "UnauthorizedError": {
+        "description": "Authorization header is missing or invalid.",
+        "headers": {
+          "WWW_Authenticate": {
+            "schema": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "Token": {
+        "description": "The access token.",
+        "headers": {
+          "Cache-Control": {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "no-store"
+              ]
+            }
+          },
+          "Pragma": {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "no-cache"
+              ]
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "access_token": {
+                  "type": "string",
+                  "example": "eyJ0eXAiOiJKV1QiLA0KICJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJqb2UiLA0KICJleHAiOjEzMDA4MTkzODAsDQogImh0dHA6Ly9leGFtcGxlLmNvbS9pc19yb290Ijp0cnVlfQ.dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"
+                },
+                "token_type": {
+                  "type": "string",
+                  "example": "example"
+                },
+                "expires_in": {
+                  "type": "number",
+                  "example": 3600
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "ID": {
+        "pattern": "^[a-zA-Z0-9-_]+$",
+        "type": "string",
+        "description": "A unique ID.",
+        "example": "id-1234"
+      },
+      "Error": {
+        "required": [
+          "error"
+        ],
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "object",
+            "required": [
+              "description"
+            ],
+            "properties": {
+              "description": {
+                "type": "string",
+                "description": "A human readable error message.",
+                "example": "failed to create the workspace. Error: ..."
+              }
+            }
+          }
+        }
+      },
+      "Project": {
+        "required": [
+          "id",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "object",
+            "description": "A unique ID for the project.",
+            "example": "proj-1234",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ID"
+              }
+            ]
+          },
+          "name": {
+            "type": "string",
+            "description": "A human readable name for the project.",
+            "example": "Project 23"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "outputs": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                },
+                "timestamp": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "status": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "status": {
+            "type": "object",
+            "properties": {
+              "plan": {
+                "type": "boolean"
+              },
+              "plan_error": {
+                "type": "boolean"
+              },
+              "planning": {
+                "type": "boolean"
+              },
+              "reference": {
+                "type": "boolean"
+              },
+              "stale_plan": {
+                "type": "boolean"
+              },
+              "sources": {
+                "type": "boolean"
+              },
+              "outputs": {
+                "type": "boolean"
+              }
+            }
+          },
+          "inputs": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                },
+                "timestamp": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "type": {
+                  "type": "string"
+                },
+                "normalized_name": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "description": {
+            "type": "string",
+            "description": "A description about the project.",
+            "example": "This is one of the projects that team 1 is working on."
+          }
+        }
+      },
+      "Workspace": {
+        "required": [
+          "id",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "object",
+            "description": "A unique ID for the workspace.",
+            "example": "work-1234",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ID"
+              }
+            ]
+          },
+          "name": {
+            "type": "string",
+            "description": "A human readable name for the workspace.",
+            "example": "Team 1 Workspace"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "project_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "inputs": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                },
+                "timestamp": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "type": {
+                  "type": "string"
+                },
+                "normalized_name": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "description": {
+            "type": "string",
+            "description": "A description about the workspace.",
+            "example": "This is the workspace for all the projects of team 1."
+          },
+          "projects": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Project"
+            }
+          }
+        }
+      },
+      "Resource": {
+        "type": "string",
+        "description": "A resource is a URL path.",
+        "example": "/workspaces/work-1234/projects/proj-42"
+      },
+      "Role": {
+        "required": [
+          "id",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "object",
+            "description": "A unique ID for the role.",
+            "example": "team-1",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ID"
+              }
+            ]
+          },
+          "name": {
+            "type": "string",
+            "description": "A human readable name for the role.",
+            "example": "Team 1"
+          },
+          "description": {
+            "type": "string",
+            "description": "A description about the role",
+            "example": "A member of team 1."
+          },
+          "rules": {
+            "type": "array",
+            "description": "The list of rules to apply for this role.\n",
+            "example": [
+              {
+                "resources": [
+                  "/workspaces/work-7/.+",
+                  "/workspaces/work-42/projects/.*",
+                  "/workspaces/work-123/projects/proj-2"
+                ],
+                "verbs": [
+                  "all"
+                ]
+              },
+              {
+                "resources": [
+                  "/workspaces/work-1234"
+                ],
+                "verbs": [
+                  "create-project",
+                  "delete-project"
+                ]
+              }
+            ],
+            "items": {
+              "required": [
+                "resources",
+                "verbs"
+              ],
+              "type": "object",
+              "properties": {
+                "resources": {
+                  "type": "array",
+                  "description": "List of resources. The elements of this list are Javascript ES6 Regex patterns.\nWhen a request for a protected resource is received these regexs are used to\nmatch against the resource URL.\n",
+                  "items": {
+                    "$ref": "#/components/schemas/Resource"
+                  }
+                },
+                "verbs": {
+                  "type": "array",
+                  "description": "List of allowed verbs.  \nFor now the only supported verb is `all` which allows all actions on the resource.\n",
+                  "items": {
+                    "type": "string",
+                    "example": "all"
+                  }
+                }
+              },
+              "description": "A rule is a list of resources and the list of allowed verbs for those resources."
+            }
+          }
+        }
+      }
+    }
+  }
+}

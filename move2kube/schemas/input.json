@@ -1,0 +1,44 @@
+{
+    "$id": "classpath:/schema/input.json",
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Input",
+    "description": "schema for input description",
+    "type": "object",
+    "properties": {
+        "token": {
+            "description": "The token to use to authenticate with GitHub",
+            "type": "string"
+        },
+        "sourceBranch": {
+            "description": "the branch to download the zip from",
+            "type": "string"
+        },
+        "targetBranch": {
+            "description": "the branch to create in the repo",
+            "type": "string"
+        },
+        "repo": {
+            "description": "the repo to be used",
+            "type": "string",
+            "examples": [
+                "dotfiles"
+            ]
+        },
+        "workspace-id": {
+            "description": "the ID of the Move2Kube workspace",
+            "type": "string"
+        },
+        "project-id": {
+            "description": "the ID of the Move2Kube project",
+            "type": "string"
+        }
+    },
+    "required": [
+        "token",
+        "repo",
+        "sourceBranch",
+        "targetBranch",
+        "workspaceId",
+        "projectId"
+    ]
+}
