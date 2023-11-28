@@ -24,7 +24,7 @@ jobs:
         containerfiles: |
           pipeline/workflow-builder.Dockerfile
         build-args: |
-          WF_RESOURCES=${{ env.workflow_id }}/${{ env.workflow_id }}.sw.yaml
+          WF_RESOURCES=${{ env.workflow_id }}/
     # - name: Push To quay.io
     #   id: push-to-quay
     #   uses: redhat-actions/push-to-registry@v2
