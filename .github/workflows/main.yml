@@ -23,6 +23,11 @@ jobs:
       run: pwd; ls -la 
     - name: kn-workflow
       run: cd ${{ env.workflow_id }} && ../kn-workflow gen-manifest
+    - name: Archive manifests 
+      uses: actions/upload-artifact@v3
+      with:
+        name: serverless-workflow-${{ env.workflow_id }} 
+        path: ${{ env.workflow_id }}/manifests
 
   build:
     runs-on: ubuntu-latest
