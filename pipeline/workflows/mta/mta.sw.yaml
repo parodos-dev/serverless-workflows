@@ -1,0 +1,32 @@
+specVersion: "0.8"
+id: mta
+annotations:
+  - workflow-type/infrastructure
+timeouts:
+  workflowExecTimeout:
+    duration: PT24H
+start: restcall
+functions:
+  - name: get
+    type: custom
+    operation: 'rest:get:https://pokeapi.co/api/v2/version/red'
+states:
+  - name: restcall
+    type: operation
+    actions:
+      - functionRef:
+          refName: get
+          arguments:
+            color: .color
+        actionDataFilter:
+          toStateData: .pokemon
+    stateDataFilter:
+      output: '{moredata: $WORKFLOW.instanceId,  id: .pokemon.id}'
+    transition: output
+  - name: output
+    type: inject
+    data:
+      msg: hi
+    stateDataFilter:
+      output: '{ message: .id, result: .id}'
+    end: true

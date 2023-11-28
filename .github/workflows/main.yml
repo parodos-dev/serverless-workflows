@@ -1,0 +1,47 @@
+name: Container Images
+
+on:
+  push:
+    branches: [ "main" ]
+env:
+  workflow_id: mta
+  workflow_version: "0.0.1"
+jobs:
+  build:
+        
+    runs-on: ubuntu-latest
+    steps:
+    - name: ulimit
+      run: ulimit
+    - uses: actions/checkout@v3
+    - name: Buildah Action
+      id: build-image
+      uses: redhat-actions/buildah-build@v2
+      with:
+        image: ${{ env.workflow_id }}
+        tags: ${{ github.sha }}
+        extra-args: --ulimit nofile=4096:4096
+        containerfiles: |
+          pipeline/workflow-builder.Dockerfile
+        build-args: |
+          WF_RESOURCES=${{ env.workflow_id }}/${{ env.workflow_id }}.sw.yaml
+    # - name: Push To quay.io
+    #   id: push-to-quay
+    #   uses: redhat-actions/push-to-registry@v2
+    #   with:
+    #     image: ${{ steps.build-image.outputs.image }}
+    #     tags: ${{ steps.build-image.outputs.tags }}
+    #     registry: quay.io/rgolangh
+    #     username: ${{ secrets.REGISTRY_USERNAME }}
+    #     password: ${{ secrets.REGISTRY_PASSWORD }}
+
+    # - name: Print image url
+    #   run: echo "Image pushed to ${{ steps.push-to-quay.outputs.registry-paths }}"
+
+  generate-manifests:
+    runs-on: quay.io/ricardozanini/sonataflow-tools:0.32.0-snapshot
+    steps:
+    - name: kn
+      run: ls -la ;kn workflow gen-manifests --help
+      
+  
