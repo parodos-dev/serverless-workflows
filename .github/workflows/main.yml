@@ -1,5 +1,8 @@
 name: Container Images
 
+# todo - make this a creusable workflow, where caller call it with 
+# workflow_id and workflow_version where the reources path is ./$workflow_id 
+# from the context
 on:
   push:
     branches: [ "main" ]
