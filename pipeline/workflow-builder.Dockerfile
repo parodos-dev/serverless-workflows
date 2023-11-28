@@ -1,4 +1,7 @@
-FROM quay.io/kiegroup/kogito-swf-builder-nightly:latest AS builder
+#FROM quay.io/kiegroup/kogito-swf-builder-nightly:latest AS builder
+
+# Temporary building with devmode image
+FROM quay.io/kiegroup/kogito-swf-devmode:latest AS builder
 
 # variables that can be overridden by the builder
 # To add a Quarkus extension to your application
