@@ -32,15 +32,13 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - name: ulimit
-      run: ulimit
     - uses: actions/checkout@v3
     - name: Buildah Action
       id: build-image
       uses: redhat-actions/buildah-build@v2
       with:
         image: quay.io/orchestrator/serverless-workflow-${{ env.workflow_id }}
-        tags: ${{ github.sha }}
+        tags: latest ${{ github.sha }}
         extra-args: --ulimit nofile=4096:4096
         containerfiles: |
           pipeline/workflow-builder.Dockerfile
@@ -51,9 +49,8 @@ jobs:
       id: push-to-quay
       uses: redhat-actions/push-to-registry@v2
       with:
-        image: serverless-workflow-${{ env.workflow_id}}
-        tags: ${{ env.workflow_version }}
-        registry: quay.io/orchestrator
+        image: ${{ steps.build-image.outputs.image }}
+        tags: ${{ steps.build-image.outputs.tags }}
         username: ${{ secrets.QUAY_USERNAME }}
         password: ${{ secrets.QUAY_PASSWORD }}
 
