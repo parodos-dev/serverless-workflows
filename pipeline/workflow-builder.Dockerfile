@@ -1,7 +1,7 @@
 #FROM quay.io/kiegroup/kogito-swf-builder-nightly:latest AS builder
 
 # Temporary building with devmode image
-FROM quay.io/kiegroup/kogito-swf-devmode:latest AS builder
+FROM quay.io/kiegroup/kogito-swf-devmode-nightly:latest AS builder
 
 # variables that can be overridden by the builder
 # To add a Quarkus extension to your application
@@ -21,7 +21,7 @@ RUN /home/kogito/launch/build-app.sh ./resources
 #=============================
 # Runtime Run
 #=============================
-FROM registry.access.redhat.com/ubi8/openjdk-17:latest
+FROM registry.access.redhat.com/ubi8/openjdk-11:latest
 ENV LANG='en_US.UTF-8' LANGUAGE='en_US:en'
 
 # We make four distinct layers so if there are application changes the library layers can be re-used
