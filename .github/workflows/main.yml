@@ -52,7 +52,7 @@ jobs:
       id: build-image
       uses: redhat-actions/buildah-build@v2
       with:
-        image: quay.io/orchestrator/serverless-workflow-${{ env.workflow_id }}
+        image: serverless-workflow-${{ env.workflow_id }}
         tags: latest ${{ github.sha }}
         extra-args: --ulimit nofile=4096:4096
         containerfiles: |
@@ -66,6 +66,7 @@ jobs:
       with:
         image: ${{ steps.build-image.outputs.image }}
         tags: ${{ steps.build-image.outputs.tags }}
+        registry: quay.io/orchestrator
         username: ${{ secrets.QUAY_USERNAME }}
         password: ${{ secrets.QUAY_PASSWORD }}
 
