@@ -72,7 +72,7 @@ jobs:
     - name: Remove dev profile
       run: yq -i 'del(.metadata.annotations."sonataflow.org/profile")' ${{ env.workflow_id }}/manifests/01-sonataflow*.yaml
     - name: Set container image ref in SonataFlow resource
-      run: yq -i '.spec.podTemplate.container.image="quay.io/orchestrator/${{ steps.build-image.outputs.image }}:${{ github.sha }}"' ${{ env.workflow_id }}/manifests/01-sonataflow*.yaml
+      run: yq -i '.spec.podTemplate.container.image="quay.io/orchestrator/serverless-workflow-${{ env.workflow_id }}:${{ github.sha }}"' ${{ env.workflow_id }}/manifests/01-sonataflow*.yaml
     - name: Archive manifests
       uses: actions/upload-artifact@v3
       with:
