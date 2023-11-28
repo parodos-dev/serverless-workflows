@@ -43,9 +43,7 @@ states:
         actionDataFilter:
           toStateData: ".applications"
     stateDataFilter:
-      output: "{repositoryURL: .repositoryURL, application: .repositoryURL as $r| if
-      .applications == null then null else .applications|map(select(.repository.url
-      == $r))[0] end}"
+      output: "{repositoryURL: .repositoryURL, application: .repositoryURL as $r| if .applications == null then null else .applications|map(select(.repository.url == $r))[0] end}"
     transition: AppExist
   - name: AppExist
     type: switch
