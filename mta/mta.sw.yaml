@@ -1,1 +1,144 @@
-# here goes MTA serverless workflow
+specVersion: 0.8
+id: MTAAnalysis
+name: MTA Analysis
+annotations:
+  - "workflow-type/infrastructure"
+version: 1.0
+timeouts:
+  workflowExecTimeout:
+    duration: PT1H
+start: GetApplication 
+dataInputSchema:
+  schema: mta-input.json
+  failOnValidationErrors: false
+functions:
+  - name: debug
+    type: custom
+    operation: sysout
+  - name: filterApplication
+    type: expression
+    operation: "{application: .applications|map(select(.repository.url == .repositoryURL))[0]}"
+  - name: getApplication
+    type: custom
+    operation: rest:get:{ .Values.mta.endpoint }/applications
+  - name: createApplication
+    type: custom
+    operation: rest:post:{ .Values.mta.endpoint }/applications
+  - name: createTaskgroup
+    type: custom
+    operation: rest:post:{ .Values.mta.endpoint }/taskgroups
+  - name: submitTaskgroup
+    type: custom
+    operation: rest:put:{ .Values.mta.endpoint }/taskgroups/{id}/submit
+  - name: getTaskgroup
+    type: custom
+    operation: rest:get:{ .Values.mta.endpoint }/taskgroups/{id}
+states:
+  - name: GetApplication
+    type: operation
+    actionMode: sequential
+    actions:
+      - name: getApp
+        functionRef: getApplication
+        actionDataFilter:
+          toStateData: ".applications"
+    stateDataFilter:
+      output: "{repositoryURL: .repositoryURL, application: .repositoryURL as $r| if
+      .applications == null then null else .applications|map(select(.repository.url
+      == $r))[0] end}"
+    transition: AppExist
+  - name: AppExist
+    type: switch
+    dataConditions:
+      - condition: ".application != null"
+        transition:
+          nextState: CreateTaskgroup
+    defaultCondition:
+      transition: CreateApplication
+
+  - name: CreateApplication
+    type: operation
+    actions:
+      - functionRef:
+          refName: createApplication
+          arguments:
+            name: ".repositoryURL"
+            repository:
+              url: ".repositoryURL"
+              kind: git
+        actionDataFilter:
+          results: "{application: .}"
+    transition: CreateTaskgroup
+  - name: CreateTaskgroup
+    type: operation
+    actionMode: sequential
+    actions:
+      - functionRef:
+          refName: createTaskgroup
+          arguments:
+            name: taskgroup.windup
+            addon: windup
+            data:
+              output: "/windup/report"
+              rules:
+                path: ''
+              scope:
+                withKnown: false
+              sources: [ ]
+              targets:
+                - cloud-readiness
+            tasks:
+              - name: parodos.windup
+                application:
+                  id: ".application.id"
+        actionDataFilter:
+          toStateData: ".taskgroup"
+    transition: SubmitAnalysis
+  - name: SubmitAnalysis
+    type: operation
+    actionMode: sequential
+    actions:
+      - name: submitTaskgroup
+        functionRef:
+          refName: submitTaskgroup
+          arguments: ".taskgroup"
+    transition: GetAnalysis
+  - name: GetAnalysis
+    type: operation
+    actionMode: sequential
+    actions:
+      - name: getTaskgroup
+        functionRef:
+          refName: getTaskgroup
+          arguments:
+            id: ".taskgroup.id"
+        actionDataFilter:
+          toStateData: ".taskgroup"
+    transition: poll
+  - actions:
+      - functionRef:
+          refName: getTaskgroup
+          arguments:
+            id: ".taskgroup.id"
+        actionDataFilter:
+          toStateData: ".taskgroup"
+        sleep:
+          before: PT2S
+    name: poll
+    type: operation
+    transition: checkReportDone
+  - name: checkReportDone
+    type: switch
+    dataConditions:
+      - condition: (.taskgroup.state == "Ready" and .taskgroup.tasks[0].state == "Succeeded")
+        transition: report
+    defaultCondition:
+      transition: poll
+  - name: report
+    type: operation
+    stateDataFilter:
+      output: '{result: .taskgroup.tasks[0]| .mtaURL + "/hub/applications" + "/" + (.application.id|tostring)
+      + "/bucket/" + .data.output}'
+    end: true
+
+
