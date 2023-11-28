@@ -6,9 +6,25 @@ on:
 env:
   workflow_id: mta
   workflow_version: "0.0.1"
+  KN_VERSION: "v1.11.0"
+  KN_WORKFLOW_VERSION: "0.32.0"
+
 jobs:
+  generate-manifests:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: dir
+      run: cd ${{ env.workflow_id }} ; ls -la
+    - name: setup kn-workflow
+      run: curl -L https://github.com/kiegroup/kie-tools/releases/download/${KN_WORKFLOW_VERSION}/kn-workflow-linux-amd64-${KN_WORKFLOW_VERSION}  -o kn-workflow && chmod +x kn-workflow
+    - name: sanity
+      run: pwd; ls -la 
+    - name: kn-workflow
+      run: cd ${{ env.workflow_id }} && ../kn-workflow gen-manifest
+
   build:
-        
     runs-on: ubuntu-latest
     steps:
     - name: ulimit
@@ -38,10 +54,6 @@ jobs:
     # - name: Print image url
     #   run: echo "Image pushed to ${{ steps.push-to-quay.outputs.registry-paths }}"
 
-  generate-manifests:
-    runs-on: quay.io/ricardozanini/sonataflow-tools:0.32.0-snapshot
-    steps:
-    - name: kn
-      run: ls -la ;kn workflow gen-manifests --help
+
       
   

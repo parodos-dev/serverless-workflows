@@ -1,9 +1,9 @@
-specVersion: 0.8
+specVersion: "0.8"
 id: MTAAnalysis
 name: MTA Analysis
 annotations:
   - "workflow-type/infrastructure"
-version: 1.0
+version: "1.0"
 timeouts:
   workflowExecTimeout:
     duration: PT1H
@@ -101,7 +101,8 @@ states:
       - name: submitTaskgroup
         functionRef:
           refName: submitTaskgroup
-          arguments: ".taskgroup"
+          arguments:
+            taskgroup: ".taskgroup"
     transition: GetAnalysis
   - name: GetAnalysis
     type: operation
