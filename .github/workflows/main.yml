@@ -1,7 +1,7 @@
 name: Container Images
 
-# todo - make this a creusable workflow, where caller call it with 
-# workflow_id and workflow_version where the reources path is ./$workflow_id 
+# todo - make this a creusable workflow, where caller call it with
+# workflow_id and workflow_version where the reources path is ./$workflow_id
 # from the context
 on:
   workflow_call:
@@ -12,10 +12,10 @@ on:
       workflow_version:
         required: true
         type: string
-        
+
 
   workflow_dispatch:
-    
+
   push:
     branches: [ "main" ]
 env:
@@ -25,24 +25,6 @@ env:
   KN_WORKFLOW_VERSION: "0.32.0"
 
 jobs:
-  generate-manifests:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v3
-
-    - name: dir
-      run: cd ${{ env.workflow_id }} ; ls -la
-    - name: setup kn-workflow
-      run: curl -L https://github.com/rgolangh/kie-tools/releases/download/0.0.0-fix-kn-workflow/kn-workflow -o kn-workflow && chmod +x kn-workflow
-    - name: sanity
-      run: pwd; ls -la 
-    - name: kn-workflow
-      run: cd ${{ env.workflow_id }} && ../kn-workflow gen-manifest
-    - name: Archive manifests 
-      uses: actions/upload-artifact@v3
-      with:
-        name: serverless-workflow-${{ env.workflow_id }} 
-        path: ${{ env.workflow_id }}/manifests
 
   build:
     runs-on: ubuntu-latest
@@ -73,6 +55,27 @@ jobs:
     - name: Print image url
       run: echo "Image pushed to ${{ steps.push-to-quay.outputs.registry-paths }}"
 
+  generate-manifests:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: dir
+      run: cd ${{ env.workflow_id }} ; ls -la
+    - name: setup kn-workflow
+      run: curl -L https://github.com/rgolangh/kie-tools/releases/download/0.0.0-fix-kn-workflow/kn-workflow -o kn-workflow && chmod +x kn-workflow
+    - name: sanity
+      run: pwd; ls -la
+    - name: kn-workflow
+      run: cd ${{ env.workflow_id }} && ../kn-workflow gen-manifest
+    - name: Download yq
+      run: curl -L https://github.com/mikefarah/yq/releases/download/v4.35.2/yq_linux_x86_64 -o yq
+    - name: Remove dev profile
+      run: yq -i 'del(.metadata.annotations."sonataflow.org/profile")' ${{ env.workflow_id }}/manifests/01-sonataflow*.yaml
+    - name: Set container image ref in SonataFlow resource
+      run: yq -i '.spec.podTemplate.container.image="quay.io/orchestrator/${{ steps.build-image.outputs.image }}:${{ github.sha }}"' ${{ env.workflow_id }}/manifests/01-sonataflow*.yaml
+    - name: Archive manifests
+      uses: actions/upload-artifact@v3
+      with:
+        name: serverless-workflow-${{ env.workflow_id }}
+        path: ${{ env.workflow_id }}/manifests
 
-      
-  
