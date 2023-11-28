@@ -51,7 +51,7 @@ jobs:
       id: push-to-quay
       uses: redhat-actions/push-to-registry@v2
       with:
-        image: serverless-workflow-${{ env.workfow_id }}
+        image: serverless-workflow-${{ env.workflow_id}}
         tags: ${{ env.workflow_version }}
         registry: quay.io/orchestrator
         username: ${{ secrets.QUAY_USERNAME }}
