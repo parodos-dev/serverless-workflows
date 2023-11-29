@@ -20,19 +20,19 @@ functions:
     operation: "{application: .applications|map(select(.repository.url == .repositoryURL))[0]}"
   - name: getApplication
     type: custom
-    operation: rest:get:{ .Values.mta.endpoint }/applications
+    operation: rest:get:$SECRET.mta_endpoint/applications
   - name: createApplication
     type: custom
-    operation: rest:post:{ .Values.mta.endpoint }/applications
+    operation: rest:post:$SECRET.mta_endpoint/applications
   - name: createTaskgroup
     type: custom
-    operation: rest:post:{ .Values.mta.endpoint }/taskgroups
+    operation: rest:post:$SECRET.mta_endpoint/taskgroups
   - name: submitTaskgroup
     type: custom
-    operation: rest:put:{ .Values.mta.endpoint }/taskgroups/{id}/submit
+    operation: rest:put:$SECRET.mta_endpoint/taskgroups/{id}/submit
   - name: getTaskgroup
     type: custom
-    operation: rest:get:{ .Values.mta.endpoint }/taskgroups/{id}
+    operation: rest:get:$SECRET.mta_endpoint/taskgroups/{id}
 states:
   - name: GetApplication
     type: operation
