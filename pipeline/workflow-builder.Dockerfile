@@ -1,7 +1,7 @@
 #FROM quay.io/kiegroup/kogito-swf-builder-nightly:latest AS builder
 
 # Temporary building with devmode image
-FROM quay.io/kiegroup/kogito-swf-devmode-nightly:latest AS builder
+FROM quay.io/kiegroup/kogito-swf-devmode:1.44 AS builder
 
 # variables that can be overridden by the builder
 # To add a Quarkus extension to your application
@@ -14,9 +14,17 @@ ARG QUARKUS_ADD_EXTENSION_ARGS
 ARG WF_RESOURCES
 
 # Copy from build context to skeleton resources project
-COPY ${WF_RESOURCES} ./resources/
+COPY --chmod=777 ${WF_RESOURCES} ./resources/
+RUN ls -la ./resources
 
 # Build the app
+# RUN /home/kogito/launch/build-app.sh ./resources
+
+# Workaround till build-app.sh is updated
+RUN curl -LO https://raw.githubusercontent.com/apache/incubator-kie-kogito-images/98e816b48682a7ba1c890a12bf49c504a2fc6a1e/modules/kogito-swf/common/scripts/added/build-app.sh 
+RUN chmod +x build-app.sh
+RUN mv build-app.sh /home/kogito/launch/build-app.sh 
+ENV swf_home_dir=/home/kogito/serverless-workflow-project
 RUN /home/kogito/launch/build-app.sh ./resources
 
 #=============================
