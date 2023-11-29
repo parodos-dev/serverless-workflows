@@ -1,3 +1,6 @@
+# Serverless workflows generated files
+*/manifests/
+
 #Maven
 target/
 pom.xml.tag

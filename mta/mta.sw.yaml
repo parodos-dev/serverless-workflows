@@ -7,9 +7,9 @@ version: "1.0"
 timeouts:
   workflowExecTimeout:
     duration: PT1H
-start: GetApplication 
+start: GetApplication
 dataInputSchema:
-  schema: mta-input.json
+  schema: specs/mta-input.json
   failOnValidationErrors: false
 functions:
   - name: debug
@@ -19,20 +19,16 @@ functions:
     type: expression
     operation: "{application: .applications|map(select(.repository.url == .repositoryURL))[0]}"
   - name: getApplication
-    type: custom
-    operation: rest:get:/applications
+    operation: specs/mta.json#getApplications
   - name: createApplication
-    type: custom
-    operation: rest:post:/applications
+    operation: specs/mta.json#createApplication
   - name: createTaskgroup
-    type: custom
-    operation: rest:post:/taskgroups
+    operation: specs/mta.json#createTaskgroup
   - name: submitTaskgroup
-    type: custom
-    operation: rest:put:/taskgroups/{id}/submit
+    operation: specs/mta.json#submitTaskgroup
   - name: getTaskgroup
-    type: custom
-    operation: rest:get:/taskgroups/{id}
+    operation: specs/mta.json#getTaskgroup
+
 states:
   - name: GetApplication
     type: operation
@@ -57,40 +53,52 @@ states:
   - name: CreateApplication
     type: operation
     actions:
-      - functionRef:
+      - name: createApplication
+        actionDataFilter:
+          toStateData: ".application"
+        functionRef:
           refName: createApplication
           arguments:
             name: ".repositoryURL"
             repository:
               url: ".repositoryURL"
               kind: git
-        actionDataFilter:
-          results: "{application: .}"
     transition: CreateTaskgroup
   - name: CreateTaskgroup
     type: operation
     actionMode: sequential
     actions:
-      - functionRef:
+      - name: createTaskgroup
+        actionDataFilter:
+          toStateData: ".taskgroup"
+        functionRef:
           refName: createTaskgroup
           arguments:
             name: taskgroup.windup
             addon: windup
+            tasks:
+              - name: parodos.windup
+                application:
+                  id: ".application.id"
             data:
               output: "/windup/report"
+              mode:
+                binary: false
+                diva: false
+                withDeps: false
               rules:
+                labels:
+                  - "konveyor.io/target=cloud-readiness"
+                rulesets:
+                  - id: 2
+                    name: Containerization
                 path: ''
               scope:
                 withKnown: false
               sources: [ ]
               targets:
                 - cloud-readiness
-            tasks:
-              - name: parodos.windup
-                application:
-                  id: ".application.id"
-        actionDataFilter:
-          toStateData: ".taskgroup"
+            
     transition: SubmitAnalysis
   - name: SubmitAnalysis
     type: operation
@@ -100,7 +108,12 @@ states:
         functionRef:
           refName: submitTaskgroup
           arguments:
-            taskgroup: ".taskgroup"
+            id: ".taskgroup.id"
+            data: ".taskgroup.data"
+            tasks: ".taskgroup.tasks"
+            addon: windup
+            createUser: admin.noauth
+
     transition: GetAnalysis
   - name: GetAnalysis
     type: operation
