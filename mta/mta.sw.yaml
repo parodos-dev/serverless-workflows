@@ -9,7 +9,7 @@ timeouts:
     duration: PT1H
 start: GetApplication 
 dataInputSchema:
-  schema: specs/mta-input.json
+  schema: mta-input.json
   failOnValidationErrors: false
 functions:
   - name: debug
