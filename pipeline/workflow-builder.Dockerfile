@@ -10,6 +10,7 @@ ARG QUARKUS_EXTENSIONS
 # add extension command
 ARG QUARKUS_ADD_EXTENSION_ARGS
 
+# Argument for passing the resources folder if not current context dir
 ARG WF_RESOURCES
 
 # Copy from build context to skeleton resources project
@@ -21,8 +22,9 @@ RUN /home/kogito/launch/build-app.sh ./resources
 #=============================
 # Runtime Run
 #=============================
-FROM registry.access.redhat.com/ubi8/openjdk-11:latest
-ENV LANG='en_US.UTF-8' LANGUAGE='en_US:en'
+FROM registry.access.redhat.com/ubi8/openjdk-17:1.15
+
+ENV LANGUAGE='en_US:en'
 
 # We make four distinct layers so if there are application changes the library layers can be re-used
 COPY --from=builder --chown=185 /home/kogito/serverless-workflow-project/target/quarkus-app/lib/ /deployments/lib/
