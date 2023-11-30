@@ -149,8 +149,7 @@ states:
   - name: report
     type: operation
     stateDataFilter:
-      output: '{result: .taskgroup.tasks[0]| .mtaURL + "/hub/applications" + "/" + (.application.id|tostring)
-      + "/bucket/" + .data.output}'
+      output: '{result: (.taskgroup.tasks[0]| $SECRET.mta_url + "/hub/applications" + "/" + (.application.id|tostring) + "/bucket" + .data.output)}'
     end: true
 
 
