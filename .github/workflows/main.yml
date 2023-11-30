@@ -21,8 +21,8 @@ on:
 env:
   workflow_id: mta
   workflow_version: "0.0.1"
-  KN_VERSION: "v1.11.0"
-  KN_WORKFLOW_VERSION: "0.32.0"
+  PUSH_PR: false
+  WF_HELM_REPO: rgolangh/serverless-workflows-helm
 
 jobs:
 
@@ -57,14 +57,12 @@ jobs:
 
   generate-manifests:
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
     steps:
     - uses: actions/checkout@v3
-    - name: dir
-      run: cd ${{ env.workflow_id }} ; ls -la
     - name: setup kn-workflow
       run: curl -L https://github.com/rgolangh/kie-tools/releases/download/0.0.0-fix-kn-workflow/kn-workflow -o kn-workflow && chmod +x kn-workflow
-    - name: sanity
-      run: pwd; ls -la
     - name: kn-workflow
       run: cd ${{ env.workflow_id }} && ../kn-workflow gen-manifest
     - name: Download yq
@@ -78,4 +76,23 @@ jobs:
       with:
         name: serverless-workflow-${{ env.workflow_id }}
         path: ${{ env.workflow_id }}/manifests
-
+    - name: Send PRs to helm repo
+      if: ${{ env.PUSH_PR }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.HELM_REPO_TOKEN }}
+      run: |
+          gh repo clone $WF_HELM_REPO
+          cd serverless-workflows-helm
+          git config --global user.email "${{ github.event.pusher.email }}"
+          git config --global user.name "${{ github.event.pusher.name }}"
+          git switch -c autopr-$RANDOM
+          cp ../${{ env.workflow_id }}/manifests/* charts/workflows/charts/${{ env.workflow_id }}/templates
+          git add -A
+          git commit -m "Automated PR from ${{ github.event.pull_request.html_url }} ${{ github.event.issue.html_url }}"
+          git remote set-url origin https://x-access-token:${{ env.GITHUB_TOKEN }}@github.com/$WF_HELM_REPO
+          git push origin HEAD
+          gh pr create --title "Automatic manifests generation from ${{ github.event.pull_request.html_url }} ${{ github.event.issue.html_url }}" \
+            --body "
+              ## Type of change
+              - [X] Updating manifests
+            "
