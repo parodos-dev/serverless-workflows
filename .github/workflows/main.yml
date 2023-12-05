@@ -1,31 +1,20 @@
-name: Container Images
+name: Reusable Workflow Building Container Images and Manifests
 
-# todo - make this a creusable workflow, where caller call it with
-# workflow_id and workflow_version where the reources path is ./$workflow_id
-# from the context
 on:
   workflow_call:
     inputs:
       workflow_id:
         required: true
         type: string
-      workflow_version:
-        required: true
-        type: string
+      push_pr:
+        required: false
+        type: boolean
+        default: true
 
-
-  workflow_dispatch:
-
-  push:
-    branches: [ "main" ]
 env:
-  workflow_id: mta
-  workflow_version: "0.0.1"
-  PUSH_PR: false
   WF_HELM_REPO: rgolangh/serverless-workflows-helm
 
 jobs:
-
   build:
     runs-on: ubuntu-latest
     steps:
@@ -77,12 +66,12 @@ jobs:
         name: serverless-workflow-${{ env.workflow_id }}
         path: ${{ env.workflow_id }}/manifests
     - name: Send PRs to helm repo
-      if: ${{ env.PUSH_PR }}
+      if: ${{ inputs.push_pr }}
       env:
         GITHUB_TOKEN: ${{ secrets.HELM_REPO_TOKEN }}
       run: |
-          gh repo clone $WF_HELM_REPO
-          cd serverless-workflows-helm
+          gh repo clone $WF_HELM_REPO help-repo
+          cd helm-repo
           git config --global user.email "${{ github.event.pusher.email }}"
           git config --global user.name "${{ github.event.pusher.name }}"
           git switch -c autopr-$RANDOM
