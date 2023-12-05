@@ -142,7 +142,7 @@ states:
   - name: checkReportDone
     type: switch
     dataConditions:
-      - condition: true && (.taskgroup.state == "Ready" and .taskgroup.tasks[0].state == "Succeeded")
+      - condition: (.taskgroup.state == "Ready" and .taskgroup.tasks[0].state == "Succeeded")
         transition: report
     defaultCondition:
       transition: poll

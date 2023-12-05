@@ -23,13 +23,13 @@ jobs:
       id: build-image
       uses: redhat-actions/buildah-build@v2
       with:
-        image: serverless-workflow-${{ env.workflow_id }}
+        image: serverless-workflow-${{ inputs.workflow_id }}
         tags: latest ${{ github.sha }}
         extra-args: --ulimit nofile=4096:4096
         containerfiles: |
           pipeline/workflow-builder.Dockerfile
         build-args: |
-          WF_RESOURCES=${{ env.workflow_id }}/
+          WF_RESOURCES=${{ inputs.workflow_id }}/
 
     - name: Push To quay.io
       id: push-to-quay
@@ -53,29 +53,29 @@ jobs:
     - name: setup kn-workflow
       run: curl -L https://github.com/rgolangh/kie-tools/releases/download/0.0.0-fix-kn-workflow/kn-workflow -o kn-workflow && chmod +x kn-workflow
     - name: kn-workflow
-      run: cd ${{ env.workflow_id }} && ../kn-workflow gen-manifest
+      run: cd ${{ inputs.workflow_id }} && ../kn-workflow gen-manifest
     - name: Download yq
       run: curl -L https://github.com/mikefarah/yq/releases/download/v4.35.2/yq_linux_x86_64 -o yq
     - name: Remove dev profile
-      run: yq -i 'del(.metadata.annotations."sonataflow.org/profile")' ${{ env.workflow_id }}/manifests/01-sonataflow*.yaml
+      run: yq -i 'del(.metadata.annotations."sonataflow.org/profile")' ${{ inputs.workflow_id }}/manifests/01-sonataflow*.yaml
     - name: Set container image ref in SonataFlow resource
-      run: yq -i '.spec.podTemplate.container.image="quay.io/orchestrator/serverless-workflow-${{ env.workflow_id }}:${{ github.sha }}"' ${{ env.workflow_id }}/manifests/01-sonataflow*.yaml
+      run: yq -i '.spec.podTemplate.container.image="quay.io/orchestrator/serverless-workflow-${{ inputs.workflow_id }}:${{ github.sha }}"' ${{ inputs.workflow_id }}/manifests/01-sonataflow*.yaml
     - name: Archive manifests
       uses: actions/upload-artifact@v3
       with:
-        name: serverless-workflow-${{ env.workflow_id }}
-        path: ${{ env.workflow_id }}/manifests
+        name: serverless-workflow-${{ inputs.workflow_id }}
+        path: ${{ inputs.workflow_id }}/manifests
     - name: Send PRs to helm repo
       if: ${{ inputs.push_pr }}
       env:
         GITHUB_TOKEN: ${{ secrets.HELM_REPO_TOKEN }}
       run: |
-          gh repo clone $WF_HELM_REPO help-repo
+          gh repo clone $WF_HELM_REPO helm-repo
           cd helm-repo
           git config --global user.email "${{ github.event.pusher.email }}"
           git config --global user.name "${{ github.event.pusher.name }}"
           git switch -c autopr-$RANDOM
-          cp ../${{ env.workflow_id }}/manifests/* charts/workflows/charts/${{ env.workflow_id }}/templates
+          cp ../${{ inputs.workflow_id }}/manifests/* charts/workflows/charts/${{ inputs.workflow_id }}/templates
           git add -A
           git commit -m "Automated PR from ${{ github.event.pull_request.html_url }} ${{ github.event.issue.html_url }}"
           git remote set-url origin https://x-access-token:${{ env.GITHUB_TOKEN }}@github.com/$WF_HELM_REPO
