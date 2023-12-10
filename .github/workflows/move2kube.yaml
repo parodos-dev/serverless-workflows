@@ -1,0 +1,15 @@
+name: Move2kube workflow container image and manifest push
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'move2kube/**'
+
+jobs:
+  call-main-workflow:
+    uses: parodos-dev/serverless-workflows/.github/workflows/main.yml@main
+    with:
+      workflow_id: move2kube
+    secrets: inherit
+
