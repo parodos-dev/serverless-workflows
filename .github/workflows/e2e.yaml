@@ -1,0 +1,22 @@
+name: Reusable Workflow for e2e
+
+on:
+  workflow_call:
+    inputs:
+      workflow_id:
+        required: true
+        type: string
+
+env:
+  A: 1 
+
+jobs:
+  create-cluster:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create k8s Kind Cluster
+        uses: helm/kind-action@v1.5.0
+      - name: cluster health check
+        run: |
+          kubectl get nodes
+
