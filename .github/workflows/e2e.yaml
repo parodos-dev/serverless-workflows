@@ -1,11 +1,8 @@
 name: Reusable Workflow for e2e
 
 on:
-  workflow_call:
-    inputs:
-      workflow_id:
-        required: true
-        type: string
+  workflow_dispatch
+    
 
 env:
   A: 1 
