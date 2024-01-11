@@ -51,7 +51,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: setup kn-workflow
-      run: curl -L https://github.com/rgolangh/kie-tools/releases/download/0.0.0-fix-kn-workflow/kn-workflow -o kn-workflow && chmod +x kn-workflow
+      run: curl -L https://github.com/rgolangh/kie-tools/releases/download/0.0.1/kn-workflow -o kn-workflow && chmod +x kn-workflow
     - name: kn-workflow
       run: cd ${{ inputs.workflow_id }} && ../kn-workflow gen-manifest
     - name: Download yq
