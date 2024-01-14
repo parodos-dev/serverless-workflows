@@ -5,7 +5,7 @@ A selected set of serverless workflows
 The strucure of this repo a directory per workflow at the root. Each folder
 contains at least:
 - `application.properties` the configution item specific for the workflow app itself.
-- `${workflow}.sw.yaml`    the serverless workflow definitions[1]. 
+- `${workflow}.sw.yaml`    the [serverless workflow definitions]1]. 
 - `specs/`                 optional folder with openapi specs if the flow needs them. 
 
 All .svg can be ignored, there's no real functional use for them in deployment
@@ -16,12 +16,14 @@ in the form of `quay.io/orchestrator/serverless-workflow-${workflow}`.
 
 ## Current image statuses:
 
-- [![Docker Repository on Quay](https://quay.io/repository/orchestrator/serverless-workflow-mta/status "Docker Repository on Quay")](https://quay.io/repository/orchestrator/serverless-workflow-mta)
-- [![Docker Repository on Quay](https://quay.io/repository/orchestrator/serverless-workflow-m2k/status "Docker Repository on Quay")](https://quay.io/repository/orchestrator/serverless-workflow-m2k) 
-- [![Docker Repository on Quay](https://quay.io/repository/orchestrator/serverless-workflow-greeting/status "Docker Repository on Quay")](https://quay.io/repository/orchestrator/serverless-workflow-greeting) 
+- https://quay.io/repository/orchestrator/serverless-workflow-mta
+- https://quay.io/repository/orchestrator/serverless-workflow-m2k 
+- https://quay.io/repository/orchestrator/serverless-workflow-greeting
+
+
 After image publishing, github action will generate kubernetes manifests and push a PR to github.com/rgolangh/sreverless-workflows-helm
 under a directory matching the workflow name. This repo is used to deploy the workflows to an environment 
-with Sonataflow operator[2] running. 
+with [Sonataflow operator][2] running. 
 
 ## To introduce a new workflow
 1. create a folder under the root with the name of the flow, e.x `/onboarding`
