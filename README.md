@@ -28,11 +28,12 @@ with [Sonataflow operator][2] running.
 ## To introduce a new workflow
 1. create a folder under the root with the name of the flow, e.x `/onboarding`
 2. copy `application.properties`, `onboarding.sw.yaml` into that folder  
-3. create a pull request but don't merge yet.
-4. Send a pull request to [the helm chart repo][3] to add a sub-chart 
+3. create a github workflow file `.github/workflows/${workflow}.yaml` that will call `main` workflow (see greeting.yaml) 
+4. create a pull request but don't merge yet.
+5. Send a pull request to [the helm chart repo][3] to add a sub-chart 
    under the path `charts/workflows/charts/onboarding`. You can copy the greeting sub-chart directory and files. 
-5. Create a PR to [serverless-workflows-helm][3] and make sure its merge.
-6. Now the PR from 3 can be merged and an automatic PR will be created with the generated manifests. Review and merge. 
+6. Create a PR to [serverless-workflows-helm][3] and make sure its merge.
+7. Now the PR from 4 can be merged and an automatic PR will be created with the generated manifests. Review and merge. 
    
 [1]: https://github.com/serverlessworkflow/specification/blob/main/specification.md
 [2]: https://github.com/apache/incubator-kie-kogito-serverless-operator/
