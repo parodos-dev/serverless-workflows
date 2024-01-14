@@ -35,6 +35,14 @@ with [Sonataflow operator][2] running.
 6. Create a PR to [serverless-workflows-helm][3] and make sure its merge.
 7. Now the PR from 4 can be merged and an automatic PR will be created with the generated manifests. Review and merge. 
    
+
+Note on CI:
+On each merge under a workflow directory a matching github workflow executes 
+an image build, generating manifests and a PR create on the [helm chart repo][3]. 
+The credentials of this repo are an org level secret, and the content is from a token 
+on the helm repo with an expiry period of 60 days. Currently only the repo owner (rgolangh) can 
+recreate the token. This should be revised. 
+
 [1]: https://github.com/serverlessworkflow/specification/blob/main/specification.md
 [2]: https://github.com/apache/incubator-kie-kogito-serverless-operator/
 [3]: https://github.com/rgolangh/serverless-workflows-helm
