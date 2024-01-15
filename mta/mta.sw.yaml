@@ -12,9 +12,6 @@ dataInputSchema:
   schema: specs/mta-input.json
   failOnValidationErrors: false
 functions:
-  - name: debug
-    type: custom
-    operation: sysout
   - name: filterApplication
     type: expression
     operation: "{application: .applications|map(select(.repository.url == .repositoryURL))[0]}"
@@ -28,6 +25,8 @@ functions:
     operation: specs/mta.json#submitTaskgroup
   - name: getTaskgroup
     operation: specs/mta.json#getTaskgroup
+  - name: createNotification
+    operation: 'specs/notifications.yaml#createNotification'
 
 states:
   - name: GetApplication
@@ -143,13 +142,29 @@ states:
     type: switch
     dataConditions:
       - condition: (.taskgroup.state == "Ready" and .taskgroup.tasks[0].state == "Succeeded")
-        transition: report
+        transition: NotifyBackstage
     defaultCondition:
       transition: poll
+
+  - name: NotifyBackstage
+    type: operation
+    actions:
+      - condition: .backstageUserOrGroup != null
+        functionRef:
+          refName: createNotification
+          arguments:
+            title: "\"MTA analysis report for \" + .application.repository.url"
+            message: '"<a href=\"" + $SECRET.mta_url+ "/hub/applications/" + (.application.id|tostring)+ "/bucket/" + .data.output + "\">MTA Analysis Rerport</a>"'
+            origin: "MTA Analysis Workflow"
+            targetUsers:
+              - .backstageUserOrGroup
+            targetGroups:
+              - .backstageUserOrGroup
+    transition: report
   - name: report
     type: operation
     stateDataFilter:
-      output: '{result: (.taskgroup.tasks[0]| "report will be ready here -> " + $SECRET.mta_url + "/hub/applications" + "/" + (.application.id|tostring) + "/bucket" + .data.output)}'
+      output: '{result: (.taskgroup.tasks[0]| "report will be ready here -> " + $SECRET.mta_url + "/hub/applications/" + (.application.id|tostring) + "/bucket" + .data.output)}'
     end: true
 
 
