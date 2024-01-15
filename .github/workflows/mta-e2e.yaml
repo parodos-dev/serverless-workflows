@@ -8,7 +8,7 @@ on:
       - 'mta/**'
 
 jobs:
-  call-main-workflow:
+  build:
     uses: parodos-dev/serverless-workflows/.github/workflows/main.yml@main
     secrets: inherit
     with:
@@ -44,6 +44,12 @@ jobs:
           # now MTA workflow can execute agains tackle-ui.my-konveyor-operator.svc:8080
           # TODO consider invoking the workflow using backstage api (expose svc/janus-idp
 
+  deploy-workflow:
+    needs:
+      - build
+      - create-cluster
+    runs-on: ubuntu-latest
+    steps:
       - name: Download sonataflow artifacts generated manifests
         uses: actions/download-artifact@v3
         with:
