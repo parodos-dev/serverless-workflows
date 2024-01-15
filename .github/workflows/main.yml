@@ -32,6 +32,7 @@ jobs:
           WF_RESOURCES=${{ inputs.workflow_id }}/
 
     - name: Push To quay.io
+      if: ${{ inputs.push_pr }}
       id: push-to-quay
       uses: redhat-actions/push-to-registry@v2
       with:
@@ -42,6 +43,7 @@ jobs:
         password: ${{ secrets.QUAY_PASSWORD }}
 
     - name: Print image url
+      if: ${{ inputs.push_pr }}
       run: echo "Image pushed to ${{ steps.push-to-quay.outputs.registry-paths }}"
 
   generate-manifests:
@@ -82,6 +84,5 @@ jobs:
           git push origin HEAD
           gh pr create --title "Automatic manifests generation from ${{ github.event.pull_request.html_url }} ${{ github.event.issue.html_url }}" \
             --body "
-              ## Type of change
-              - [X] Updating manifests
+              Updating generated manifests for ${{ inputs.workflow_id }} workflow
             "

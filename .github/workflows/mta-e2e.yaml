@@ -1,0 +1,71 @@
+name: MTA Workflow end to end tests 
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'mta/**'
+
+jobs:
+  call-main-workflow:
+    uses: parodos-dev/serverless-workflows/.github/workflows/main.yml@main
+    secrets: inherit
+    with:
+      workflow_id: mta
+      push_pr: false
+
+  create-cluster:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create k8s Kind Cluster
+        uses: helm/kind-action@v1.5.0
+      - name: Install Konveyor 0.2 (MTA upstream equivalent to 6.2)
+        run: |
+          kubectl apply -f https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/quickstart/crds.yaml
+          kubectl apply -f https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/quickstart/olm.yaml
+
+          # install konveyor operator
+          # version 0.2 is MTA 6.2 and 0.3 is 7.x
+          kubectl create -f https://operatorhub.io/install/konveyor-0.2/konveyor-operator.yaml
+
+          kubectl create -f - << EOF
+          kind: Tackle
+          apiVersion: tackle.konveyor.io/v1alpha1
+          metadata:
+            name: tackle
+          spec:
+            feature_auth_required: false
+            hub_database_volume_size: 1Gi
+            hub_bucket_volume_size: 1Gi
+          EOF
+
+          kubectl wait --for=condition=Ready=true pods -l "app.kubernetes.io/name=tackle-ui" --timeout=120s
+          # now MTA workflow can execute agains tackle-ui.my-konveyor-operator.svc:8080
+          # TODO consider invoking the workflow using backstage api (expose svc/janus-idp
+
+      - name: Download sonataflow artifacts generated manifests
+        uses: actions/download-artifact@v3
+        with:
+          name: serverless-workflow-mta
+          path: manifests
+
+      - name: Deploy MTA serverless workflow
+        run: |
+          ####
+          #
+          #
+          # Use the janus-idp-workflows-helm to install all the latest
+          # sonataflow operator + backstage on kind and deploy the
+          # image using the manifests created by workproj (check how to take
+          # the artifacts from prior steps
+          # )
+          # This e2e should run before the actual PR to serverless-workflow-helm
+          # deploy the manifests created by the  ${{ steps.build-image.outputs.image }}"
+
+          kubectl apply -f manifests
+          kubectl wait --for=condition=Ready=true pods -l "app=mta" --timeout=120s
+      - name:
+        run: |
+          e2e/mta.sh
+
