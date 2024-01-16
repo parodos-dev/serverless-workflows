@@ -23,6 +23,8 @@ jobs:
       - name: Install Konveyor 0.2 (MTA upstream equivalent to 6.2)
         run: |
           kubectl apply -f https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/quickstart/crds.yaml
+          # give the apiserver time
+          sleep 5s 
           kubectl apply -f https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/quickstart/olm.yaml
 
           # install konveyor operator
