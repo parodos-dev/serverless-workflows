@@ -30,7 +30,8 @@ jobs:
           # install konveyor operator
           # version 0.2 is MTA 6.2 and 0.3 is 7.x
           kubectl create -f https://operatorhub.io/install/konveyor-0.2/konveyor-operator.yaml
-
+          # give the apiserver time
+          sleep 5s 
           kubectl create -f - << EOF
           kind: Tackle
           apiVersion: tackle.konveyor.io/v1alpha1
