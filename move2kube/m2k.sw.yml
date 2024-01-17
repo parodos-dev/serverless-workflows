@@ -27,7 +27,7 @@ functions:
     operation: specs/move2kube.yaml#start-transformation
   - name: sendCloudEvent
     type: custom
-    operation: rest:post:http://broker-ingress.knative-eventing.svc.cluster.local/m2k/default
+    operation: rest:post:$SECRET.broker_url
   - name: createNotification
     operation: 'specs/notifications.yaml#createNotification'
 states:
