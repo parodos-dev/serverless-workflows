@@ -108,7 +108,7 @@ states:
             HEADER_Ce-Type: "save-transformation"
             HEADER_Ce-Source: "m2k_swf"
             HEADER_Content-Type: "application/json"
-            gitRepo: .repositoryURL
+            gitRepo: '"ssh://" + .repositoryURL'
             branch: .targetBranch
             token: .token
             workspaceId: .workspaceId
