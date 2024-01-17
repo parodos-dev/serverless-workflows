@@ -5,9 +5,12 @@
   "description": "schema for input description",
   "type": "object",
   "properties": {
-      "token": {
-          "description": "The token to use to authenticate with GitHub",
-          "type": "string"
+      "repositoryURL": {
+          "description": "the git repository URL to be used",
+          "type": "string",
+          "examples": [
+              "bitbucket.org/gfarache31/m2k-test"
+          ]
       },
       "sourceBranch": {
           "description": "the branch to download the zip from",
@@ -16,13 +19,6 @@
       "targetBranch": {
           "description": "the branch to create in the repo",
           "type": "string"
-      },
-      "repo": {
-          "description": "the repo to be used",
-          "type": "string",
-          "examples": [
-              "dotfiles"
-          ]
       },
       "workspace-id": {
           "description": "the ID of the Move2Kube workspace",
