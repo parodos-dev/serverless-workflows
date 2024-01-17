@@ -31,6 +31,11 @@
       "project-id": {
           "description": "the ID of the Move2Kube project",
           "type": "string"
+      },
+      "notifications_disabled": {
+          "description": "If set to true, notification will NOT be sent to backstage",
+          "type": "boolean",
+          "default": false
       }
   },
   "required": [

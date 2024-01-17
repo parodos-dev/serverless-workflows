@@ -88,6 +88,7 @@ states:
     type: operation
     actions:
       - name: create
+        condition: !(has("notifications_disabled") && .notifications_disabled != null && .notifications_disabled == true)
         functionRef:
           refName: createNotification
           arguments:
@@ -149,6 +150,7 @@ states:
     - name: createNotification
       actions:
         - name: createNotification
+          condition: !(has("notifications_disabled") && .notifications_disabled != null && .notifications_disabled == true)
           functionRef:
             refName: createNotification
             arguments:
@@ -170,6 +172,7 @@ states:
      - name: createNotification
        actions:
          - name: createNotification
+           condition: !(has("notifications_disabled") && .notifications_disabled != null && .notifications_disabled == true)
            functionRef:
              refName: createNotification
              arguments:
