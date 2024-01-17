@@ -32,7 +32,6 @@ jobs:
           WF_RESOURCES=${{ inputs.workflow_id }}/
 
     - name: Push To quay.io
-      if: ${{ inputs.push_pr }}
       id: push-to-quay
       uses: redhat-actions/push-to-registry@v2
       with:
@@ -43,7 +42,6 @@ jobs:
         password: ${{ secrets.QUAY_PASSWORD }}
 
     - name: Print image url
-      if: ${{ inputs.push_pr }}
       run: echo "Image pushed to ${{ steps.push-to-quay.outputs.registry-paths }}"
 
   generate-manifests:
