@@ -31,10 +31,6 @@
       "project-id": {
           "description": "the ID of the Move2Kube project",
           "type": "string"
-      },
-      "notifications_secret": {
-        "description": "Notification secret of Backstage API",
-          "type": "string"
       }
   },
   "required": [
@@ -42,7 +38,6 @@
       "sourceBranch",
       "targetBranch",
       "workspaceId",
-      "projectId",
-      "notifications_secret"
+      "projectId"
   ]
 }
