@@ -39,7 +39,7 @@
       }
   },
   "required": [
-      "repo",
+      "repositoryURL",
       "sourceBranch",
       "targetBranch",
       "workspaceId",
