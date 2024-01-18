@@ -12,6 +12,5 @@ jobs:
     uses: parodos-dev/serverless-workflows/.github/workflows/main.yml@main
     with:
       workflow_id: mta
-      build_arg_quarkus_extensions: kogito-addons-quarkus-jobs-service-embedded
     secrets: inherit
 
