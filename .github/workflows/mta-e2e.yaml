@@ -14,6 +14,7 @@ jobs:
     secrets: inherit
     with:
       workflow_id: mta
+      build_arg_quarkus_extensions: kogito-addons-quarkus-jobs-service-embedded
       push_pr: false
 
   run-e2e:
