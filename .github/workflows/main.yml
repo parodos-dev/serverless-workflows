@@ -73,8 +73,8 @@ jobs:
       run: |
           gh repo clone $WF_HELM_REPO helm-repo
           cd helm-repo
-          git config --global user.email "${{ github.event.pusher.email }}"
-          git config --global user.name "${{ github.event.pusher.name }}"
+          git config --global user.email "action@github.com"
+          git config --global user.name "GitHub Action"
           git switch -c autopr-$RANDOM
           mkdir -p charts/workflows/charts/${{ inputs.workflow_id }}/templates
           cp ../${{ inputs.workflow_id }}/manifests/* charts/workflows/charts/${{ inputs.workflow_id }}/templates
