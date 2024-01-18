@@ -2,7 +2,7 @@ specVersion: "0.8"
 id: MTAAnalysis
 name: MTA Analysis
 annotations:
-  - "workflow-type/infrastructure"
+  - "workflow-type/assessment"
 version: "1.0"
 timeouts:
   workflowExecTimeout:
@@ -27,7 +27,6 @@ functions:
     operation: specs/mta.json#getTaskgroup
   - name: createNotification
     operation: 'specs/notifications.yaml#createNotification'
-
 states:
   - name: GetApplication
     type: operation
@@ -48,7 +47,6 @@ states:
           nextState: CreateTaskgroup
     defaultCondition:
       transition: CreateApplication
-
   - name: CreateApplication
     type: operation
     actions:
@@ -97,7 +95,6 @@ states:
               sources: [ ]
               targets:
                 - cloud-readiness
-            
     transition: SubmitAnalysis
   - name: SubmitAnalysis
     type: operation
@@ -112,7 +109,6 @@ states:
             tasks: ".taskgroup.tasks"
             addon: windup
             createUser: admin.noauth
-
     transition: GetAnalysis
   - name: GetAnalysis
     type: operation
@@ -145,7 +141,6 @@ states:
         transition: NotifyBackstage
     defaultCondition:
       transition: poll
-
   - name: NotifyBackstage
     type: operation
     actions:
@@ -165,6 +160,11 @@ states:
     type: operation
     stateDataFilter:
       output: '{result: (.taskgroup.tasks[0]| "report will be ready here -> " + $SECRET.mta_url + "/hub/applications/" + (.application.id|tostring) + "/bucket" + .data.output)}'
+    transition: GetWorkflowOptions
+  - name: GetWorkflowOptions
+    type: operation
+    stateDataFilter:
+      output: '. +={workflowOptions: {migrationOptions: [{id: "move2kube", name: "Move2Kube workflow"}]}}'
     end: true
 
 
