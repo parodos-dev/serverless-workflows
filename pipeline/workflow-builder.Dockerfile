@@ -1,4 +1,4 @@
-FROM quay.io/kiegroup/kogito-swf-builder-nightly:latest AS builder
+FROM quay.io/kiegroup/kogito-swf-builder-nightly:main-2024-01-17 AS builder
 
 # variables that can be overridden by the builder
 # To add a Quarkus extension to your application
