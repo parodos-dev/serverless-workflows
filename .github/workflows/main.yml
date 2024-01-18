@@ -69,7 +69,7 @@ jobs:
     - name: Send PRs to helm repo
       if: ${{ inputs.push_pr }}
       env:
-        GITHUB_TOKEN: ${{ secrets.HELM_REPO_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.NEW_HELM_REPO_TOKEN }}
       run: |
           gh repo clone $WF_HELM_REPO helm-repo
           cd helm-repo
