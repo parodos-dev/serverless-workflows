@@ -9,7 +9,7 @@
           "description": "the git repository URL to be used",
           "type": "string",
           "examples": [
-              "bitbucket.org/gfarache31/m2k-test"
+              "https://bitbucket.org/gfarache31/m2k-test"
           ]
       },
       "sourceBranch": {

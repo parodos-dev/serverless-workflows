@@ -43,7 +43,7 @@ states:
           arguments:
             workspace-id: ".workspaceId"
             project-id: ".projectId"
-            remote-source: "\"git+ssh://\" + .repositoryURL + \"@\" + .sourceBranch"
+            remote-source: "\"git+\" + (.repositoryURL|sub(\"http(s)://?\";\"ssh://\")) + \"@\" + .sourceBranch"
     transition: GetPlanning
   - name: GetPlanning
     type: operation
@@ -104,7 +104,7 @@ states:
   - name: SaveTransformationOutput
     type: inject
     data:
-      gitRepo: '"ssh://" + .repositoryURL'
+      gitRepo:  (.repositoryURL|sub(\"http(s)?://\";\"ssh://\"))
       branch: .targetBranch
       token: .token
       workspaceId: .workspaceId
