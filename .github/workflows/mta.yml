@@ -1,6 +1,7 @@
 name: MTA workflow container image and manifest push
 
 on:
+  workflow_dispatch:
   push:
     branches: [ "main" ]
     paths:
