@@ -12,6 +12,10 @@ events:
   - name: transformationSavedEvent
     source: ''
     type: transformation_saved
+  - name: saveTransformation
+    source: m2k_swf
+    type: save-transformation
+    kind: produced
 functions:
   - name: systemOut
     type: custom
@@ -39,7 +43,7 @@ states:
           arguments:
             workspace-id: ".workspaceId"
             project-id: ".projectId"
-            remote-source: "\"git+ssh://\" + .repositoryURL + \"@\" + .sourceBranch"
+            remote-source: "\"git+\" + (.repositoryURL|sub(\"http(s)://?\";\"ssh://\")) + \"@\" + .sourceBranch"
     transition: GetPlanning
   - name: GetPlanning
     type: operation
@@ -98,23 +102,18 @@ states:
             topic: "Move2Kube Workflow"
     transition: SaveTransformationOutput
   - name: SaveTransformationOutput
-    type: operation
-    actions:
-      - functionRef:
-          refName: sendCloudEvent
-          arguments:
-            HEADER_Ce-Id: $WORKFLOW.instanceId
-            HEADER_Ce-Specversion: "1.0"
-            HEADER_Ce-Type: "save-transformation"
-            HEADER_Ce-Source: "m2k_swf"
-            HEADER_Content-Type: "application/json"
-            gitRepo: '"ssh://" + .repositoryURL'
-            branch: .targetBranch
-            token: .token
-            workspaceId: .workspaceId
-            projectId: .projectId
-            transformId: .transformId
-            workflowCallerId: $WORKFLOW.instanceId
+    type: inject
+    data:
+      gitRepo:  (.repositoryURL|sub(\"http(s)?://\";\"ssh://\"))
+      branch: .targetBranch
+      token: .token
+      workspaceId: .workspaceId
+      projectId: .projectId
+      transformId: .transformId
+      workflowCallerId: $WORKFLOW.instanceId
+    end:
+      produceEvents:
+        - eventRef: saveTransformation
     transition: WaitForSaveTransformationCompletion
   - name: WaitForSaveTransformationCompletion
     type: switch
