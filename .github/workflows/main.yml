@@ -34,7 +34,7 @@ jobs:
           pipeline/workflow-builder.Dockerfile
         build-args: |
           WF_RESOURCES=${{ inputs.workflow_id }}/
-          QUARKUS_ADD_EXTENSION_ARGS=${{ inputs.build_arg_quarkus_extensions }}
+          QUARKUS_EXTENSIONS=${{ inputs.build_arg_quarkus_extensions }}
 
     - name: Push To quay.io
       id: push-to-quay
