@@ -147,7 +147,6 @@ states:
         transition: NotifyBackstage
     defaultCondition:
       transition: poll
-    transition: NotifyBackstage
   - name: NotifyBackstage
     type: operation
     actions:
