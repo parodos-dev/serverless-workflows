@@ -129,18 +129,18 @@ states:
             id: ".taskgroup.id"
         actionDataFilter:
           toStateData: ".taskgroup"
+        sleep:
+          before: PT2S
     name: poll
     type: operation
     transition: checkReportDone
   - name: checkReportDone
-    type: operation
-    actions:
-      - functionRef:
-          refName: getTaskgroup
-          arguments:
-            id: ".taskgroup.id"
-        actionDataFilter:
-          toStateData: ".taskgroup"
+    type: switch
+    dataConditions:
+      - condition: (.taskgroup.state == "Ready" and .taskgroup.tasks[0].state == "Succeeded")
+        transition: NotifyBackstage
+    defaultCondition:
+      transition: poll
     transition: NotifyBackstage
   - name: NotifyBackstage
     type: operation
