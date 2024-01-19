@@ -134,10 +134,9 @@ states:
           arguments:
             id: ".taskgroup.id"
         actionDataFilter:
-          toStateData: ".taskgroup"
+          toStateData: ".taskgroup"    
         sleep:
           before: PT2S
-    name: poll
     type: operation
     transition: checkReportDone
   - name: checkReportDone
