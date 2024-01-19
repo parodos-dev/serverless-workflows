@@ -122,14 +122,16 @@ states:
         actionDataFilter:
           toStateData: ".taskgroup"
     transition: poll
-  - actions:
+  - name: poll
+    actions:
       - functionRef:
           refName: getTaskgroup
           arguments:
             id: ".taskgroup.id"
         actionDataFilter:
-          toStateData: ".taskgroup"
-    name: poll
+          toStateData: ".taskgroup"    
+        sleep:
+          before: PT2S
     type: operation
     transition: checkReportDone
   - name: checkReportDone
