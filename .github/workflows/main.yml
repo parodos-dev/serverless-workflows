@@ -27,7 +27,7 @@ jobs:
       id: build-image
       uses: redhat-actions/buildah-build@v2
       with:
-        image: serverless-workflow-${{ inputs.workflow_id }}
+        image: ${{ inputs.workflow_id }}
         tags: latest ${{ github.sha }}
         extra-args: --ulimit nofile=4096:4096
         containerfiles: |
