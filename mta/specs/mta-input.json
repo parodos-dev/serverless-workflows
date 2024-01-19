@@ -4,9 +4,6 @@
   "properties": {
     "repositoryURL": {
       "type": "string"
-    },
-    "backstageUserOrGroup": {
-      "type": "string"
     }
   },
   "required": [
