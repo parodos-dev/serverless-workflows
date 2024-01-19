@@ -135,12 +135,17 @@ states:
     type: operation
     transition: checkReportDone
   - name: checkReportDone
-    type: switch
-    dataConditions:
-      - condition: (.taskgroup.state == "Ready" and .taskgroup.tasks[0].state == "Ready")
-        transition: NotifyBackstage
-    defaultCondition:
-      transition: poll
+    type: operation
+    actions:
+      - functionRef:
+          refName: getTaskgroup
+          arguments:
+            id: ".taskgroup.id"
+        actionDataFilter:
+          toStateData: ".taskgroup"
+        sleep:
+          after: PT2M
+    transition: NotifyBackstage
   - name: NotifyBackstage
     type: operation
     actions:
