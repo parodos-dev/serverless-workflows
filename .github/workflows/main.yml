@@ -43,8 +43,8 @@ jobs:
         image: ${{ steps.build-image.outputs.image }}
         tags: ${{ steps.build-image.outputs.tags }}
         registry: quay.io/orchestrator
-        username: ${{ secrets.NEW_QUAY_USERNAME }}
-        password: ${{ secrets.NEW_QUAY_PASSWORD }}
+        username: ${{ secrets.QUAY_USERNAME }}
+        password: ${{ secrets.QUAY_PASSWORD }}
 
     - name: Print image url
       run: echo "Image pushed to ${{ steps.push-to-quay.outputs.registry-paths }}"
