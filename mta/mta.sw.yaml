@@ -129,19 +129,18 @@ states:
             id: ".taskgroup.id"
         actionDataFilter:
           toStateData: ".taskgroup"
+        sleep:
+          before: PT2S
     name: poll
     type: operation
     transition: checkReportDone
   - name: checkReportDone
-    type: operation
-    actions:
-      - functionRef:
-          refName: getTaskgroup
-          arguments:
-            id: ".taskgroup.id"
-        actionDataFilter:
-          toStateData: ".taskgroup"
-    transition: NotifyBackstage
+    type: switch
+    dataConditions:
+      - condition: (.taskgroup.state == "Ready" and .taskgroup.tasks[0].state == "Succeeded")
+        transition: NotifyBackstage
+    defaultCondition:
+      transition: poll
   - name: NotifyBackstage
     type: operation
     actions:
@@ -160,12 +159,12 @@ states:
   - name: report
     type: operation
     stateDataFilter:
-      output: '{result: (.taskgroup.tasks[0]| "report will be ready here -> " + $SECRET.mta_url + "/hub/applications/" + (.application.id|tostring) + "/bucket" + .data.output), repositoryURL: .repositoryURL}'
+      output: '{result: (.taskgroup.tasks[0]| "report will be ready here -> " + $SECRET.mta_url + "/hub/applications/" + (.application.id|tostring) + "/bucket" + .data.output)}'
     transition: GetWorkflowOptions
   - name: GetWorkflowOptions
     type: operation
     stateDataFilter:
-      output: '{workflowOptions: {migrationOptions: [{id: "m2k", name: "Move2Kube workflow"}]}, repositoryURL: .repositoryURL}'
+      output: '. +={workflowOptions: {migrationOptions: [{id: "move2kube", name: "Move2Kube workflow"}]}}'
     end: true
 
 
