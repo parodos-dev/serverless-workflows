@@ -133,15 +133,12 @@ states:
     type: operation
     transition: checkReportDone
   - name: checkReportDone
-    type: operation
-    actions:
-      - functionRef:
-          refName: getTaskgroup
-          arguments:
-            id: ".taskgroup.id"
-        actionDataFilter:
-          toStateData: ".taskgroup"
-    transition: NotifyBackstage
+    type: switch
+    dataConditions:
+      - condition: (.taskgroup.state == "Ready" and .taskgroup.tasks[0].state == "Succeeded")
+        transition: NotifyBackstage
+    defaultCondition:
+      transition: poll
   - name: NotifyBackstage
     type: operation
     actions:
