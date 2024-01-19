@@ -149,7 +149,7 @@ states:
           refName: createNotification
           arguments:
             title: "\"MTA analysis report for \" + .application.repository.url"
-            message: "MTA Analysis Report completed"
+            message: '"MTA Analysis Report: " + $SECRET.mta_url+ "/hub/applications/" + (.application.id|tostring)+ "/bucket/" + .data.output'
             origin: "MTA Analysis Workflow"
             topic: "MTA Analysis"
             actions:
