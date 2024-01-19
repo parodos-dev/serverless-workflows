@@ -129,8 +129,6 @@ states:
             id: ".taskgroup.id"
         actionDataFilter:
           toStateData: ".taskgroup"
-        sleep:
-          before: PT2S
     name: poll
     type: operation
     transition: checkReportDone
@@ -143,8 +141,6 @@ states:
             id: ".taskgroup.id"
         actionDataFilter:
           toStateData: ".taskgroup"
-        sleep:
-          after: PT2M
     transition: NotifyBackstage
   - name: NotifyBackstage
     type: operation
