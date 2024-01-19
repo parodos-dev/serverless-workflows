@@ -165,7 +165,7 @@ states:
   - name: GetWorkflowOptions
     type: operation
     stateDataFilter:
-      output: '{workflowOptions: {migrationOptions: [{id: "move2kube", name: "Move2Kube workflow"}]}, repositoryURL: .repositoryURL}'
+      output: '{workflowOptions: {migrationOptions: [{id: "m2k", name: "Move2Kube workflow"}]}, repositoryURL: .repositoryURL}'
     end: true
 
 
