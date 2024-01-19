@@ -10,11 +10,6 @@ on:
         required: false
         type: boolean
         default: true
-      build_arg_quarkus_extensions:
-        required: false
-        type: string
-
-
 env:
   WF_HELM_REPO: rgolangh/serverless-workflows-helm
 
@@ -34,7 +29,7 @@ jobs:
           pipeline/workflow-builder.Dockerfile
         build-args: |
           WF_RESOURCES=${{ inputs.workflow_id }}/
-          QUARKUS_ADD_EXTENSION_ARGS=${{ inputs.build_arg_quarkus_extensions }}
+          QUARKUS_EXTENSIONS=org.kie.kogito:kogito-addons-quarkus-jobs-knative-eventing:999-SNAPSHOT
 
     - name: Push To quay.io
       id: push-to-quay
