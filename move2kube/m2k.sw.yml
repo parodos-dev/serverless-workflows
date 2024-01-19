@@ -96,6 +96,8 @@ states:
             message: '"Please go to your <a href=\"" + $SECRET.move2kube_url + "/workspaces/"+ .workspaceId + "/projects/" + .projectId + "/outputs/"+ .transformId + "\">Move2Kube instance</a> and answers to questions in order to continue the Move2Kube workflow"'
             origin: "Move2Kube Workflow"
             topic: "Move2Kube Workflow"
+            targetUsers:
+              - "default/guest"
     transition: SaveTransformationOutput
   - name: SaveTransformationOutput
     type: operation

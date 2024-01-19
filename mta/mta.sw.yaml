@@ -150,8 +150,9 @@ states:
           refName: createNotification
           arguments:
             title: "\"MTA analysis report for \" + .application.repository.url"
-            message: '"<a href=\"" + $SECRET.mta_url+ "/hub/applications/" + (.application.id|tostring)+ "/bucket/" + .data.output + "\">MTA Analysis Rerport</a>"'
+            message: '"MTA Analysis Report:" + $SECRET.mta_url+ "/hub/applications/" + (.application.id|tostring)+ "/bucket/" + .data.output '
             origin: "MTA Analysis Workflow"
+            topic: "MTA Analysis"
             targetUsers:
               - .backstageUserOrGroup
             targetGroups:
