@@ -1,12 +1,14 @@
 openapi: 3.0.3
 info:
-  title: Backstage Notifications Plugin - OpenAPI Specs
+  title: Notifications Plugin - OpenAPI Specs
   description: |-
-    Backstage Notifications Plugin - OpenAPI Specs
+    Notifications Plugin - OpenAPI Specs
   version: 1.0.0
 tags:
   - name: notifications
-    description: Backstage notifications plugin
+    description: notifications plugin
+servers:
+  - url: http://localhost:7007/api/notifications
 paths:
   /notifications:
     post:
@@ -20,7 +22,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Notification'
+              $ref: '#/components/schemas/CreateBody'
       responses:
         '200':
           description: Successful operation
@@ -32,6 +34,7 @@ paths:
                   messageId:
                     type: string
                     example: bc9f19de-8b7b-49a8-9262-c5036a1ed35e
+                required: ['messageId']
     get:
       tags:
         - notifications
@@ -39,28 +42,68 @@ paths:
       description: Gets notifications
       operationId: getNotifications
       parameters:
-        - name: user
-          in: query
-          description: User for whom notifications will be fetched
-          required: true
-          schema:
-            type: string
         - name: pageSize
           in: query
           description: Page size of the result
-          required: true
+          required: false
           schema:
             type: integer
+            minimum: 0
         - name: pageNumber
           in: query
           description: Page number of the result
-          required: true
+          required: false
           schema:
             type: integer
+            minimum: 0
+        - name: orderBy
+          in: query
+          description: order by field. e.g. created, origin.
+          required: false
+          schema:
+            type: string
+            enum:
+              - title
+              - message
+              - created
+              - topic
+              - origin
+        - name: orderByDirec
+          in: query
+          description: order ascending or descending
+          required: false
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+        - name: containsText
+          in: query
+          description: Filter notifications whose either title or message contains the provided string
+          required: false
+          schema:
+            type: string
+        - name: createdAfter
+          in: query
+          description: Only notifications created after this timestamp will be included
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: messageScope
+          in: query
+          description: retrieve either logged-in user messages, system messages or both
+          required: false
+          schema:
+            type: string
+            enum:
+              - all
+              - user
+              - system
         - name: read
           in: query
           description: Notifications read or not
-          required: true
+          required: false
           schema:
             type: boolean
       responses:
@@ -70,103 +113,124 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Notifications'
-        '500':
-          description: Error
+  /notifications/count:
+    get:
+      tags:
+        - notifications
+      summary: Get notifications count
+      description: Gets notifications count
+      operationId: getNotificationsCount
+      parameters:
+        - name: containsText
+          in: query
+          description: Filter notifications whose either title or message contains the provided string
+          required: false
+          schema:
+            type: string
+        - name: createdAfter
+          in: query
+          description: Only notifications created after this timestamp will be included
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: messageScope
+          in: query
+          description: retrieve either logged-in user messages, system messages or both
+          required: false
+          schema:
+            type: string
+            enum:
+              - all
+              - user
+              - system
+        - name: read
+          in: query
+          description: Notifications read or not
+          required: false
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Successful operation
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                type: object
+                properties:
+                  count:
+                    type: number
+                required: ['count']
+  /notifications/read:
+    put:
+      tags:
+        - notifications
+      summary: Set notification as read/unread
+      description: Set notification as read/unread
+      operationId: setRead
+      parameters:
+        - name: messageId
+          in: query
+          description: The message ID
+          required: true
+          schema:
+            type: string
+        - name: read
+          in: query
+          description: read/unread
+          required: true
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Successful operation
 components:
   schemas:
     Notifications:
       type: array
       items:
         $ref: '#/components/schemas/Notification'
-    Action:
-      properties:
-        id:
-          type: string
-          example: aaf2e18f-fa55-4dd4-8d71-58878b4398ad
-        url:
-          type: string
-          example: http://foo.bar
-        title:
-          type: string
-          example: my-title
     Notification:
       properties:
         id:
           type: string
-          example: 19d76846-4bce-4786-bdc0-e44c30756dec
         created:
           type: string
           format: date-time
-          example: "2023-11-21T15:33:15.800Z"
-        isSystem:
-          type: boolean
-          example: false
         readByUser:
           type: boolean
-          example: false
+        isSystem:
+          type: boolean
         origin:
           type: string
-          example: my-origin
         title:
           type: string
-          example: My message title
         message:
           type: string
-          format: nullable
-          example: I have nothing to say
         topic:
           type: string
-          format: nullable
-        targetUsers: # Used in Post Notifications
-          type: array
-          format: nullable
-          items:
-            type: string
-            example: jdoe
-        targetGroups: # Used in Post Notifications
-          type: array
-          format: nullable
-          items:
-            type: string
-            example: jdoe
         actions:
           type: array
-          format: nullable
           items:
             $ref: '#/components/schemas/Action'
-    ErrorResponse:
-      type: object
+      required: [id, created, readByUser, isSystem, origin, title, actions]
+    Action:
       properties:
-        error:
-          type: object
-          properties:
-            name:
-              type: string
-              example: Error
-            message:
-              type: string
-              example: pageSize and pageNumber must both be either 0 or greater than 0
-            stack:
-              type: string
-              example: >-
-                Error: "pageSize and pageNumber must both be either 0 or greater than 0"
-        request:
-          type: object
-          properties:
-            method:
-              type: string
-              example: GET
-            url:
-              type: string
-              example: /notifications?user=jdoe&read=false&pageNumber=-1&pageSize=1
-        response:
-          type: object
-          properties:
-            statusCode:
-              type: integer
-              format: int32
-              example: 500
+        id:
+          type: string
+        title:
+          type: string
+        url:
+          type: string
+      required: [id, title, url]
+    CreateBody:
+      properties:
+        origin:
+          type: string
+        title:
+          type: string
+        message:
+          type: string
+        topic:
+          type: string
+      required: [origin, title]
