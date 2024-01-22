@@ -31,8 +31,18 @@ jobs:
           WF_RESOURCES=${{ inputs.workflow_id }}/
           QUARKUS_EXTENSIONS=org.kie.kogito:kogito-addons-quarkus-jobs-knative-eventing:999-SNAPSHOT
 
+    - name: Buildah push to OCI Arcive
+      if: ${{ ! inputs.push_pr }}
+      run: buildah push oci-archive:serverless-workflow-${{ inputs.workflow_id }}.tar:${{ github.sha }}
+    - name: Save OCI archive
+      if: ${{ ! inputs.push_pr }}
+      uses: actions/upload-artifact@v3
+      with:
+        name: serverless-workflow-${{ inputs.workflow_id }}.tar:${{ github.sha }}
+
     - name: Push To quay.io
       id: push-to-quay
+      if: ${{ ! inputs.push_pr }}
       uses: redhat-actions/push-to-registry@v2
       with:
         image: ${{ steps.build-image.outputs.image }}

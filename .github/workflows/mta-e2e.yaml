@@ -79,8 +79,18 @@ jobs:
       - name: Download sonataflow artifacts generated manifests
         uses: actions/download-artifact@v3
         with:
-          name: serverless-workflow-mta
+          name: serverless-workflow-${{ inputs.workflow_id }}
           path: manifests
+
+      - name: Download serverless workflows mta image
+        uses: actions/download-artifact@v3
+        with:
+          name: serverless-workflow-${{ inputs.workflow_id }}.tar:${{ github.sha }}
+
+      - name: Load ${{ inputs.workflow_id }} workflow image to Kind
+        run: |
+          kind load image-archive serverless-workflow-${{ inputs.workflow_id }}.tar:${{ github.sha }}
+
 
       - name: Deploy MTA serverless workflow
         run: |
@@ -96,11 +106,15 @@ jobs:
         run: |
           e2e/mta.sh
 
+      - name: Export kind Logs
+        if: always()
+        run: kind export logs ./kind_logs
+
       - name: Upload Kind Logs
         uses: actions/upload-artifact@v3
         # Always run this, even if one of th previous steps failed.
         if: always()
         with:
           name: kind-logs
-          path: /tmp/kind_logs_*
+          path: ./kind_logs/
 
