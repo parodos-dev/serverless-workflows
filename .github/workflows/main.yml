@@ -33,13 +33,13 @@ jobs:
 
     - name: Buildah push to OCI Arcive
       if: ${{ ! inputs.push_pr }}
-      run: buildah push serverless-workflow-${{ inputs.workflow_id }}:${{ github.sha }} oci-archive:serverless-workflow-${{ inputs.workflow_id }}.tar:${{ github.sha }}
+      run: buildah push serverless-workflow-${{ inputs.workflow_id }}:${{ github.sha }} oci-archive:serverless-workflow-${{ inputs.workflow_id }}-${{ github.sha }}.tar:${{ github.sha }}
     - name: Save OCI archive
       if: ${{ ! inputs.push_pr }}
       uses: actions/upload-artifact@v3
       with:
-        name: serverless-workflow-${{ inputs.workflow_id }}.tar
-        path: serverless-workflow-${{ inputs.workflow_id }}.tar
+        name: serverless-workflow-${{ inputs.workflow_id }}-${{ github.sha }}.tar
+        path: serverless-workflow-${{ inputs.workflow_id }}-${{ github.sha }}.tar
 
     - name: Push To quay.io
       id: push-to-quay
@@ -75,7 +75,7 @@ jobs:
     - name: Archive manifests
       uses: actions/upload-artifact@v3
       with:
-        name: serverless-workflow-${{ inputs.workflow_id }}
+        name: serverless-workflow-${{ inputs.workflow_id }}-manifests
         path: ${{ inputs.workflow_id }}/manifests
     - name: Send PRs to helm repo
       if: ${{ inputs.push_pr }}

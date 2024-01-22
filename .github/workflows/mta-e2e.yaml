@@ -79,17 +79,17 @@ jobs:
       - name: Download sonataflow artifacts generated manifests
         uses: actions/download-artifact@v3
         with:
-          name: serverless-workflow-mta
+          name: serverless-workflow-mta-manifests
           path: manifests
 
       - name: Download serverless workflows mta image
         uses: actions/download-artifact@v3
         with:
-          name: serverless-workflow-mta.tar:${{ github.sha }}
+          name: serverless-workflow-mta-${{ github.sha }}.tar
 
       - name: Load mta workflow image to Kind
         run: |
-          kind load image-archive serverless-workflow-mta.tar:${{ github.sha }}
+          kind load image-archive serverless-workflow-mta-${{ github.sha }}.tar
 
 
       - name: Deploy MTA serverless workflow
