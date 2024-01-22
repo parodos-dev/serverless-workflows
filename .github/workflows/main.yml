@@ -38,7 +38,8 @@ jobs:
       if: ${{ ! inputs.push_pr }}
       uses: actions/upload-artifact@v3
       with:
-        name: serverless-workflow-${{ inputs.workflow_id }}.tar:${{ github.sha }}
+        name: serverless-workflow-${{ inputs.workflow_id }}.tar
+        path: serverless-workflow-${{ inputs.workflow_id }}.tar
 
     - name: Push To quay.io
       id: push-to-quay
