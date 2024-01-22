@@ -33,7 +33,7 @@ jobs:
 
     - name: Buildah push to OCI Arcive
       if: ${{ ! inputs.push_pr }}
-      run: buildah push oci-archive:serverless-workflow-${{ inputs.workflow_id }}.tar:${{ github.sha }}
+      run: buildah push serverless-workflow-${{ inputs.workflow_id }}:${{ github.sha }} oci-archive:serverless-workflow-${{ inputs.workflow_id }}.tar:${{ github.sha }}
     - name: Save OCI archive
       if: ${{ ! inputs.push_pr }}
       uses: actions/upload-artifact@v3
