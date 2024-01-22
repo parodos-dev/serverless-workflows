@@ -43,7 +43,7 @@ jobs:
 
     - name: Push To quay.io
       id: push-to-quay
-      if: ${{ ! inputs.push_pr }}
+      if: ${{ inputs.push_pr }}
       uses: redhat-actions/push-to-registry@v2
       with:
         image: ${{ steps.build-image.outputs.image }}
