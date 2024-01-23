@@ -1,0 +1,79 @@
+name: playground ci action 
+
+on:
+  workflow_dispatch:
+jobs:
+  build:
+    uses: parodos-dev/serverless-workflows/.github/workflows/main.yml@main
+    secrets: inherit
+    with:
+      workflow_id: mta
+      push_pr: false
+
+  run-e2e:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Create k8s Kind Cluster
+        uses: helm/kind-action@v1.8.0
+        with:
+          cluster_name: kind
+  
+
+      - name: Download sonataflow artifacts generated manifests
+        uses: actions/download-artifact@v3
+        with:
+          name: serverless-workflow-mta-manifests
+          path: manifests
+
+      - name: Download serverless workflows mta image
+        uses: actions/download-artifact@v3
+        with:
+          name: serverless-workflow-mta-${{ github.sha }}.tar
+
+      - name: Load mta workflow image to Kind
+        run: |
+          kind load image-archive serverless-workflow-mta-${{ github.sha }}.tar
+
+
+      - name: Deploy MTA serverless workflow
+        run: |
+          ###### workaround till https://issues.redhat.com/browse/FLPATH-892 is solved
+          yq  --inplace '.spec.podTemplate.container |= ( . +  {"imagePullPolicy": "ifNotPresent"} )' manifests/01-sonataflow_mtaanalysis.yaml
+          ###### end workfaround
+
+          grep imagePullPolicy manifests/01-sonataflow_mtaanalysis.yaml
+
+          # deploy the manifests created by the  ${{ steps.build-image.outputs.image }}"
+          kubectl apply -f manifests
+
+          sleep 10
+          kubectl get sf mtaanalysis -o yaml | grep podTemplate -A 5
+
+          sleep 10
+          kubectl get deployment mtaanalysis -o jsonpath={.spec.template.spec.containers[]}
+          # give the pod time to start
+
+          kubectl get nodes -o yaml | grep serverless-workflow-mta
+
+          sleep 10
+          kubectl get pods -o wide
+          kubectl wait --for=condition=Ready=true pods -l "app=mtaanalysis" --timeout=5m
+
+      - uses: actions/checkout@v3
+      - name: Run e2e script
+        run: |
+          e2e/mta.sh
+
+      - name: Export kind Logs
+        if: always()
+        run: kind export logs ./kind_logs
+
+      - name: Upload Kind Logs
+        uses: actions/upload-artifact@v3
+        # Always run this, even if one of th previous steps failed.
+        if: always()
+        with:
+          name: kind-logs
+          path: ./kind_logs/
+
