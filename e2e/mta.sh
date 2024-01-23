@@ -20,7 +20,7 @@ function workflowDone() {
 trap 'cleanup' EXIT SIGTERM
 
 echo "Proxy Janus-idp port ⏳"
-kubectl port-forward svc/workflows-backstage 9080:7007 &
+kubectl port-forward $(oc get svc -l app.kubernetes.io/component=backstage -o name) 9080:7007 &
 port_forward_pid="$!"
 sleep 3
 echo "Proxy Janus-idp port ✅"

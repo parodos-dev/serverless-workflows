@@ -63,7 +63,6 @@ jobs:
           sleep 30s
           kubectl wait --for=condition=Ready=true pods -l "app.kubernetes.io/name=tackle-ui" -n my-konveyor-operator --timeout=120s
           # now MTA workflow can execute agains tackle-ui.my-konveyor-operator.svc:8080
-          # TODO consider invoking the workflow using backstage api (expose svc/janus-idp
 
       - name: Deploy Janus-idp-workflow-helm (janus + sonataflow-opertor)
         run: |
