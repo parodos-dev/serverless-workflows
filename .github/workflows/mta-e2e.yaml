@@ -108,7 +108,7 @@ jobs:
           sleep 10                                                                                                                                          
           kubectl get sf mtaanalysis -o yaml | grep podTemplate -A 5                                                                                        
                                                                                                                                                             
-          sleep 10                                                                                                                                          
+          sleep 30                                                                                                                                          
           kubectl get deployment mtaanalysis -o jsonpath={.spec.template.spec.containers[]}                                                                 
           # give the pod time to start                                                                                                                      
                                                                                                                                                             
