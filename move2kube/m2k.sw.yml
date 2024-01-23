@@ -5,6 +5,10 @@ name: Move2Kube workflow
 description: Workflow to execute Move2Kube
 dataInputSchema: schemas/input.json
 start: StartPlanning
+extensions:
+  - extensionid: workflow-uri-definitions
+    definitions:
+      notifications: "https://raw.githubusercontent.com/janus-idp/backstage-plugins/%40janus-idp/plugin-notifications-backend%401.0.3/plugins/notifications-backend/src/openapi.yaml"
 events:
   - name: errorEvent
     source: ''
@@ -29,7 +33,7 @@ functions:
     type: custom
     operation: rest:post:http://broker-ingress.knative-eventing.svc.cluster.local/sonataflow-infra/default
   - name: createNotification
-    operation: 'specs/notifications.yaml#createNotification'
+    operation: notifications#createNotification
 states:
   - name: StartPlanning
     type: operation
