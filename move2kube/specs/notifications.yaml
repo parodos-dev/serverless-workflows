@@ -17,13 +17,6 @@ paths:
       summary: Create notification
       description: Create notification
       operationId: createNotification
-      parameters:
-        - name: notifications-secret
-          in: header
-          description: Notification secret
-          required: true
-          schema:
-            type: string
       requestBody:
         description: Create a new notification
         content:
@@ -238,6 +231,24 @@ components:
           type: string
         message:
           type: string
+        actions:
+          type: array
+          items:
+            type: object
+            properties:
+              title:
+                type: string
+              url:
+                type: string
+            required: [title, url]
         topic:
           type: string
+        targetUsers:
+          type: array
+          items:
+            type: string
+        targetGroups:
+          type: array
+          items:
+            type: string
       required: [origin, title]
