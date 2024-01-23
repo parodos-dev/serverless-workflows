@@ -96,8 +96,13 @@ jobs:
 
       - name: Deploy MTA serverless workflow
         run: |
+          ###### workaround till https://issues.redhat.com/browse/FLPATH-892 is solved
+          yq  --inplace '.spec.podTemplate.container |= ( . +  {"imagePullPolicy": "ifNotPresent"} )' manifests/01-sonataflow_mtaanalysis.yaml
+          ###### end workfaround
+
           # deploy the manifests created by the  ${{ steps.build-image.outputs.image }}"
           kubectl apply -f manifests
+
           # give the pod time to start
           sleep 15
           kubectl get pods -o wide
