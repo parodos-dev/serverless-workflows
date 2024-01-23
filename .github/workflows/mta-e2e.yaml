@@ -97,25 +97,20 @@ jobs:
       - name: Deploy MTA serverless workflow
         run: |
           ###### workaround till https://issues.redhat.com/browse/FLPATH-892 is solved
-          yq  --inplace '.spec.podTemplate.container |= ( . +  {"imagePullPolicy": "ifNotPresent"} )' manifests/01-sonataflow_mtaanalysis.yaml
+          yq  --inplace '.spec.podTemplate.container |= ( . +  {"imagePullPolicy": "IfNotPresent"} )' manifests/01-sonataflow_mtaanalysis.yaml
           ###### end workfaround
-                                                                                                                                                            
-          grep imagePullPolicy manifests/01-sonataflow_mtaanalysis.yaml                                                                                     
-                                                                                                                                                            
           # deploy the manifests created by the  ${{ steps.build-image.outputs.image }}"                                                                    
           kubectl apply -f manifests                                                                                                                        
                                                                                                                                                             
-          sleep 10                                                                                                                                          
-          kubectl get sf mtaanalysis -o yaml | grep podTemplate -A 5                                                                                        
-                                                                                                                                                            
-          sleep 30                                                                                                                                          
-          kubectl get deployment mtaanalysis -o jsonpath={.spec.template.spec.containers[]}                                                                 
+          sleep 5                                                                                                                                          
+          kubectl get deployment mtaanalysis -o jsonpath={.spec.template.spec.containers[]}                                                               
           # give the pod time to start                                                                                                                      
-                                                                                                                                                            
+
+          echo "look for the image in the kind nodes"
           kubectl get nodes -o yaml | grep serverless-workflow-mta                  
 
           # give the pod time to start
-          sleep 45
+          sleep 5
           kubectl get pods -o wide
           kubectl wait --for=condition=Ready=true pods -l "app=mtaanalysis" --timeout=5m
 
