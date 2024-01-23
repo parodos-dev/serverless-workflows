@@ -100,17 +100,11 @@ jobs:
           yq  --inplace '.spec.podTemplate.container |= ( . +  {"imagePullPolicy": "IfNotPresent"} )' manifests/01-sonataflow_mtaanalysis.yaml
           ###### end workfaround
           # deploy the manifests created by the  ${{ steps.build-image.outputs.image }}"                                                                    
-          kubectl apply -f manifests                                                                                                                        
-                                                                                                                                                            
-          sleep 5                                                                                                                                          
-          kubectl get deployment mtaanalysis -o jsonpath={.spec.template.spec.containers[]}                                                               
-          # give the pod time to start                                                                                                                      
-
-          echo "look for the image in the kind nodes"
-          kubectl get nodes -o yaml | grep serverless-workflow-mta                  
-
-          # give the pod time to start
+          kubectl apply -f manifests
           sleep 5
+          kubectl get deployment mtaanalysis -o jsonpath={.spec.template.spec.containers[]}
+          # give the pod time to start
+          sleep 15
           kubectl get pods -o wide
           kubectl wait --for=condition=Ready=true pods -l "app=mtaanalysis" --timeout=5m
 
