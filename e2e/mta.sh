@@ -6,8 +6,8 @@ set -e
 export port_forward_pid=""
 
 function cleanup() {
-    echo "cleanup"
-    kill -9 "$port_forward_pid"
+    echo "cleanup $?"
+    kill "$port_forward_pid" || true
 }
 
 function workflowDone() {
@@ -22,19 +22,22 @@ trap 'cleanup' EXIT SIGTERM
 echo "Proxy Janus-idp port ⏳"
 kubectl port-forward svc/workflows-backstage 9080:7007 &
 port_forward_pid="$!"
-sleep 1
+sleep 3
 echo "Proxy Janus-idp port ✅"
 
 echo "End to end tests start ⏳"
-id=$(curl -s -XPOST -H "Content-Type: application/json" \
-    localhost:9080/api/orchestrator/workflows/MTAAnalysis/execute \
-    -d '{"repositoryURL": "https://github.com/spring-projects/spring-petclinic"}' \
-    | jq .id)
+
+out=$(curl -XPOST -H "Content-Type: application/json"  http://localhost:9080/api/orchestrator/workflows/MTAAnalysis/execute \ -d '{"repositoryURL": "https://github.com/spring-projects/spring-petclinic"}')
+id=$(echo "$out" | jq -e .id)
+
+if [ -z "$id" ] || [ "$id" == "null" ]; then
+    echo "workflow instance id is null... exiting "
+    exit 1
+fi
 
 retries=20
-sleepduration=5
-until eval "test $retries -eq 0 || workflowDone $id"; do
-  echo "checking workflow $id completed successfully"
+until eval "test ${retries} -eq 0 || workflowDone $id"; do
+  echo "checking workflow ${id} completed successfully"
   sleep 5
   retries=$((retries-1))
 done
