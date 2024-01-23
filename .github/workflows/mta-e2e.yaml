@@ -104,7 +104,7 @@ jobs:
           kubectl apply -f manifests
 
           # give the pod time to start
-          sleep 15
+          sleep 45
           kubectl get pods -o wide
           kubectl wait --for=condition=Ready=true pods -l "app=mtaanalysis" --timeout=5m
 
