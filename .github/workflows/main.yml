@@ -84,17 +84,18 @@ jobs:
       env:
         GH_TOKEN: ${{ secrets.NEW_HELM_REPO_TOKEN }}
       run: |
-          gh repo clone $WF_HELM_REPO helm-repo
-          cd helm-repo
           git config --global user.email "action@github.com"
           git config --global user.name "GitHub Action"
+          gh repo clone $WF_HELM_REPO helm-repo
+          cd helm-repo
           git switch -c autopr-$RANDOM
           mkdir -p charts/workflows/charts/${{ inputs.workflow_id }}/templates
           cp ../${{ inputs.workflow_id }}/manifests/* charts/workflows/charts/${{ inputs.workflow_id }}/templates
           git add -A
           git commit -m "Automated PR from ${{ github.event.pull_request.html_url }} ${{ github.event.issue.html_url }}"
+          git remote set-url origin https://${{ env.GH_TOKEN }}@github.com/$WF_HELM_REPO
           git push origin HEAD
-          gh pr create --title "Automatic manifests generation from ${{ github.event.pull_request.html_url }} ${{ github.event.issue.html_url }}" \
+          gh pr create -f --title "Automatic manifests generation from ${{ github.event.pull_request.html_url }} ${{ github.event.issue.html_url }}" \
             --body "
               Updating generated manifests for ${{ inputs.workflow_id }} workflow
             "
