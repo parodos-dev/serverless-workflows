@@ -14,21 +14,21 @@ function cleanup() {
 function workflowDone() {
     if [[ -n "${1}" ]]; then 
         id=$1
-        curl -s -H "Content-Type: application/json" localhost:9080/api/orchestrator/instances/${id} | jq -e '.state == "COMPLETED"'
+        curl -s -H "Content-Type: application/json" localhost:9080/api/orchestrator/instances/"${id}" | jq -e '.state == "COMPLETED"'
     fi
 }
 
 trap 'cleanup' EXIT SIGTERM
 
 echo "Proxy Janus-idp port ⏳"
-kubectl port-forward $(kubectl get svc -l app.kubernetes.io/component=backstage -o name) 9080:7007 &
+kubectl port-forward "$(kubectl get svc -l app.kubernetes.io/component=backstage -o name)" 9080:7007 &
 port_forward_pid="$!"
 sleep 3
 echo "Proxy Janus-idp port ✅"
 
 echo "End to end tests start ⏳"
 
-out=$(curl -XPOST -H "Content-Type: application/json"  http://localhost:9080/api/orchestrator/workflows/MTAAnalysis/execute \ -d '{"repositoryURL": "https://github.com/spring-projects/spring-petclinic"}')
+out=$(curl -XPOST -H "Content-Type: application/json"  http://localhost:9080/api/orchestrator/workflows/MTAAnalysis/execute -d '{"repositoryURL": "https://github.com/spring-projects/spring-petclinic"}')
 id=$(echo "$out" | jq -e .id)
 
 if [ -z "$id" ] || [ "$id" == "null" ]; then
