@@ -93,7 +93,6 @@ jobs:
           cp ../${{ inputs.workflow_id }}/manifests/* charts/workflows/charts/${{ inputs.workflow_id }}/templates
           git add -A
           git commit -m "Automated PR from ${{ github.event.pull_request.html_url }} ${{ github.event.issue.html_url }}"
-          git remote set-url origin https://x-access-token:${{ env.GITHUB_TOKEN }}@github.com/$WF_HELM_REPO
           git push origin HEAD
           gh pr create --title "Automatic manifests generation from ${{ github.event.pull_request.html_url }} ${{ github.event.issue.html_url }}" \
             --body "
