@@ -82,7 +82,7 @@ jobs:
     - name: Send PRs to helm repo
       if: ${{ inputs.push_pr }}
       env:
-        GH_TOKEN: ${{ secrets.NEW_HELM_REPO_TOKEN }}
+        GH_TOKEN: ${{ secrets.HELM_REPO_TOKEN }}
       run: |
           git config --global user.email "action@github.com"
           git config --global user.name "GitHub Action"
