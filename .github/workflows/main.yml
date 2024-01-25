@@ -68,8 +68,6 @@ jobs:
       run: curl -L https://github.com/rgolangh/kie-tools/releases/download/0.0.1/kn-workflow -o kn-workflow && chmod +x kn-workflow
     - name: kn-workflow
       run: cd ${{ inputs.workflow_id }} && ../kn-workflow gen-manifest
-    - name: Download yq
-      run: curl -L https://github.com/mikefarah/yq/releases/download/v4.35.2/yq_linux_x86_64 -o yq
     - name: Remove dev profile
       run: yq -i 'del(.metadata.annotations."sonataflow.org/profile")' ${{ inputs.workflow_id }}/manifests/01-sonataflow*.yaml
     - name: Set container image ref in SonataFlow resource
