@@ -18,6 +18,8 @@ RUN ls -la ./resources
 RUN sed -i '/<\/dependencies>/i \    <dependency>\n      <groupId>io.quarkiverse.openapi.generator<\/groupId>\n      <artifactId>quarkus-openapi-generator<\/artifactId>\n      <version>2.2.15<\/version>\n    <\/dependency>' pom.xml
 
 ENV swf_home_dir=/home/kogito/serverless-workflow-project
+
+RUN if [[ -d "./resrouces/java" ]] ; then cp ./resources/java/* ${swf_home_dir}/src/main/java/; fi
 RUN /home/kogito/launch/build-app.sh ./resources
 
 #=============================

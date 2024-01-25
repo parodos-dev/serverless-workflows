@@ -1,0 +1,36 @@
+openapi: 3.1.0
+info:
+  title: The Data Index Graphql API
+  version: 1.0.0-SNAPSHOT
+paths:
+  /graphql:
+    post:
+      operationId: reactiveGraphQLHandlerPost
+      summary: GraphQL
+      description: ""
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GraphQLQuery'
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+components:
+  schemas:
+    GraphQLQuery:
+      type: object
+      properties:
+        query:
+          type: string
+        variables:
+          type: object
+        operationName:
+          type: string

@@ -1,0 +1,30 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "title": "Workflow Options",
+    "description": "Workflow options",
+    "type": "object",
+    "properties": {
+        "currentVersion": { "$ref": "workflow-option-output-schema.json"},
+        "upgradeOptions": {
+            "type" : "array",
+            "items": {"$ref" : "workflow-option-output-schema.json"}
+        },
+        "migrationOptions": {
+            "type" : "array",
+            "items": {"$ref" : "workflow-option-output-schema.json"}
+        },
+        "newOptions": {
+            "type" : "array",
+            "items": {"$ref" : "workflow-option-output-schema.json"}
+        },
+        "continuationOptions": {
+            "type" : "array",
+            "items": {"$ref" : "workflow-option-output-schema.json"}
+        },
+        "otherOptions": {
+            "type" : "array",
+            "items": {"$ref" : "workflow-option-output-schema.json"}
+        }
+    },
+    "required": ["workflowOptions"]
+}
