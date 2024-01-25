@@ -45,4 +45,4 @@ recreate the token. This should be revised.
 
 [1]: https://github.com/serverlessworkflow/specification/blob/main/specification.md
 [2]: https://github.com/apache/incubator-kie-kogito-serverless-operator/
-[3]: https://github.com/rgolangh/serverless-workflows-helm
+[3]: https://github.com/parodos-dev/serverless-workflows-helm

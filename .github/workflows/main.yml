@@ -11,7 +11,7 @@ on:
         type: boolean
         default: true
 env:
-  WF_HELM_REPO: rgolangh/serverless-workflows-helm
+  WF_HELM_REPO: parodos-dev/serverless-workflows-helm
 
 jobs:
   build:
