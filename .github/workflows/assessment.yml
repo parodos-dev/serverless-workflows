@@ -1,0 +1,15 @@
+name: Assessment workflow container image and manifest push
+
+on:
+  push:
+    branches: [ "main", "FLPATH-793-assessment" ]
+    paths:
+      - 'assessment/**'
+
+jobs:
+  call-main-workflow:
+    uses: parodos-dev/serverless-workflows/.github/workflows/main.yml@FLPATH-793-assessment
+    with:
+      workflow_id: assessment
+    secrets: inherit
+
