@@ -44,5 +44,4 @@ until eval "test ${retries} -eq 0 || workflowDone $id"; do
 done
 
 echo "End to end tests passed ✅"
-exit 0
 
