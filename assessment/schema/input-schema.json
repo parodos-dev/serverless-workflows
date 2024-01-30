@@ -4,7 +4,7 @@
     "properties": {
       "repositoryUrl": {
         "type": "string",
-        "pattern": "^(https?|git)(:\/\/|@)([^\/:]+)[\/:]([^\/:]+)\/(.+).git$"
+        "pattern": "^(https?|git)(:\/\/|@)([^\/:]+)[\/:]([^\/:]+)$"
       }
     },
     "required": [
