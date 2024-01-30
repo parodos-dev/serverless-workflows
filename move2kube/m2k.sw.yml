@@ -16,6 +16,9 @@ events:
   - name: transformationSavedEvent
     source: ''
     type: transformation_saved
+  - name: saveTransformationEvent
+    source: ''
+    type: save-transformation
 functions:
   - name: systemOut
     type: custom
@@ -29,9 +32,6 @@ functions:
   - name: startTransformation
     type: rest
     operation: specs/move2kube.yaml#start-transformation
-  - name: sendCloudEvent
-    type: custom
-    operation: rest:post:http://broker-ingress.knative-eventing.svc.cluster.local/sonataflow-infra/default
   - name: createNotification
     operation: notifications#createNotification
 states:
@@ -103,37 +103,22 @@ states:
             actions:
               - title: "Move2Kube waiting Q&A"
                 url: "$SECRET.move2kube_url + \"/workspaces/\"+ .workspaceId + \"/projects/\" + .projectId + \"/outputs/\"+ .transformId "
-    transition: SaveTransformationOutput
-  - name: SaveTransformationOutput
-    type: operation
-    actions:
-      - functionRef:
-          refName: sendCloudEvent
-          arguments:
-            HEADER_Ce-Id: $WORKFLOW.instanceId
-            HEADER_Ce-Specversion: "1.0"
-            HEADER_Ce-Type: "save-transformation"
-            HEADER_Ce-Source: "m2k_swf"
-            HEADER_Content-Type: "application/json"
-            gitRepo: "(.repositoryURL|sub(\"http(s)?://\";\"ssh://\"))"
-            branch: .targetBranch
-            token: .token
-            workspaceId: .workspaceId
-            projectId: .projectId
-            transformId: .transformId
-            workflowCallerId: $WORKFLOW.instanceId
-    transition: WaitForSaveTransformationCompletion
-  - name: WaitForSaveTransformationCompletion
+    transition:
+      nextState: WaitForSaveTransformationCompletionEvent
+      produceEvents:
+        - eventRef: saveTransformationEvent
+          data: "{gitRepo:.repositoryURL|sub(\"http(s)?://\";\"ssh://\"), branch: .targetBranch, token: .token, workspaceId: .workspaceId, projectId: .projectId, transformId: .transformId, workflowCallerId: $WORKFLOW.instanceId}"
+  - name: WaitForSaveTransformationCompletionEvent
     type: switch
     eventConditions:
-      - eventRef: transformationSavedEvent
-        transition: TransformationSaved
       - eventRef: errorEvent
         transition: TransformationError
+      - eventRef: transformationSavedEvent
+        transition: TransformationSaved
     defaultCondition:
       transition: TransformationError
     timeouts:
-      eventTimeout: PT3M
+      eventTimeout: P90D
   - name: TransformationSaved
     type: inject
     data:
