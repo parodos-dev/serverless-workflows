@@ -10,7 +10,7 @@ on:
       - 'e2e/move2kube.sh'
 jobs:
   call-kfunc-workflow:
-    uses: parodos-dev/serverless-workflows/.github/workflows/m2k-func.yml@main
+    uses: parodos-dev/serverless-workflows/.github/workflows/m2k-func.yaml@main
     secrets: inherit
   call-main-workflow:
     uses: parodos-dev/serverless-workflows/.github/workflows/main.yml@main
