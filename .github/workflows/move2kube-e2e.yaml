@@ -97,6 +97,8 @@ jobs:
           ###### workaround till https://issues.redhat.com/browse/FLPATH-892 is solved
           yq  --inplace '.spec.podTemplate.container |= ( . +  {"imagePullPolicy": "IfNotPresent"} )' manifests/01-sonataflow_m2k.yaml
           ###### end workaround
+          
+          yq  --inplace '.spec.podTemplate.container |= ( . +  {"env": [{"name": "K_SINK", "value": "http://broker-ingress.knative-eventing.svc.cluster.local/sonataflow-infra/default"}]} )' manifests/01-sonataflow_m2k.yaml
 
           # deploy the manifests created by the  ${{ steps.build-image.outputs.image }}"                                                                    
           kubectl apply -f manifests
