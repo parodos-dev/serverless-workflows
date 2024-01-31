@@ -91,7 +91,7 @@ jobs:
           ).data[0];
     - name: Pull Request data
       run: |
-        echo '${{ fromJson(steps.get_pr_data.outputs.result).html_url }}'
+        echo '${{ fromJSON(steps.get_pr_data.outputs.result).html_url }}'
     - name: Send PRs to helm repo
       if: ${{ inputs.push_pr }}
       env:
@@ -105,10 +105,10 @@ jobs:
           mkdir -p charts/workflows/charts/${{ inputs.workflow_id }}/templates
           cp ../${{ inputs.workflow_id }}/manifests/* charts/workflows/charts/${{ inputs.workflow_id }}/templates
           git add -A
-          git commit -m "Automated PR from ${{ fromJson(steps.get_pr_data.outputs.result).html_url }}"
+          git commit -m "Automated PR from ${{ fromJSON(steps.get_pr_data.outputs.result).html_url }}"
           git remote set-url origin https://${{ env.GH_TOKEN }}@github.com/$WF_HELM_REPO
           git push origin HEAD
-          gh pr create -f --title "Automatic manifests generation from ${{ fromJson(steps.get_pr_data.outputs.result).html_url }}" \
+          gh pr create -f --title "Automatic manifests generation from ${{ fromJSON(steps.get_pr_data.outputs.result).html_url }}" \
             --body "
               Updating generated manifests for ${{ inputs.workflow_id }} workflow
 
