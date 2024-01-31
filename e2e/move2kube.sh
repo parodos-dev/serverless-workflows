@@ -15,14 +15,14 @@ function cleanup() {
 function workflowDone() {
     if [[ -n "${1}" ]]; then
         id=$1
-        curl -s -H "Content-Type: application/json" localhost:9080/api/orchestrator/instances/${id} | jq -e '.state == "COMPLETED"'
+        curl -s -H "Content-Type: application/json" localhost:9080/api/orchestrator/instances/"${id}" | jq -e '.state == "COMPLETED"'
     fi
 }
 
 trap 'cleanup' EXIT SIGTERM
 
 echo "Proxy Janus-idp port ⏳"
-kubectl port-forward $(kubectl get svc -l app.kubernetes.io/component=backstage -o name) 9080:7007 &
+kubectl port-forward "$(kubectl get svc -l app.kubernetes.io/component=backstage -o name)" 9080:7007 &
 port_forward_pid="$!"
 sleep 3
 echo "Proxy Janus-idp port ✅"
@@ -62,14 +62,14 @@ fi
 echo "Wait until plan exists"
 retries=20
 http_status=$(curl -X GET -s -o /dev/null -w "%{http_code}" "${MOVE2KUBE_URL}/api/v1/workspaces/${WORKSPACE_ID}/projects/${PROJECT_ID}/plan")
-while [ ${retries} -ne 0 ] && [ ${http_status} -eq 404 ]; do
+while [ ${retries} -ne 0 ] && [ "${http_status}" -eq 404 ]; do
 echo "Wait until plan exists"
   sleep 5
   retries=$((retries-1))
   http_status=$(curl -X GET -s -o /dev/null -w "%{http_code}" "${MOVE2KUBE_URL}/api/v1/workspaces/${WORKSPACE_ID}/projects/${PROJECT_ID}/plan")
 done
 
-if [ $http_status -ne 202 ]
+if [ "${http_status}" -ne 202 ]
 then
   echo "Plan not created, http status=${http_status}...exiting "
   exit 1
@@ -78,10 +78,10 @@ fi
 if [[ "${NOTIFICATIONS_DISABLED}" == "false" ]]; then
   echo "Checking if Q&A waiting notification with move2kube URL received"
   NOTIFICATION=$(curl "${BACKSTAGE_NOTIFICATION_URL}/notifications?messageScope=all&orderBy=created&orderByDirec=desc" | jq ".[0]")
-  URL_IN_NOTIFICATION=$(echo "${NOTIFICATION} | jq .actions[0].url | select(contains(\"${MOVE2KUBE_URL}/api/v1/workspaces/${WORKSPACE_ID}/projects/${PROJECT_ID}/outputs\"))")
+  URL_IN_NOTIFICATION=$(printf "%s" "${NOTIFICATION}" | jq ".actions[0].url | select(contains(\"${MOVE2KUBE_URL}/api/v1/workspaces/${WORKSPACE_ID}/projects/${PROJECT_ID}/outputs\"))")
   if [ -z "${URL_IN_NOTIFICATION}" ]
   then
-       echo "Notification has no action with matching URL: ${NOTIFICATION}\n\nexiting "
+       printf "Notification has no action with matching URL: %s\n\nexiting " "${NOTIFICATION}"
        exit 1
   fi
 fi
@@ -124,7 +124,7 @@ while [[ ${retries} -ne 0 && ${http_status} -eq 404 ]]; do
   retries=$((retries-1))
 http_status=$(curl -X GET -L -s -o /dev/null -w "%{http_code}" "https://api.bitbucket.org/2.0/repositories/${GIT_ORG}/refs/branches/${GIT_TARGET_BRANCH}")
 done
-if [ $http_status -eq 404 ]
+if [ "${http_status}" -eq 404 ]
 then
   echo "Branch ${GIT_TARGET_BRANCH} not created on repo ${GIT_REPO}...exiting "
   exit 1
@@ -135,10 +135,10 @@ fi
 if [[ "${NOTIFICATIONS_DISABLED}" == "false" ]]; then
   echo "Checking if completion notification received"
   NOTIFICATION=$(curl "${BACKSTAGE_NOTIFICATION_URL}/notifications?messageScope=all&orderBy=created&orderByDirec=desc" | jq ".[0]")
-  SUCCESS_NOTIFICATION=$(echo "${NOTIFICATION} | jq .message | select(contains(\"success\"))")
+  SUCCESS_NOTIFICATION=$(printf "%s" "${NOTIFICATION}" | jq ".message | select(contains(\"success\"))")
   if [ -z "${SUCCESS_NOTIFICATION}" ]
   then
-       echo "Notification has no action with matching URL: ${NOTIFICATION}\n\nexiting "
+       printf "Notification has no action with matching URL: %s\n\nexiting " "${NOTIFICATION}"
        exit 1
   fi
 fi
