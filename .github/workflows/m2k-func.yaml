@@ -1,4 +1,4 @@
-name: Build and push MTA-functions container image
+name: Build and push move2kube Knative function container image
 
 on:
   workflow_dispatch:
