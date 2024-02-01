@@ -41,7 +41,7 @@ jobs:
       if: ${{ ! inputs.push_pr }}
       run: |
         buildah push serverless-workflow-${{ inputs.workflow_id }}:${{ github.sha }} \
-          oci-archive:serverless-workflow-${{ inputs.workflow_id }}-${{ github.sha }}.tar:quay.io/orchestrator/serverless-workflow-mta:${{ github.sha }}
+          oci-archive:serverless-workflow-${{ inputs.workflow_id }}-${{ github.sha }}.tar:quay.io/orchestrator/serverless-workflow-${{ inputs.workflow_id }}:${{ github.sha }}
     - name: Save OCI archive
       if: ${{ ! inputs.push_pr }}
       uses: actions/upload-artifact@v3
