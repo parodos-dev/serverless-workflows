@@ -144,5 +144,3 @@ if [[ "${NOTIFICATIONS_DISABLED}" == "false" ]]; then
 fi
 
 echo "End to end tests passed ✅"
-exit 0
-
