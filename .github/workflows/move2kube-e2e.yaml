@@ -17,7 +17,7 @@ jobs:
       workflow_id: move2kube
       push_pr: false
 
-  run-e2e:
+  run-m2k-e2e:
     runs-on: ubuntu-latest
     needs: build
     steps:
@@ -32,28 +32,19 @@ jobs:
           # Needs to knative events resources in this namespace as the broker url is hard coded at the moment
           kubectl create ns sonataflow-infra
       - name: Create sshkeys secret
+        env:
+          SSH_PUB_KEY: ${{secrets.SSH_PUB_KEY}}
+          SSH_PRIV_KEY: ${{secrets.SSH_PRIV_KEY}}
         run: |
-          printf "%s" "${{ secrets.SSH_PUB_KEY }}" >> id_rsa.pub
-          printf "%s" "${{ secrets.SSH_PRIV_KEY }}" >> id_rsa
+          echo "${SSH_PUB_KEY}" >> id_rsa.pub
+          echo "${SSH_PRIV_KEY}" >> id_rsa
           kubectl create secret generic sshkeys --from-file=id_rsa=id_rsa --from-file=id_rsa.pub=id_rsa.pub
 
       - name: Install move2kube instance
         run: |
           kubectl apply -f e2e/resources/move2kube-instance.yaml
+          kubectl get pods
           kubectl wait --for=condition=Ready=true --timeout=2m pod -l app=move2kube-instance
-
-      - name: Deploy sonataflow-operator
-        run: |
-          helm repo add janus-idp-workflows https://gabriel-farache.github.io/janus-idp-workflows-helm/
-          helm install janus-idp-workflows janus-idp-workflows/janus-idp-workflows \
-            -f https://raw.githubusercontent.com/gabriel-farache/janus-idp-workflows-helm/main/charts/janus-idp-workflows/values-k8s.yaml 
-          echo "sleep bit long till the PV for data index and kaniko cache is ready. its a bit slow. TODO fixit"
-          kubectl get pv
-          sleep 3m
-          kubectl get sfp -A
-          kubectl wait --for=condition=Ready=true pods -l "app.kubernetes.io/name=backstage" --timeout=120s
-          kubectl get pods -o wide
-          kubectl wait --for=condition=Ready=true pods -l "app=sonataflow-platform" --timeout=120s
 
       - name: Download sonataflow artifacts generated manifests
         uses: actions/download-artifact@v3
@@ -69,6 +60,20 @@ jobs:
       - name: Load move2kube workflow image to Kind
         run: |
           kind load image-archive serverless-workflow-move2kube-${{ github.sha }}.tar
+          docker exec $(kind get clusters | head -1)-control-plane crictl images
+
+      - name: Deploy sonataflow-operator
+        run: |
+          helm repo add janus-idp-workflows https://gabriel-farache.github.io/janus-idp-workflows-helm/
+          helm install janus-idp-workflows janus-idp-workflows/janus-idp-workflows \
+            -f https://raw.githubusercontent.com/gabriel-farache/janus-idp-workflows-helm/main/charts/janus-idp-workflows/values-k8s.yaml 
+          echo "sleep bit long till the PV for data index and kaniko cache is ready. its a bit slow. TODO fixit"
+          kubectl get pv
+          sleep 3m
+          kubectl get sfp -A
+          kubectl wait --for=condition=Ready=true pods -l "app.kubernetes.io/name=backstage" --timeout=120s
+          kubectl get pods -o wide
+          kubectl wait --for=condition=Ready=true pods -l "app=sonataflow-platform" --timeout=120s
 
       - name: Deploy Move2kube serverless workflow
         run: |
@@ -80,7 +85,7 @@ jobs:
           ###### workaround till https://issues.redhat.com/browse/FLPATH-892 is solved
           yq  --inplace '.spec.podTemplate.container |= ( . +  {"imagePullPolicy": "IfNotPresent"} )' manifests/01-sonataflow_m2k.yaml
           ###### end workaround
-          
+
           # deploy the manifests created by the  ${{ steps.build-image.outputs.image }}"                                                                    
           kubectl apply -f manifests
           sleep 5
@@ -88,14 +93,13 @@ jobs:
           # give the pod time to start
           sleep 15
           kubectl get pods -o wide
-          kubectl wait --for=condition=Ready=true pods -l "app=m2k" --timeout=5m
+          kubectl wait --for=condition=Ready=true pods -l "app=m2k" --timeout=1m
           
           kubectl patch configmap/m2k-props \
             --type merge \
             -p '{"data": {"application.properties" :"move2kube_url=http://move2kube-instance-svc.default.svc.cluster.local:8080\nquarkus.rest-client.move2kube_yaml.url=http://move2kube-instance-svc.default.svc.cluster.local:8080\nquarkus.rest-client.notifications_yaml.url=http://janus-idp-workflows-backstage.default.svc.cluster.local:7007/api/notifications/"}}'
           kubectl delete pod -l "app=m2k"
-          kubectl wait --for=condition=Ready=true pods -l "app=m2k" --timeout=5m
-
+          kubectl get pods -o wide
       - name: Deploy Knative function
         run: |
           ###### workaround till https://issues.redhat.com/browse/FLPATH-892 is solved
@@ -111,7 +115,9 @@ jobs:
 
       - name: Export kind Logs
         if: always()
-        run: kind export logs ./kind_logs
+        run: |
+          kubectl get pods
+          kind export logs ./kind_logs
 
       - name: Upload Kind Logs
         uses: actions/upload-artifact@v3
