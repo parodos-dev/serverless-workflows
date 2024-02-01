@@ -11,6 +11,10 @@ start: GetApplication
 dataInputSchema:
   schema: specs/mta-input.json
   failOnValidationErrors: false
+extensions:
+  - extensionid: workflow-uri-definitions
+    definitions:
+      notifications: "https://raw.githubusercontent.com/janus-idp/backstage-plugins/%40janus-idp/plugin-notifications-backend%401.0.3/plugins/notifications-backend/src/openapi.yaml"
 functions:
   - name: filterApplication
     type: expression
@@ -26,7 +30,7 @@ functions:
   - name: getTaskgroup
     operation: specs/mta.json#getTaskgroup
   - name: createNotification
-    operation: 'specs/notifications.yaml#createNotification'
+    operation: notifications#createNotification
 states:
   - name: GetApplication
     type: operation
@@ -129,9 +133,10 @@ states:
           arguments:
             id: ".taskgroup.id"
         actionDataFilter:
-          toStateData: ".taskgroup"    
+          toStateData: ".taskgroup"
         sleep:
           before: PT2S
+    name: poll
     type: operation
     transition: checkReportDone
   - name: checkReportDone
@@ -141,6 +146,7 @@ states:
         transition: NotifyBackstage
     defaultCondition:
       transition: poll
+    transition: NotifyBackstage
   - name: NotifyBackstage
     type: operation
     actions:

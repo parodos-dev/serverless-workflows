@@ -10,13 +10,8 @@ on:
         required: false
         type: boolean
         default: true
-      build_arg_quarkus_extensions:
-        required: false
-        type: string
-
-
 env:
-  WF_HELM_REPO: rgolangh/serverless-workflows-helm
+  WF_HELM_REPO: parodos-dev/serverless-workflows-helm
 
 jobs:
   build:
@@ -34,10 +29,23 @@ jobs:
           pipeline/workflow-builder.Dockerfile
         build-args: |
           WF_RESOURCES=${{ inputs.workflow_id }}/
-          QUARKUS_EXTENSIONS=${{ inputs.build_arg_quarkus_extensions }}
+          QUARKUS_EXTENSIONS=org.kie.kogito:kogito-addons-quarkus-jobs-knative-eventing:999-SNAPSHOT
+
+    - name: Buildah push to OCI Arcive
+      if: ${{ ! inputs.push_pr }}
+      run: |
+        buildah push serverless-workflow-${{ inputs.workflow_id }}:${{ github.sha }} \
+          oci-archive:serverless-workflow-${{ inputs.workflow_id }}-${{ github.sha }}.tar:quay.io/orchestrator/serverless-workflow-mta:${{ github.sha }}
+    - name: Save OCI archive
+      if: ${{ ! inputs.push_pr }}
+      uses: actions/upload-artifact@v3
+      with:
+        name: serverless-workflow-${{ inputs.workflow_id }}-${{ github.sha }}.tar
+        path: serverless-workflow-${{ inputs.workflow_id }}-${{ github.sha }}.tar
 
     - name: Push To quay.io
       id: push-to-quay
+      if: ${{ inputs.push_pr }}
       uses: redhat-actions/push-to-registry@v2
       with:
         image: ${{ steps.build-image.outputs.image }}
@@ -53,15 +61,14 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     permissions:
+      contents: read
       pull-requests: write
     steps:
     - uses: actions/checkout@v3
     - name: setup kn-workflow
-      run: curl -L https://github.com/rgolangh/kie-tools/releases/download/0.0.1/kn-workflow -o kn-workflow && chmod +x kn-workflow
+      run: curl -L https://github.com/rgolangh/kie-tools/releases/download/0.0.2/kn-workflow-linux-amd64 -o kn-workflow && chmod +x kn-workflow
     - name: kn-workflow
-      run: cd ${{ inputs.workflow_id }} && ../kn-workflow gen-manifest
-    - name: Download yq
-      run: curl -L https://github.com/mikefarah/yq/releases/download/v4.35.2/yq_linux_x86_64 -o yq
+      run: cd ${{ inputs.workflow_id }} && ../kn-workflow gen-manifest --namespace ""
     - name: Remove dev profile
       run: yq -i 'del(.metadata.annotations."sonataflow.org/profile")' ${{ inputs.workflow_id }}/manifests/01-sonataflow*.yaml
     - name: Set container image ref in SonataFlow resource
@@ -69,25 +76,41 @@ jobs:
     - name: Archive manifests
       uses: actions/upload-artifact@v3
       with:
-        name: serverless-workflow-${{ inputs.workflow_id }}
+        name: serverless-workflow-${{ inputs.workflow_id }}-manifests
         path: ${{ inputs.workflow_id }}/manifests
+    - uses: actions/github-script@v7
+      id: get_pr_data
+      with:
+        script: |
+          return (
+            await github.rest.repos.listPullRequestsAssociatedWithCommit({
+              commit_sha: context.sha,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            })
+          ).data[0];
+    - name: Pull Request data
+      run: |
+        echo '${{ fromJSON(steps.get_pr_data.outputs.result).html_url }}'
     - name: Send PRs to helm repo
       if: ${{ inputs.push_pr }}
       env:
-        GITHUB_TOKEN: ${{ secrets.NEW_HELM_REPO_TOKEN }}
+        GH_TOKEN: ${{ secrets.HELM_REPO_TOKEN }}
       run: |
-          gh repo clone $WF_HELM_REPO helm-repo
-          cd helm-repo
           git config --global user.email "action@github.com"
           git config --global user.name "GitHub Action"
+          gh repo clone $WF_HELM_REPO helm-repo
+          cd helm-repo
           git switch -c autopr-$RANDOM
           mkdir -p charts/workflows/charts/${{ inputs.workflow_id }}/templates
           cp ../${{ inputs.workflow_id }}/manifests/* charts/workflows/charts/${{ inputs.workflow_id }}/templates
           git add -A
-          git commit -m "Automated PR from ${{ github.event.pull_request.html_url }} ${{ github.event.issue.html_url }}"
-          git remote set-url origin https://x-access-token:${{ env.GITHUB_TOKEN }}@github.com/$WF_HELM_REPO
+          git commit -m "Automated PR from ${{ fromJSON(steps.get_pr_data.outputs.result).html_url }}"
+          git remote set-url origin https://${{ env.GH_TOKEN }}@github.com/$WF_HELM_REPO
           git push origin HEAD
-          gh pr create --title "Automatic manifests generation from ${{ github.event.pull_request.html_url }} ${{ github.event.issue.html_url }}" \
+          gh pr create -f --title "Automatic manifests generation from ${{ fromJSON(steps.get_pr_data.outputs.result).html_url }}" \
             --body "
               Updating generated manifests for ${{ inputs.workflow_id }} workflow
+
+              This PR was created automatically as a result of merging ${{ fromJson(steps.get_pr_data.outputs.result).html_url }}
             "

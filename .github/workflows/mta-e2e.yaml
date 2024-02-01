@@ -7,14 +7,14 @@ on:
       - main
     paths:
       - 'mta/**'
-
+      - 'pipeline/**'
+      - 'e2e/mta.sh'
 jobs:
   build:
     uses: parodos-dev/serverless-workflows/.github/workflows/main.yml@main
     secrets: inherit
     with:
       workflow_id: mta
-      build_arg_quarkus_extensions: kogito-addons-quarkus-jobs-service-embedded
       push_pr: false
 
   run-e2e:
@@ -23,6 +23,8 @@ jobs:
     steps:
       - name: Create k8s Kind Cluster
         uses: helm/kind-action@v1.8.0
+        with:
+          cluster_name: kind
       - name: Install Konveyor 0.2 (MTA upstream equivalent to 6.2)
         run: |
           kubectl apply -f https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/quickstart/crds.yaml
@@ -59,9 +61,9 @@ jobs:
           kubectl get tackle -n my-konveyor-operator -o yaml
           echo "wait for tackle ui to be ready"
           kubectl get pods -n my-konveyor-operator
+          sleep 30s
           kubectl wait --for=condition=Ready=true pods -l "app.kubernetes.io/name=tackle-ui" -n my-konveyor-operator --timeout=120s
           # now MTA workflow can execute agains tackle-ui.my-konveyor-operator.svc:8080
-          # TODO consider invoking the workflow using backstage api (expose svc/janus-idp
 
       - name: Deploy Janus-idp-workflow-helm (janus + sonataflow-opertor)
         run: |
@@ -80,13 +82,32 @@ jobs:
       - name: Download sonataflow artifacts generated manifests
         uses: actions/download-artifact@v3
         with:
-          name: serverless-workflow-mta
+          name: serverless-workflow-mta-manifests
           path: manifests
+
+      - name: Download serverless workflows mta image
+        uses: actions/download-artifact@v3
+        with:
+          name: serverless-workflow-mta-${{ github.sha }}.tar
+
+      - name: Load mta workflow image to Kind
+        run: |
+          kind load image-archive serverless-workflow-mta-${{ github.sha }}.tar
+
 
       - name: Deploy MTA serverless workflow
         run: |
-          # deploy the manifests created by the  ${{ steps.build-image.outputs.image }}"
+          ###### workaround till https://issues.redhat.com/browse/FLPATH-892 is solved
+          yq  --inplace '.spec.podTemplate.container |= ( . +  {"imagePullPolicy": "IfNotPresent"} )' manifests/01-sonataflow_mtaanalysis.yaml
+          ###### end workfaround
+
+          # Set the endpoint to the tackle-ui service
+          yq --inplace '.spec.podTemplate.container.env |= ( . + [{"name": "QUARKUS_REST_CLIENT_MTA_JSON_URL", "value": "http://tackle-ui.my-konveyor-operator.svc:8080/hub"}, {"name": "BACKSTAGE_NOTIFICATIONS_URL", "value": "http://janus-idp-workflows-backstage.default.svc.cluster.local:7007/api/notifications/"}] )' manifests/01-sonataflow_mtaanalysis.yaml
+
+          # deploy the manifests created by the  ${{ steps.build-image.outputs.image }}"                                                                    
           kubectl apply -f manifests
+          sleep 5
+          kubectl get deployment mtaanalysis -o jsonpath={.spec.template.spec.containers[]}
           # give the pod time to start
           sleep 15
           kubectl get pods -o wide
@@ -97,11 +118,15 @@ jobs:
         run: |
           e2e/mta.sh
 
+      - name: Export kind Logs
+        if: always()
+        run: kind export logs ./kind_logs
+
       - name: Upload Kind Logs
         uses: actions/upload-artifact@v3
         # Always run this, even if one of th previous steps failed.
         if: always()
         with:
           name: kind-logs
-          path: /tmp/kind_logs_*
+          path: ./kind_logs/
 

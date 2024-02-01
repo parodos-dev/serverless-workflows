@@ -6,12 +6,12 @@ on:
     branches: [ "main" ]
     paths:
       - 'mta/**'
+      - 'pipeline/**'
 
 jobs:
   call-main-workflow:
     uses: dmartinol/serverless-workflows/.github/workflows/main.yml@main
     with:
       workflow_id: mta
-      build_arg_quarkus_extensions: 'org.kie.kogito:kogito-addons-quarkus-jobs-knative-eventing:999-SNAPSHOT'
     secrets: inherit
 

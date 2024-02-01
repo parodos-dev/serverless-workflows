@@ -5,6 +5,10 @@ name: Move2Kube workflow
 description: Workflow to execute Move2Kube
 dataInputSchema: schemas/input.json
 start: StartPlanning
+extensions:
+  - extensionid: workflow-uri-definitions
+    definitions:
+      notifications: "https://raw.githubusercontent.com/janus-idp/backstage-plugins/%40janus-idp/plugin-notifications-backend%401.0.3/plugins/notifications-backend/src/openapi.yaml"
 events:
   - name: errorEvent
     source: ''
@@ -29,7 +33,7 @@ functions:
     type: custom
     operation: rest:post:http://broker-ingress.knative-eventing.svc.cluster.local/sonataflow-infra/default
   - name: createNotification
-    operation: 'specs/notifications.yaml#createNotification'
+    operation: notifications#createNotification
 states:
   - name: StartPlanning
     type: operation
@@ -93,9 +97,12 @@ states:
           refName: createNotification
           arguments:
             title: " \"Transformation \" + .transformationId + \" waiting for Q&A\" "
-            message: '"Please go to your <a href=\"" + $SECRET.move2kube_url + "/workspaces/"+ .workspaceId + "/projects/" + .projectId + "/outputs/"+ .transformId + "\">Move2Kube instance</a> and answers to questions in order to continue the Move2Kube workflow"'
+            message: '"Please go to your move2kube instance and answer the questions in order to continue the Move2Kube workflow"'
             origin: "Move2Kube Workflow"
             topic: "Move2Kube Workflow"
+            actions:
+              - title: "Move2Kube waiting Q&A"
+                url: "$SECRET.move2kube_url + \"/workspaces/\"+ .workspaceId + \"/projects/\" + .projectId + \"/outputs/\"+ .transformId "
     transition: SaveTransformationOutput
   - name: SaveTransformationOutput
     type: operation
@@ -155,7 +162,7 @@ states:
             refName: createNotification
             arguments:
               title: '"Move2Kube workflow " + $WORKFLOW.instanceId + " failed"'
-              message: '"Move2Kube workflow  " + $WORKFLOW.instanceId + " on workspace " + .workspaceId + " and project " + .projectId + " failed with exit message: "+ .exitMessage + " <br><br>Error: "  + .error'
+              message: '"Move2Kube workflow  " + $WORKFLOW.instanceId + " on workspace " + .workspaceId + " and project " + .projectId + " failed with exit message: "+ .exitMessage + "\n\nError: "  + .error'
               origin: "Move2Kube Workflow"
               topic: "Move2Kube Workflow"
     end: true
@@ -177,7 +184,7 @@ states:
              refName: createNotification
              arguments:
                title: '"Move2Kube workflow " + $WORKFLOW.instanceId + " success"'
-               message: '"Move2Kube workflow  " + $WORKFLOW.instanceId + " on workspace " + .workspaceId + " and project " + .projectId + " was successful"'
-               origin: "Move2Kube Worflow"
+               message: '"Move2Kube workflow  " + $WORKFLOW.instanceId + " on workspace " + .workspaceId + " and project " + .projectId + " was successful; the output is available in the branch " + .targetBranch + " of your git repository "+ .repositoryURL"'
+               origin: "Move2Kube Workflow"
                topic: "Move2Kube Workflow"
     end: true

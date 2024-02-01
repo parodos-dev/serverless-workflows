@@ -1,0 +1,57 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: move2kube-instance
+spec:
+  selector:
+    matchLabels:
+      app: move2kube-instance
+  template:
+    metadata:
+      labels:
+        app: move2kube-instance
+    spec:
+      containers:
+        - name: move2kube-instance
+          image: quay.io/orchestrator/move2kube-ui:latest
+          securityContext:
+            runAsUser: 0
+            allowPrivilegeEscalation: true
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SSH_AUTH_SOCK
+              value: /tmp/unix-socket
+          volumeMounts:
+            - name: ssh-priv-key
+              readOnly: true
+              mountPath: "/root/.ssh/id_rsa"
+              subPath: id_rsa
+            - name: ssh-pub-key
+              readOnly: true
+              mountPath: "/root/.ssh/id_rsa.pub"
+              subPath: id_rsa.pub
+          lifecycle:
+            postStart:
+              exec:
+                command: [ "/bin/sh", "-c", "ssh-agent -a /tmp/unix-socket && ssh-add /root/.ssh/id_rsa" ]
+      volumes:
+        - name: ssh-priv-key
+          secret:
+            secretName: sshkeys
+            defaultMode: 384
+        - name: ssh-pub-key
+          secret:
+            secretName: sshkeys
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: move2kube-instance-svc
+spec:
+  ports:
+    - port: 8080
+      protocol: TCP
+  selector:
+    app: move2kube-instance

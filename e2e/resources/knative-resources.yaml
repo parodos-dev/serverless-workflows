@@ -1,0 +1,118 @@
+apiVersion: eventing.knative.dev/v1
+kind: Trigger
+metadata:
+  name: error-trigger-m2k
+  namespace: sonataflow-infra
+spec:
+  broker: default
+  filter:
+    attributes:
+      type: error
+  subscriber:
+    ref:
+      apiVersion: v1
+      kind: Service
+      name: m2k
+      namespace: default
+---
+apiVersion: eventing.knative.dev/v1
+kind: Trigger
+metadata:
+  name: transformation-saved-trigger-m2k
+  namespace: sonataflow-infra
+spec:
+  broker: default
+  filter:
+    attributes:
+      type: transformation_saved
+  subscriber:
+    ref:
+      apiVersion: v1
+      kind: Service
+      name: m2k
+      namespace: default
+---
+apiVersion: eventing.knative.dev/v1
+kind: Broker
+metadata:
+  name: default
+  namespace: sonataflow-infra
+---
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: m2k-save-transformation-func
+spec:
+  template:
+    metadata:
+      name: m2k-save-transformation-func-v1
+    spec:
+      initContainers:
+          - name: volume-mount-hack
+            image: busybox
+            securityContext:
+              runAsUser: 0
+              allowPrivilegeEscalation: true
+            command: [ "sh", "-c", "cp /tmp/.ssh/id_rsa /etc/pre-install/. && chown 185 /etc/pre-install/id_rsa" ]
+            volumeMounts:
+              - name: ssh-priv-key
+                mountPath: "/tmp/.ssh/id_rsa"
+                subPath: id_rsa
+                readOnly: true
+              - name: pre-install
+                mountPath: /etc/pre-install
+      containers:
+        - image: quay.io/orchestrator/serverless-workflow-m2k-kfunc:latest
+          imagePullPolicy: Always
+          env:
+            - name: EXPORTED_FUNC
+              value: saveTransformation
+            - name: SSH_PRIV_KEY_PATH
+              value: /home/jboss/.ssh/id_rsa
+            - name: BROKER_URL
+              value: http://broker-ingress.knative-eventing.svc.cluster.local/sonataflow-infra/default
+            - name: MOVE2KUBE_API
+              value: http://move2kube-instance-svc.default.svc.cluster.local:8080/api/v1
+          name: user-container
+          volumeMounts:
+            - name: pre-install
+              readOnly: true
+              mountPath: "/home/jboss/.ssh/id_rsa"
+              subPath: id_rsa
+            - name: ssh-pub-key
+              readOnly: true
+              mountPath: "/home/jboss/.ssh/id_rsa.pub"
+              subPath: id_rsa.pub
+
+          readinessProbe:
+            successThreshold: 1
+            tcpSocket:
+              port: 0
+      volumes:
+        - name: ssh-priv-key
+          secret:
+            secretName: sshkeys
+            defaultMode: 384
+        - name: ssh-pub-key
+          secret:
+            secretName: sshkeys
+        - name: pre-install
+          emptyDir: { }
+
+---
+apiVersion: eventing.knative.dev/v1
+kind: Trigger
+metadata:
+  name: m2k-save-transformation-event
+  namespace: sonataflow-infra
+spec:
+  broker: default
+  filter:
+    attributes:
+      type: save-transformation
+  subscriber:
+    ref:
+      apiVersion: serving.knative.dev/v1
+      kind: Service
+      name: m2k-save-transformation-func
+      namespace: default
