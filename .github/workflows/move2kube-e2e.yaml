@@ -97,15 +97,17 @@ jobs:
           
           kubectl patch configmap/m2k-props \
             --type merge \
-            -p '{"data": {"application.properties" :"move2kube_url=http://move2kube-instance-svc.default.svc.cluster.local:8080\nquarkus.rest-client.move2kube_yaml.url=http://move2kube-instance-svc.default.svc.cluster.local:8080\nquarkus.rest-client.notifications_yaml.url=http://janus-idp-workflows-backstage.default.svc.cluster.local:7007/api/notifications/"}}'
+            -p '{"data": {"application.properties" :"move2kube_url=http://move2kube-instance-svc.default.svc.cluster.local:8080\nquarkus.rest-client.move2kube_yaml.url=http://move2kube-instance-svc.default.svc.cluster.local:8080\nquarkus.rest-client.notifications.url=http://janus-idp-workflows-backstage.default.svc.cluster.local:7007/api/notifications/"}}'
           kubectl delete pod -l "app=m2k"
           kubectl get pods -o wide
+
       - name: Deploy Knative function
         run: |
           ###### workaround till https://issues.redhat.com/browse/FLPATH-892 is solved
-          yq  --inplace '.spec.podTemplate.container |= ( . +  {"imagePullPolicy": "IfNotPresent"} )' e2e/resources/knative-resources.yaml
+          yq  --inplace '.spec.template.spec.containers[0] |= ( . +  {"imagePullPolicy": "IfNotPresent"} )' e2e/resources/knative-service.yaml
           ###### end workaround
           # deploy the manifests created by the  ${{ steps.build-image.outputs.image }}"                                                                    
+          kubectl apply -f e2e/resources/knative-service.yaml
           kubectl apply -f e2e/resources/knative-resources.yaml
           kubectl wait ksvc m2k-save-transformation-func --for=condition=Ready=true --timeout=5m
 
