@@ -1,6 +1,7 @@
 name: Build and push move2kube Knative function container image
 
 on:
+  workflow_call:
   workflow_dispatch:
   push:
     branches: [ "main" ]
