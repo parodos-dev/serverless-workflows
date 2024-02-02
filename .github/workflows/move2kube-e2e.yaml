@@ -61,15 +61,15 @@ jobs:
         with:
           name: serverless-workflow-move2kube-${{ github.sha }}.tar
 
-      - name: Download m2k-func image
+      - name: Download m2k-kfunc image
         uses: actions/download-artifact@v3
         with:
-          name: serverless-workflow-m2k-func-${{ github.sha }}.tar
+          name: serverless-workflow-m2k-kfunc-${{ github.sha }}.tar
 
       - name: Load move2kube workflow images to Kind
         run: |
           kind load image-archive serverless-workflow-move2kube-${{ github.sha }}.tar
-          kind load image-archive serverless-workflow-m2k-func-${{ github.sha }}.tar
+          kind load image-archive serverless-workflow-m2k-kfunc-${{ github.sha }}.tar
           docker exec $(kind get clusters | head -1)-control-plane crictl images
 
       - name: Deploy sonataflow-operator
