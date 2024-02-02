@@ -1,6 +1,7 @@
 name: Build and push move2kube Knative function container image
 
 on:
+  workflow_call:
   workflow_dispatch:
   push:
     branches: [ "main" ]
@@ -39,6 +40,19 @@ jobs:
         extra-args: --ulimit nofile=4096:4096
         containerfiles: |
           ${{ env.WORKDIR }}/src/main/docker/Dockerfile.jvm
+
+    - name: Buildah push to OCI Arcive
+      if: ${{ ! inputs.push_pr }}
+      run: |
+        buildah push serverless-workflow-m2k-kfunc:${{ github.sha }} \
+          oci-archive:serverless-workflow-m2k-kfunc-${{ github.sha }}.tar:quay.io/orchestrator/serverless-workflow-m2k-kfunc:${{ github.sha }}
+
+    - name: Save OCI archive
+      if: ${{ ! inputs.push_pr }}
+      uses: actions/upload-artifact@v3
+      with:
+        name: serverless-workflow-m2k-kfunc-${{ github.sha }}.tar
+        path: serverless-workflow-m2k-kfunc-${{ github.sha }}.tar
 
     - name: Push To quay.io
       id: push-to-quay

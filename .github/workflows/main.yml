@@ -35,7 +35,7 @@ jobs:
       if: ${{ ! inputs.push_pr }}
       run: |
         buildah push serverless-workflow-${{ inputs.workflow_id }}:${{ github.sha }} \
-          oci-archive:serverless-workflow-${{ inputs.workflow_id }}-${{ github.sha }}.tar:quay.io/orchestrator/serverless-workflow-mta:${{ github.sha }}
+          oci-archive:serverless-workflow-${{ inputs.workflow_id }}-${{ github.sha }}.tar:quay.io/orchestrator/serverless-workflow-${{ inputs.workflow_id }}:${{ github.sha }}
     - name: Save OCI archive
       if: ${{ ! inputs.push_pr }}
       uses: actions/upload-artifact@v3
@@ -89,28 +89,31 @@ jobs:
               repo: context.repo.repo,
             })
           ).data[0];
-    - name: Pull Request data
-      run: |
-        echo '${{ fromJSON(steps.get_pr_data.outputs.result).html_url }}'
     - name: Send PRs to helm repo
       if: ${{ inputs.push_pr }}
       env:
         GH_TOKEN: ${{ secrets.HELM_REPO_TOKEN }}
       run: |
-          git config --global user.email "action@github.com"
-          git config --global user.name "GitHub Action"
+          git config --global user.email "${{ github.event.head_commit.author.email }}"
+          git config --global user.name ${{ github.event.head_commit.author.name }}
           gh repo clone $WF_HELM_REPO helm-repo
           cd helm-repo
           git switch -c autopr-$RANDOM
           mkdir -p charts/workflows/charts/${{ inputs.workflow_id }}/templates
           cp ../${{ inputs.workflow_id }}/manifests/* charts/workflows/charts/${{ inputs.workflow_id }}/templates
           git add -A
-          git commit -m "Automated PR from ${{ fromJSON(steps.get_pr_data.outputs.result).html_url }}"
+          # determine pr or commit url
+          if [ ${{ fromJSON(steps.get_pr_data.outputs.result)}} != "" ]; then
+            PR_OR_COMMIT_URL="${{ fromJSON(steps.get_pr_data.outputs.result).html_url }}"
+          else
+            PR_OR_COMMIT_URL="${{ github.event.head_commit.url }}"
+          fi
+          git commit -m "Automated PR from $PR_OR_COMMIT_URL"
           git remote set-url origin https://${{ env.GH_TOKEN }}@github.com/$WF_HELM_REPO
           git push origin HEAD
-          gh pr create -f --title "Automatic manifests generation from ${{ fromJSON(steps.get_pr_data.outputs.result).html_url }}" \
+          gh pr create -f --title "Automatic manifests generation from $PR_OR_COMMIT_URL" \
             --body "
               Updating generated manifests for ${{ inputs.workflow_id }} workflow
 
-              This PR was created automatically as a result of merging ${{ fromJson(steps.get_pr_data.outputs.result).html_url }}
+              This PR was created automatically as a result of merging $PR_OR_COMMIT_URL
             "
