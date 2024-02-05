@@ -60,6 +60,15 @@ public class SaveTransformationFunction {
           input.transformId, input.workspaceId, input.projectId, input.gitRepo, e), SOURCE);
     }
 
+    try {
+      cleanTransformationOutputFolder(transformationOutputPath);
+    } catch (IOException e) {
+      log.error("Error while cleaning extracted transformation output", e);
+      return EventGenerator.createErrorEvent(input.workflowCallerId, String.format("Cannot clean extracted transformation output of transformation %s" +
+              " in workspace %s for project %s for repo %s; error: %s",
+          input.transformId, input.workspaceId, input.projectId, input.gitRepo, e), SOURCE);
+    }
+
     return pushTransformationToGitRepo(input, transformationOutputPath);
   }
 
@@ -112,6 +121,20 @@ public class SaveTransformationFunction {
     }
     FileUtils.copyFile(finalPath.resolve(Paths.get("Readme.md")).toFile(),
         gitDirectory.resolve("Readme.md").toFile());
+  }
+
+  private static void cleanTransformationOutputFolder(Path transformationOutput) throws IOException {
+    try (var files = Files.walk(transformationOutput)) {
+      files.forEach(path -> {
+        if (path.toAbsolutePath().toString().contains(".git") && path.toFile().isDirectory()) {
+          try {
+            FileUtils.deleteDirectory(path.toFile());
+          } catch (IOException e) {
+            log.error("Error while deleting .git directory {} of transformation output", path, e);
+          }
+        }
+      });
+    }
   }
 
   private static void cleanCurrentGitFolder(Path gitDirectory) throws IOException {
