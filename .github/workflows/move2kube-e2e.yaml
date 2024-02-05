@@ -74,9 +74,9 @@ jobs:
 
       - name: Deploy sonataflow-operator
         run: |
-          helm repo add janus-idp-workflows https://gabriel-farache.github.io/janus-idp-workflows-helm/
+          helm repo add janus-idp-workflows https://rgolangh.github.io/janus-idp-workflows-helm/
           helm install janus-idp-workflows janus-idp-workflows/janus-idp-workflows \
-            -f https://raw.githubusercontent.com/gabriel-farache/janus-idp-workflows-helm/main/charts/janus-idp-workflows/values-k8s.yaml 
+            -f https://raw.githubusercontent.com/rgolangh/janus-idp-workflows-helm/main/charts/janus-idp-workflows/values-k8s.yaml 
           echo "sleep bit long till the PV for data index and kaniko cache is ready. its a bit slow. TODO fixit"
           kubectl get pv
           sleep 3m
