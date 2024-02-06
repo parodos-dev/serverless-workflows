@@ -39,7 +39,7 @@ and also limit the risk of parsing failures due to unexpected changes in the pay
 Parsing was derived from the original example in [this Backstage repo](https://github.com/tiagodolphine/backstage/blob/eedfe494dd313a3ad6a484c0596ba12d6199c1a8/plugins/swf-backend/src/service/JiraService.ts#L66C19-L66C40)
 
 ## Building and publishing the image
-The application runs from a containerized image already avaliable at `quay.io/orchestrator/jira-listener-jvm`.
+The application runs from a containerized image already avaliable at `quay.io/orchestrator/serverless-workflow-jira-listener`.
 You can build and publish your own image using:
 ```bash
 mvn clean package

@@ -40,7 +40,7 @@ states:
         actionDataFilter:
           toStateData: .createResponse
     stateDataFilter:
-      input: '. += { request: {type: "create", namespace: .target.namespace, parentId: $WORKFLOW.instanceId} }'
+      input: '. += { request: {type: "create", namespace: .namespace, parentId: $WORKFLOW.instanceId} }'
     transition: WaitForApprovalEvent
   - name: GetTicket
     type: operation
@@ -107,7 +107,7 @@ states:
             apiVersion: v1
             kind: Namespace
             metadata:
-              name: .target.namespace
+              name: .namespace
         actionDataFilter:
           toStateData: .createdNamespace
     stateDataFilter:
