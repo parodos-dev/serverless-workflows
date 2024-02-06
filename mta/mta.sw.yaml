@@ -126,7 +126,8 @@ states:
         actionDataFilter:
           toStateData: ".taskgroup"
     transition: poll
-  - actions:
+  - name: poll
+    actions:
       - functionRef:
           refName: getTaskgroup
           arguments:
@@ -149,17 +150,13 @@ states:
   - name: NotifyBackstage
     type: operation
     actions:
-      - condition: .backstageUserOrGroup != null
-        functionRef:
+      - functionRef:
           refName: createNotification
           arguments:
             title: "\"MTA analysis report for \" + .application.repository.url"
-            message: '"<a href=\"" + $SECRET.mta_url+ "/hub/applications/" + (.application.id|tostring)+ "/bucket/" + .data.output + "\">MTA Analysis Rerport</a>"'
+            message: '"MTA Analysis Report at: " +$SECRET.mta_url+ "/hub/applications/" + (.application.id|tostring)+ "/bucket/" + .data.output'
             origin: "MTA Analysis Workflow"
-            targetUsers:
-              - .backstageUserOrGroup
-            targetGroups:
-              - .backstageUserOrGroup
+            topic: "MTA Analysis Workflow"
     transition: report
   - name: report
     type: operation
