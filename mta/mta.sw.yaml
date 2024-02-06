@@ -163,7 +163,7 @@ states:
             targetGroups:
               - .backstageUserOrGroup
             actions:
-              - title: "MTA analysis report"
+              - title: "View report"
                 url: "$SECRET.mta_url + \"/hub/applications/\" + (.application.id|tostring) + \"/bucket/\" + .data.output"
 
     transition: report
