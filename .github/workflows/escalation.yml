@@ -10,7 +10,7 @@ on:
 
 jobs:
   call-main-workflow:
-    uses: ./main.yml@main
+    uses: ./.github/workflows/main.yml
     with:
       workflow_id: escalation
     secrets: inherit
