@@ -154,9 +154,10 @@ states:
         functionRef:
           refName: createNotification
           arguments:
-            title: "\"MTA analysis report for \" + .application.repository.url"
-            message: '"<a href=\"" +  + "\">MTA Analysis Rerport</a>"'
+            title: "MTA analysis completed"
+            message: '"MTA analysis is completed and the report for " + .application.repository.url + " is ready."'
             origin: "MTA Analysis Workflow"
+            topic: "MTA Analysis Workflow"
             targetUsers:
               - .backstageUserOrGroup
             targetGroups:
