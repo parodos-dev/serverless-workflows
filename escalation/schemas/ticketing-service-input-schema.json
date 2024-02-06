@@ -1,0 +1,30 @@
+{
+  "$id": "classpath:/schemas/ticketing-service-input-schema.json",
+  "title": "Ticketing Service: Data Input Schema",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "request": {
+      "$ref": "ticketing-service_sub_schema.json",
+      "type": "object"
+    }
+  },
+  "examples": [
+    {
+      "request": {
+        "type": "create",
+        "namespace": "a-namespace>",
+        "parentId": "111-222-333-444"
+      }
+    },
+    {
+      "request": {
+        "type": "get",
+        "ticketId": "AAA-BBB-CCC-DDD",
+        "ticket": {
+          "field1": "ticketing-service specific fields"
+        }
+      }
+    }
+  ]
+}
