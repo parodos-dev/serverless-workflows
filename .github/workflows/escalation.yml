@@ -9,8 +9,8 @@ on:
       - 'pipeline/**'
 
 jobs:
-  call-main-workflow:
-    uses: ${{ github.repository }}/serverless-workflows/.github/workflows/main.yml@main
+  escalation-workflow:
+    uses: ./.github/workflows/main.yml
     with:
       workflow_id: escalation
     secrets: inherit
