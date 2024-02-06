@@ -10,7 +10,7 @@ timeouts:
 start: Setup
 dataInputSchema:
   failOnValidationErrors: true
-  schema: schemas/ticketing-service-input-schema.json
+  schema: schemas/ticketing-service-schema.json
 errors:
   - name: authError
     code: '401'
