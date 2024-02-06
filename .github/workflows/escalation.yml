@@ -10,7 +10,7 @@ on:
 
 jobs:
   call-main-workflow:
-    uses: ${{ github.repository }}/.github/workflows/main.yml@main
+    uses: ./main.yml
     with:
       workflow_id: escalation
     secrets: inherit
