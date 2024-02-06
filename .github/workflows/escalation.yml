@@ -1,0 +1,17 @@
+name: Escalation workflow container image and manifest push
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'escalation/**'
+      - 'pipeline/**'
+
+jobs:
+  call-main-workflow:
+    uses: parodos-dev/serverless-workflows/.github/workflows/main.yml@main
+    with:
+      workflow_id: escalation
+    secrets: inherit
+
