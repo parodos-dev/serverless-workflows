@@ -9,7 +9,7 @@ on:
       - 'pipeline/**'
 
 jobs:
-  call-main-workflow:
+  escalation-workflow:
     uses: ./.github/workflows/main.yml
     with:
       workflow_id: escalation

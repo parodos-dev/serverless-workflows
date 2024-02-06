@@ -1,0 +1,193 @@
+{
+    "timestamp": "1696423540500",
+    "webhookEvent": "jira:issue_updated",
+    "issue_event_type_name": "issue_generic",
+    "user": {
+        "self": "REDACTED",
+        "accountId": "REDACTED",
+        "avatarUrls": {
+        },
+        "displayName": "REDACTED",
+        "active": "true",
+        "timeZone": "REDACTED",
+        "accountType": "atlassian"
+    },
+    "issue": {
+        "id": "10088",
+        "self": "REDACTED",
+        "key": "ES-4",
+        "fields": {
+            "statuscategorychangedate": "2023-10-04T14:45:40.472+0200",
+            "issuetype": {
+                "self": "REDACTED",
+                "id": "10013",
+                "description": "Tasks track small, distinct pieces of work.",
+                "name": "Task",
+                "subtask": "false",
+                "avatarId": "10318",
+                "entityId": "REDACTED",
+                "hierarchyLevel": "0"
+            },
+            "timespent": "null",
+            "customfield_10030": "null",
+            "customfield_10031": "null",
+            "project": {
+                "self": "REDACTED",
+                "id": "10003",
+                "key": "ES",
+                "name": "ESCALATION",
+                "projectTypeKey": "software",
+                "simplified": "true",
+                "avatarUrls": {
+                }
+            },
+            "customfield_10032": "null",
+            "fixVersions": "[]",
+            "customfield_10033": "[]",
+            "customfield_10034": "null",
+            "aggregatetimespent": "null",
+            "customfield_10035": "null",
+            "resolution": "null",
+            "customfield_10027": "null",
+            "customfield_10028": "null",
+            "customfield_10029": "null",
+            "resolutiondate": "null",
+            "workratio": "-1",
+            "watches": {
+                "self": "REDACTED",
+                "watchCount": "1",
+                "isWatching": "true"
+            },
+            "issuerestriction": {
+                "issuerestrictions": {},
+                "shouldDisplay": "true"
+            },
+            "lastViewed": "2023-10-04T14:30:35.075+0200",
+            "created": "2023-10-04T14:30:08.275+0200",
+            "customfield_10020": "null",
+            "customfield_10021": "null",
+            "customfield_10022": "null",
+            "priority": {
+                "self": "REDACTED",
+                "iconUrl": "REDACTED",
+                "name": "Medium",
+                "id": "3"
+            },
+            "customfield_10023": "null",
+            "customfield_10024": "null",
+            "customfield_10025": "null",
+            "customfield_10026": "null",
+            "labels": [
+                "workflowInstanceId=500",
+                "workflowName=escalation"
+            ],
+            "customfield_10016": "null",
+            "customfield_10017": "null",
+            "customfield_10018": {
+                "hasEpicLinkFieldDependency": "false",
+                "showField": "false",
+                "nonEditableReason": {
+                    "reason": "PLUGIN_LICENSE_ERROR",
+                    "message": "The Parent Link is only available to Jira Premium users."
+                }
+            },
+            "customfield_10019": "0|i000en:",
+            "timeestimate": "null",
+            "aggregatetimeoriginalestimate": "null",
+            "versions": "[]",
+            "issuelinks": "[]",
+            "assignee": "null",
+            "updated": "2023-10-04T14:45:40.472+0200",
+            "status": {
+                "self": "REDACTED",
+                "description": "",
+                "iconUrl": "REDACTED",
+                "name": "In Progress",
+                "id": "10016",
+                "statusCategory": {
+                    "self": "REDACTED",
+                    "id": "4",
+                    "key": "done",
+                    "colorName": "yellow",
+                    "name": "Complete"
+                }
+            },
+            "components": "[]",
+            "timeoriginalestimate": "null",
+            "description": "null",
+            "customfield_10010": "null",
+            "customfield_10014": "null",
+            "timetracking": {},
+            "customfield_10015": "null",
+            "customfield_10005": "null",
+            "customfield_10006": "null",
+            "customfield_10007": "null",
+            "security": "null",
+            "customfield_10008": "null",
+            "attachment": "[]",
+            "aggregatetimeestimate": "null",
+            "customfield_10009": "null",
+            "summary": "aaa",
+            "creator": {
+                "self": "REDACTED",
+                "accountId": "REDACTED",
+                "avatarUrls": {
+                },
+                "displayName": "REDACTED",
+                "active": "true",
+                "timeZone": "REDACTED",
+                "accountType": "atlassian"
+            },
+            "subtasks": "[]",
+            "customfield_10040": "null",
+            "customfield_10041": "null",
+            "customfield_10042": "null",
+            "reporter": {
+                "self": "REDACTED",
+                "accountId": "REDACTED",
+                "avatarUrls": {
+                },
+                "displayName": "REDACTED",
+                "active": "true",
+                "timeZone": "REDACTED",
+                "accountType": "atlassian"
+            },
+            "aggregateprogress": {
+                "progress": "0",
+                "total": "0"
+            },
+            "customfield_10044": "[]",
+            "customfield_10001": "null",
+            "customfield_10002": "null",
+            "customfield_10003": "null",
+            "customfield_10004": "null",
+            "customfield_10038": "null",
+            "customfield_10039": "null",
+            "environment": "null",
+            "duedate": "null",
+            "progress": {
+                "progress": "0",
+                "total": "0"
+            },
+            "votes": {
+                "self": "REDACTED",
+                "votes": "0",
+                "hasVoted": "false"
+            }
+        }
+    },
+    "changelog": {
+        "id": "10163",
+        "items": [
+            {
+                "field": "status",
+                "fieldtype": "jira",
+                "fieldId": "status",
+                "from": "10015",
+                "fromString": "To Do",
+                "to": "10016",
+                "toString": "In Progress"
+            }
+        ]
+    }
+}

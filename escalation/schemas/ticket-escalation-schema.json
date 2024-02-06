@@ -9,6 +9,9 @@
       "type": "object"
     }
   },
+  "required": [
+    "target"
+  ],
   "examples": [
     {
       "target": {
