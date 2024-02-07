@@ -25,7 +25,7 @@ The following environment variables can modify the configuration properties:
 | Variable | Description | Default value |
 |----------|-------------|---------------|
 | CLOUD_EVENT_TYPE | The value of `ce-type` header in the generated `CloudEvent` | `dev.parodos.escalation` |
-| CLOUD_EVENT_SOURCE | The value of `ce-source` header in the generated `CloudEvent` | `jira.listener` |
+| CLOUD_EVENT_SOURCE | The value of `ce-source` header in the generated `CloudEvent` | `ticket.listener` |
 | WORKFLOW_INSTANCE_ID_LABEL | The name part of the Jira ticket label that contains the ID of the relates SWF instance (e.g. `workflowInstanceId=123`)  | `workflowInstanceId` |
 | WORKFLOW_NAME_LABEL | The name part of the Jira ticket label that contains the name of the SWF (e.g. `workflowName=escalation`)  | `workflowName` |
 | EXPECTED_WORKFLOW_NAME | The expected value part of the Jira ticket label that contains the name of the SWF (e.g. `workflowName=escalation`)  | `escalation` |
@@ -43,9 +43,9 @@ The application runs from a containerized image already avaliable at `quay.io/or
 You can build and publish your own image using:
 ```bash
 mvn clean package
-docker build -f src/main/docker/Dockerfile.jvm -t quarkus/jira-listener-jvm .
-docker tag quarkus/jira-listener-jvm quay.io/_YOUR_QUAY_ID_/jira-listener-jvm
-docker push quay.io/_YOUR_QUAY_ID_/jira-listener-jvm
+docker build -f src/main/docker/Dockerfile.jvm -t quarkus/serverless-workflow-jira-listener .
+docker tag quarkus/serverless-workflow-jira-listener quay.io/_YOUR_QUAY_ID_/serverless-workflow-jira-listener
+docker push quay.io/_YOUR_QUAY_ID_/serverless-workflow-jira-listener
 ```
 
 ## Running in development environment
@@ -55,6 +55,7 @@ mvn quarkus:dev
 ```
 
 ## Deploying as Knative service
+**NOTE**: This section and the next will be moved to the CD repository
 Follow the instructions at [Deploying the example](../README.md#deploying-the-example)
 
 ### SSL
