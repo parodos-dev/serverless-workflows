@@ -20,6 +20,8 @@ jobs:
   build-m2k-kfunc:
     uses: parodos-dev/serverless-workflows/.github/workflows/m2k-func.yaml@main
     secrets: inherit
+    with:
+      push_pr: false
 
   run-m2k-e2e:
     runs-on: ubuntu-latest
