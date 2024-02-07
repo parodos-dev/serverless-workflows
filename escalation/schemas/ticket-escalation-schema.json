@@ -4,19 +4,14 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "type": "object",
   "properties": {
-    "target": {
-      "$ref": "ticket-escalation_sub_schema.json",
-      "type": "object"
+    "namespace": {
+      "type": "string",
+      "description": "Name of the requested namespace"
     }
   },
-  "required": [
-    "target"
-  ],
   "examples": [
     {
-      "target": {
-        "namespace": "a-namespace"
-      }
+      "namespace": "a-namespace"
     }
   ]
 }

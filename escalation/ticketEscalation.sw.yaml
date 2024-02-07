@@ -40,7 +40,7 @@ states:
         actionDataFilter:
           toStateData: .createResponse
     stateDataFilter:
-      input: '. += { request: {type: "create", namespace: .target.namespace, parentId: $WORKFLOW.instanceId} }'
+      input: '. += { request: {type: "create", namespace: .namespace, parentId: $WORKFLOW.instanceId} }'
     transition: WaitForApprovalEvent
   - name: GetTicket
     type: operation
@@ -69,7 +69,7 @@ states:
     eventRef: approvalEvent
     timeouts:
       eventTimeout: PT10S
-      # This is not working for now, waiting for a fix to https://issues.redhat.com/browse/KOGITO-9811
+      # This is not working for now, waiting for a complete fix to https://issues.redhat.com/browse/KOGITO-9811
       # eventTimeout: $SECRET.timeout_seconds
     onErrors:
       - errorRef: timeoutError
@@ -107,7 +107,7 @@ states:
             apiVersion: v1
             kind: Namespace
             metadata:
-              name: .target.namespace
+              name: .namespace
         actionDataFilter:
           toStateData: .createdNamespace
     stateDataFilter:
