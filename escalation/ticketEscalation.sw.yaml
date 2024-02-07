@@ -68,9 +68,7 @@ states:
           message: "\"Waiting for approvalEvent: \\(.)\""
     eventRef: approvalEvent
     timeouts:
-      eventTimeout: PT10S
-      # This is not working for now, waiting for a fix to https://issues.redhat.com/browse/KOGITO-9811
-      # eventTimeout: $SECRET.timeout_seconds
+      eventTimeout: $SECRET.timeout_seconds
     onErrors:
       - errorRef: timeoutError
         transition: Escalate
