@@ -1,0 +1,17 @@
+{
+  "$id": "classpath:/schemas/ticket-escalation-schema.json",
+  "title": "Ticket escalation: Data Input Schema",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "namespace": {
+      "type": "string",
+      "description": "Name of the requested namespace"
+    }
+  },
+  "examples": [
+    {
+      "namespace": "a-namespace"
+    }
+  ]
+}

@@ -1,0 +1,115 @@
+specVersion: "0.8"
+id: ticketEscalation
+name: Ticket escalation
+annotations:
+  - "workflow-type/infrastructure"
+version: 0.0.1
+timeouts:
+  workflowExecTimeout:
+    duration: PT24H
+start: CreateTicket
+extensions:
+  - extensionid: workflow-uri-definitions
+    definitions:
+      notifications: "https://raw.githubusercontent.com/janus-idp/backstage-plugins/%40janus-idp/plugin-notifications-backend%401.0.3/plugins/notifications-backend/src/openapi.yaml"
+dataInputSchema:
+  failOnValidationErrors: true
+  schema: schemas/ticket-escalation-schema.json
+errors:
+  - name: timeoutError
+    code: TimedOut
+  - name: notAvailable
+    code: "404"
+functions:
+  - name: createNotification
+    operation: notifications#createNotification
+  - name: createK8sNamespace
+    operation: specs/kube.yaml#createCoreV1Namespace
+  - name: logInfo
+    type: custom
+    operation: "sysout:INFO"
+events:
+  - name: approvalEvent
+    source: ticket.listener
+    type: dev.parodos.escalation
+states:
+  - name: CreateTicket
+    type: operation
+    actions:
+      - subFlowRef: ticketingService
+        actionDataFilter:
+          toStateData: .createResponse
+    stateDataFilter:
+      input: '. += { request: {type: "create", namespace: .namespace, parentId: $WORKFLOW.instanceId} }'
+    transition: WaitForApprovalEvent
+  - name: GetTicket
+    type: operation
+    actions:
+      - subFlowRef: ticketingService
+        actionDataFilter:
+          toStateData: .getResponse
+    stateDataFilter:
+      input: '. += { request: { type: "get", ticketId: .createResponse.ticketId, ticket: .createResponse.ticket} }'
+    transition: CheckTicketState
+  - name: CheckTicketState
+    type: switch
+    dataConditions:
+      - condition: (.getResponse.status == "Approved")
+        transition:
+          nextState: CreateK8sNamespace
+    defaultCondition:
+      transition: WaitForApprovalEvent
+  - name: WaitForApprovalEvent
+    type: callback
+    action:
+      functionRef:
+        refName: logInfo
+        arguments:
+          message: "\"Waiting for approvalEvent: \\(.)\""
+    eventRef: approvalEvent
+    timeouts:
+      eventTimeout: PT10S
+      # This is not working for now, waiting for a complete fix to https://issues.redhat.com/browse/KOGITO-9811
+      # eventTimeout: $SECRET.timeout_seconds
+    onErrors:
+      - errorRef: timeoutError
+        transition: Escalate
+    transition: CreateK8sNamespace
+  - name: Escalate
+    type: operation
+    actions:
+      - name: printAction
+        functionRef:
+          refName: logInfo
+          arguments:
+            message: "\"Invoking escalation: \\(.)\""
+      - name: createNotification
+        functionRef:
+          refName: createNotification
+          arguments:
+            title: '"ATTN: Escalation for ticket - " + .createResponse.ticketId'
+            message: '"Please manage escalation ticket " + .createResponse.ticketId '
+            origin: "Escalation Workflow"
+            topic: "Escalation Workflow"
+            actions:
+              - title: '"Escalation ticket " + .createResponse.ticketId'
+                url: .createResponse.browseUrl
+    onErrors:
+      - errorRef: notAvailable
+        transition: GetTicket
+    transition: GetTicket
+  - name: CreateK8sNamespace
+    type: operation
+    actions:
+      - functionRef:
+          refName: createK8sNamespace
+          arguments:
+            apiVersion: v1
+            kind: Namespace
+            metadata:
+              name: .namespace
+        actionDataFilter:
+          toStateData: .createdNamespace
+    stateDataFilter:
+      output: "{createdNamespace: .createdNamespace}"
+    end: true
