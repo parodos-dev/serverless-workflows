@@ -85,16 +85,6 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
-  <repositories>
-    <repository>
-      <id>central</id>
-      <url>https://repo.maven.apache.org/maven2</url>
-    </repository>
-    <repository>
-      <id>atlassian-maven</id>
-      <url>https://packages.atlassian.com/mvn/maven-atlassian-external</url>
-    </repository>
-  </repositories>
   <profiles>
     <profile>
       <id>native</id>
