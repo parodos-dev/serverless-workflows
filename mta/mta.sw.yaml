@@ -1,6 +1,7 @@
 specVersion: "0.8"
 id: MTAAnalysis
 name: MTA Analysis
+description: Workflow to execute MTA Analysis
 annotations:
   - "workflow-type/assessment"
 version: "1.0"
