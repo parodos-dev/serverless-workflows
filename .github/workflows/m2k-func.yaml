@@ -2,6 +2,11 @@ name: Build and push move2kube Knative function container image
 
 on:
   workflow_call:
+    inputs:
+      push_pr:
+        required: false
+        type: boolean
+        default: true
   workflow_dispatch:
   push:
     branches: [ "main" ]
@@ -55,6 +60,7 @@ jobs:
         path: serverless-workflow-m2k-kfunc-${{ github.sha }}.tar
 
     - name: Push To quay.io
+      if: ${{ inputs.push_pr }}
       id: push-to-quay
       uses: redhat-actions/push-to-registry@v2
       with:
