@@ -1,0 +1,17 @@
+name: Escalation workflow container image and manifest push
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'escalation/**'
+      - 'pipeline/**'
+
+jobs:
+  escalation-workflow:
+    uses: ./.github/workflows/main.yml
+    with:
+      workflow_id: escalation
+    secrets: inherit
+

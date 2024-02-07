@@ -1,0 +1,15 @@
+{
+  "$id": "classpath:/schemas/ticket-escalation_sub_schema.json",
+  "title": "ticketEscalation: Input Section",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "namespace": {
+      "type": "string",
+      "description": "Name of the requested namespace"
+    }
+  },
+  "required": [
+    "namespace"
+  ]
+}

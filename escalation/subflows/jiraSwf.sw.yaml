@@ -1,0 +1,111 @@
+specVersion: "0.8"
+id: ticketingService
+name: Jira Ticketing Service
+annotations:
+  - "workflow-type/infrastructure"
+version: 0.0.1
+timeouts:
+  workflowExecTimeout:
+    duration: PT24H
+start: Setup
+dataInputSchema:
+  failOnValidationErrors: true
+  schema: schemas/ticketing-service-schema.json
+errors:
+  - name: authError
+    code: '401'
+functions:
+  - name: createJiraIssue
+    operation: specs/jira.yaml#createIssue
+  - name: getJiraIssue
+    operation: specs/jira.yaml#getIssue
+  - name: logInfo
+    type: custom
+    operation: "sysout:INFO"
+states:
+  - name: Setup
+    type: operation
+    actions:
+      - name: "logInfo"
+        functionRef:
+          refName: "logInfo"
+          arguments:
+            message: "\"Invoking Jira SWF with: \\(.)\""
+    transition: OnRequest
+  - name: OnRequest
+    type: switch
+    dataConditions:
+      - condition: '.request.type =="create"'
+        transition: CreateJiraIssue    
+      - condition: '.request.type =="get"'
+        transition: GetJiraIssue    
+    defaultCondition: 
+      transition: Unmanaged
+  - name: CreateJiraIssue
+    type: operation
+    actions:
+      - name: Create Jira Issue
+        functionRef:
+          refName: createJiraIssue
+          arguments:
+            update: {}
+            fields:
+              summary: '"Request For New Namespace: " + .request.namespace'
+              labels:
+                - '$SECRET.jira_label_workflowInstanceId + "=" + .request.parentId'
+                - "$SECRET.jira_label_workflowName"
+              issuetype:
+                id: "$SECRET.jira_issue_type"
+              project:
+                key: "$SECRET.jira_project"
+        actionDataFilter:
+          toStateData: .jiraIssue
+    transition: NormalizeCreateResponse
+    onErrors:
+      - errorRef: authError
+        transition: AuthError
+    stateDataFilter:
+      output: ". += { jiraBrowser: ((.jiraIssue.self  | sub(\"rest/.*\"; \"browse/\")) + .jiraIssue.key) }"
+  - name: NormalizeCreateResponse
+    type: inject
+    data: {}
+    stateDataFilter:
+      output: "${ {type: \"create\", ticketId: .jiraIssue.key, ticket: .jiraIssue, browseUrl: ((.jiraIssue.self  | sub(\"rest/.*\"; \"browse/\")) + .jiraIssue.key)} }"
+    end: true
+  - name: GetJiraIssue
+    type: operation
+    actions:
+      - functionRef:
+          refName: getJiraIssue
+          arguments:
+            issueIdOrKey: .request.ticketId
+            fields: status
+        actionDataFilter:
+          toStateData: .jiraIssue
+    transition: NormalizeGetResponse
+  - name: NormalizeGetResponse
+    type: inject
+    data: {}
+    stateDataFilter:
+      output: "${ { type: \"get\", ticketId: .jiraIssue.key, ticket: .jiraIssue, status: (if .jiraIssue.fields.status.statusCategory.key == \"done\" then \"Approved\" elif .jiraIssue.fields.status.statusCategory.key == \"new\" then \"Created\" elif .jiraIssue.fields.status.statusCategory.key == \"undefined\" then \"Unknown\" else \"Unknown\" end)} }"
+    end: true
+  - name: Unmanaged
+    type: operation
+    actions:
+      - name: "printAction"
+        functionRef:
+          refName: "logInfo"
+          arguments:
+            message: "\"Unmanaged request: \\(.)\""
+    end: true
+  - name: AuthError
+    type: operation
+    actions:
+      - name: "printAction"
+        functionRef:
+          refName: "logInfo"
+          arguments:
+            message: "\"AuthError: \\(.)\""
+    stateDataFilter:
+      output: "${ { type: \"get\", ticketId: .jiraIssue.key, ticket: .jiraIssue, status: (if .jiraIssue.fields.status.statusCategory.key == \"done\" then \"Approved\" elif .jiraIssue.fields.status.statusCategory.key == \"new\" then \"Created\" elif .jiraIssue.fields.status.statusCategory.key == \"undefined\" then \"Unknown\" else \"Unknown\" end)} }"
+    end: true

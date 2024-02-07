@@ -9,6 +9,8 @@ on:
       - 'mta/**'
       - 'pipeline/**'
       - 'e2e/mta.sh'
+    paths-ignore: 
+      - 'mta/*.svg'
 jobs:
   build:
     uses: parodos-dev/serverless-workflows/.github/workflows/main.yml@main
