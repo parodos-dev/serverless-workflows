@@ -1,0 +1,73 @@
+name: Reusable Workflow executing Makefile to execute the CI pipeline for workflows
+
+on:
+  workflow_call:
+    inputs:
+      workflow_id:
+        required: true
+        type: string
+      push_pr:
+        required: false
+        type: boolean
+        default: true
+
+env:
+  DEPLOYMENT_REPO: parodos-dev/serverless-workflows-helm
+  REGISTRY_REPO: orchestrator
+  GH_TOKEN: ${{ secrets.HELM_REPO_TOKEN }}
+jobs:
+  build-and-push-image:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Build
+      run: |
+        make WORKFLOW_ID=${{ inputs.workflow_id }} \
+          REGISTRY_REPO=${{ env.REGISTRY_REPO }} \
+          REGISTRY_USERNAME=${{ secrets.NEW_QUAY_USERNAME }} \
+          REGISTRY_PASSWORD=${{ secrets.NEW_QUAY_PASSWORD }} \
+          build-image push-image
+  gen-and-push-manifests:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Push manifests to CD repo
+      run: |
+        # TODO: update PR_OR_COMMIT_URL with PR's URL, if it comes from a PR
+        if [ "${{ github.event.head_commit.url }}" != "" ]; then
+          PR_OR_COMMIT_URL="${{ github.event.head_commit.url }}"
+        else
+          PR_OR_COMMIT_URL="${GITHUB_SHA::7}"
+        fi
+
+        WORKDIR=${{ runner.temp }}/serverless-workflows
+        make WORKFLOW_ID=${{ inputs.workflow_id }} \
+          WORKDIR=${WORKDIR} \
+          GIT_USER_NAME=${{ github.actor }} \
+          GIT_USER_EMAIL="${{ github.actor }}@users.noreply.github.com" \
+          GIT_TOKEN=${{ env.GH_TOKEN }} \
+          PR_OR_COMMIT_URL=${PR_OR_COMMIT_URL} \
+          gen-manifests push-manifests
+    - name: Send PR
+      run: |
+        WORKDIR=${{ runner.temp }}/serverless-workflows
+        cd ${WORKDIR}/helm-repo
+        # TODO Put these in env variables
+        git config --global user.email "${{ github.actor }}@users.noreply.github.com"
+        git config --global user.name "${{ github.actor }} "
+        git config -l
+
+        # TODO: reuse PR_OR_COMMIT_URL from these 2 jobs
+        if [ "${{ github.event.head_commit.url }}" != "" ]; then
+          PR_OR_COMMIT_URL="${{ github.event.head_commit.url }}"
+        else
+          PR_OR_COMMIT_URL="${GITHUB_SHA::7}"
+        fi
+
+        gh repo set-default ${{ env.DEPLOYMENT_REPO }}
+        gh pr create -f --title "Automatic manifests generation from ${PR_OR_COMMIT_URL}" \
+        --body "
+          Updating generated manifests for ${{ inputs.workflow_id }} workflow
+
+          This PR was created automatically as a result of merging ${PR_OR_COMMIT_URL}
+        "

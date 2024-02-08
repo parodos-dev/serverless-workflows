@@ -10,7 +10,7 @@ on:
 
 jobs:
   escalation-workflow:
-    uses: ./.github/workflows/main.yml
+    uses: ./.github/workflows/workflow-executor.yml
     with:
       workflow_id: escalation
     secrets: inherit
