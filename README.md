@@ -35,6 +35,7 @@ with [Sonataflow operator][2] running.
 6. Create a PR to [serverless-workflows-helm][3] and make sure its merge.
 7. Now the PR from 4 can be merged and an automatic PR will be created with the generated manifests. Review and merge. 
    
+See [Continuous Integration with make](make.md) for implemantation details of the CI pipeline.
 
 Note on CI:
 On each merge under a workflow directory a matching github workflow executes 
