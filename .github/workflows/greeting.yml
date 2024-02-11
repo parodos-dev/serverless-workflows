@@ -6,6 +6,7 @@ on:
     branches: [ "main" ]
     paths:
       - 'greeting/**'
+      - 'pipeline/**'
 
 jobs:
   call-main-workflow:
