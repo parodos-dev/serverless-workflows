@@ -118,10 +118,14 @@ jobs:
           ###### workaround till https://issues.redhat.com/browse/FLPATH-892 is solved
           yq  --inplace '.spec.template.spec.containers[0] |= ( . +  {"imagePullPolicy": "IfNotPresent"} )' e2e/resources/knative-service.yaml
           ###### end workaround
-          yq  --inplace '.spec.template.spec.containers[0] |= ( . +  {"image": "quay.io/orchestrator/serverless-workflow-m2k-kfunc:${{ github.sha }}"} )' e2e/resources/knative-service.yaml
+          yq  --inplace '.spec.template.spec.containers[0] |= ( . +  {"image": "kind.local/orchestrator/serverless-workflow-m2k-kfunc:${{ github.sha }}"} )' e2e/resources/knative-service.yaml
           # deploy the manifests created by the  ${{ steps.build-image.outputs.image }}"                                                                    
           kubectl apply -f e2e/resources/knative-service.yaml
           kubectl apply -f e2e/resources/knative-resources.yaml
+          docker exec $(kind get clusters | head -1)-control-plane crictl images
+          docker ps
+          docker exec $(kind get clusters | head -1)-control-plane crictl inspect quay.io/orchestrator/serverless-workflow-m2k-kfunc:${{ github.sha }}
+          kubectl describe nodes
           kubectl wait ksvc m2k-save-transformation-func --for=condition=Ready=true --timeout=5m
 
       - name: Run e2e script
