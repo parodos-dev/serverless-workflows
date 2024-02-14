@@ -50,7 +50,7 @@ jobs:
       if: ${{ ! inputs.push_pr }}
       run: |
         buildah push serverless-workflow-m2k-kfunc:${{ github.sha }} \
-          oci-archive:serverless-workflow-m2k-kfunc-${{ github.sha }}.tar:quay.io/orchestrator/serverless-workflow-m2k-kfunc:${{ github.sha }}
+          oci-archive:serverless-workflow-m2k-kfunc-${{ github.sha }}.tar:kind.local/orchestrator/serverless-workflow-m2k-kfunc:${{ github.sha }}
 
     - name: Save OCI archive
       if: ${{ ! inputs.push_pr }}
