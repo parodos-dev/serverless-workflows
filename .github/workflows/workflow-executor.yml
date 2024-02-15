@@ -23,6 +23,7 @@ jobs:
     - name: Build
       run: |
         make WORKFLOW_ID=${{ inputs.workflow_id }} \
+          GIT_TOKEN=${{ env.GH_TOKEN }} \
           REGISTRY_REPO=${{ env.REGISTRY_REPO }} \
           REGISTRY_USERNAME=${{ secrets.NEW_QUAY_USERNAME }} \
           REGISTRY_PASSWORD=${{ secrets.NEW_QUAY_PASSWORD }} \
