@@ -26,6 +26,7 @@ Variables can be used to configure the behavior of the [Makefile](./Makefile):
 | Variable | Description | Default |
 |----------|-------------|---------|
 | WORKFLOW_ID | The workflow ID | **Must be provided** |
+| APPLICATION_ID | The application ID | undefined |
 | CONTAINER_ENGINE | The container engine | `podman` if available, otherwise `docker` |
 | WORKDIR | The working directory where the repo files are copied | Execution of `mktemp -d` |
 | GIT_USER_NAME | Git username | Username from `git config` |
@@ -33,6 +34,10 @@ Variables can be used to configure the behavior of the [Makefile](./Makefile):
 | PR_OR_COMMIT_URL | URL to use in commit message | `<remote URL>/commits/<commit ID>` from local repo |
 | GIT_TOKEN | Git credentials token to push the commit | Content of `.git_token` file |
 | LINUX_IMAGE | Linux UBI image to run the pipeline | `quay.io/orchestrator/ubi9-pipeline:latest` |
+| JDK_IMAGE | JDK image to build the Java applications | `registry.access.redhat.com/ubi9/openjdk-17:1.17` |
+| BUILD_APPLICATION_SCRIPT | The application-specific build script | `scripts/build_application.sh` |
+| DOCKERFILE | Relative path to the Dockerfile file.<br/>From the repository root for workflows.<br/>From the application root for applications  | `pipeline/workflow-builder.Dockerfile` for workflows.</br>`src/main/docker/Dockerfile.jvm` for applications |
+| MVN_OPTS | Maven build options for Java applications | `-B` |
 | REGISTRY | Container registry to publish the image | `quay.io` |
 | REGISTRY_REPO | Container registry repository name | Name of current OS user (e.g. `whoami`) |
 | REGISTRY_USERNAME | Container registry username | `""` (e.g., no login attempted) |
@@ -40,6 +45,7 @@ Variables can be used to configure the behavior of the [Makefile](./Makefile):
 | IMAGE_PREFIX | Automatically added image prefix | `serverless-workflow` |
 | IMAGE_TAG | Automatically added image tag | 8 chars commit hash of the latest commit |
 | DEPLOYMENT_REPO | Git repo of the deployment source code | `parodos-dev/serverless-workflows-helm` |
+| DEPLOYMENT_BRANCH | Branch of the deployment git repo | `main` |
 
 Override the default values with:
 ```bash
@@ -49,6 +55,11 @@ make <VAR1>=<VALUE1> ... <VARn>=<VALUEn> <TARGET>
 ### Requirements for WORKFLOW_ID variable
 * Must match one of the workflows folder names, like [escalation](./escalation)
 * Must contain a valid, workflow in a flat layout (e.g., no Java code, not a Maven-Quarkus project)
+
+### Requirements for APPLICATION_ID variable
+* Must match one of the application folders under the given workflow folder, like [jira-listener](./escalation/jira-listener/)
+* Must contain a valid, Maven Java project
+* Must be compatible with the selected `JDK_IMAGE`
  
 ### Requirements for Linux UBI image
 See the [setup](./setup/README.md) documentation.
@@ -64,6 +75,7 @@ The procedure assumes that the folder structure of the target deployment reposit
 ## Building with make
 The following examples show how to build a specific workflow like `escalation` in the local repository.
 
+### Building a Workflow
 Build the image, push it to the registry, prepare the manifests and update the kustomize project with a commit pushed to the default deployment repository:
 ```bash
 make WORKFLOW_ID=escalation
@@ -97,6 +109,14 @@ Generate the k8s manifests and push them to the default deployment repo:
 ```bash
 make CONTAINER_ENGINE=docker WORKFLOW_ID=escalation gen-manifests push-manifests
 ```
+
+### Building an Application
+Use the same commands as above and include the `APPLICATION_ID` variable, as in:
+```bash
+make WORKFLOW_ID=escalation APPLICATION_ID=jira-listener
+```
+
+
 
 
 
