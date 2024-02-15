@@ -6,6 +6,10 @@ on:
       workflow_id:
         required: true
         type: string
+      application_id:
+        required: false
+        type: string
+        default: 'UNDEFINED'
       push_pr:
         required: false
         type: boolean
@@ -23,6 +27,7 @@ jobs:
     - name: Build
       run: |
         make WORKFLOW_ID=${{ inputs.workflow_id }} \
+          APPLICATION_ID=${{ inputs.application_id }} \
           GIT_TOKEN=${{ env.GH_TOKEN }} \
           REGISTRY_REPO=${{ env.REGISTRY_REPO }} \
           REGISTRY_USERNAME=${{ secrets.NEW_QUAY_USERNAME }} \
@@ -44,6 +49,7 @@ jobs:
         WORKDIR=${{ runner.temp }}/serverless-workflows
         make WORKFLOW_ID=${{ inputs.workflow_id }} \
           WORKDIR=${WORKDIR} \
+          APPLICATION_ID=${{ inputs.application_id }} \
           GIT_USER_NAME=${{ github.actor }} \
           GIT_USER_EMAIL="${{ github.actor }}@users.noreply.github.com" \
           GIT_TOKEN=${{ env.GH_TOKEN }} \
