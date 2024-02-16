@@ -8,17 +8,16 @@ ifndef WORKFLOW_ID
 $(error WORKFLOW_ID variable is not defined. Please provide the required value)
 endif
 
-ifdef APPLICATION_ID
+ifndef APPLICATION_ID
+APPLICATION_ID = UNDEFINED
+endif
+
 ifeq ($(APPLICATION_ID), UNDEFINED)
 IS_WORKFLOW = true
 IS_APPLICATION = false
 else
 IS_WORKFLOW = false
 IS_APPLICATION = true
-endif
-else
-IS_WORKFLOW = true
-IS_APPLICATION = false
 endif
 
 CONTAINER_ENGINE ?= $(shell which podman >/dev/null 2>&1 && echo podman || echo docker)
