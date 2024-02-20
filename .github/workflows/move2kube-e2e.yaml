@@ -83,9 +83,9 @@ jobs:
           kubectl get pv
           sleep 3m
           kubectl get sfp -A
-          kubectl wait --for=condition=Ready=true pods -l "app.kubernetes.io/name=backstage" --timeout=120s
+          kubectl wait --for=condition=Ready=true pods -l "app.kubernetes.io/name=backstage" --timeout=180s
           kubectl get pods -o wide
-          kubectl wait --for=condition=Ready=true pods -l "app=sonataflow-platform" --timeout=120s
+          kubectl wait --for=condition=Ready=true pods -l "app=sonataflow-platform" --timeout=180s
 
       - name: Deploy Move2kube serverless workflow
         run: |
