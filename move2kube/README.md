@@ -51,7 +51,7 @@ backstage-backstage   backstage-backstage-backstage-system.apps.cluster-c68jb.dy
 5. In the `repositoryURL` field, put the URL of your git project
    * ie: https://bitbucket.org/parodos/m2k-test
 6. In the `sourceBranch` field, put the name of the branch holding the project you want to transform
-  * ie: `main`
+   * ie: `main`
 7. In the `targetBranch` field, put the name of the branch in which you want the move2kube output to be persisted. If the branch exists, the workflow will fail
    * ie: `move2kube-output`
 8. In the `workspaceId` field, put the ID of the move2kube instance workspace to use for the transformation. Use the ID of the workspace created at the 1st step.
