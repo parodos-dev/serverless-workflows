@@ -1,15 +1,15 @@
-# Move2kube (m2k) workflo
+# Move2kube (m2k) workflow
 ## Context
 This workflow is using https://move2kube.konveyor.io/ to migrate the existing code contained in a git repository to a K8s/OCP platform.
 
 Once the transformation is over, move2kube provides a zip file containing the transformed repo.
 
 ### Design diagram
-![sequence_diagram.svg](https://github.com/parodos-dev/serverless-workflows/blob/doc/m2k/move2kube/sequence_diagram.jpg)
-![design.svg](https://github.com/parodos-dev/serverless-workflows/blob/doc/m2k/move2kube/design.svg)
+![sequence_diagram.svg](https://raw.githubusercontent.com/parodos-dev/serverless-workflows/doc/m2k/move2kube/sequence_diagram.jpg)
+![design.svg](https://raw.githubusercontent.com/parodos-dev/serverless-workflows/doc/m2k/move2kube/design.svg)
 
 ### Workflow
-![m2k.svg](https://github.com/parodos-dev/serverless-workflows/blob/doc/m2k/move2kube/m2k.svg)
+![m2k.svg](https://raw.githubusercontent.com/parodos-dev/serverless-workflows/doc/m2k/move2kube/m2k.svg)
 
 ## Components
 The use case has the following components:
