@@ -42,7 +42,7 @@ states:
         actionDataFilter:
           toStateData: ".applications"
     stateDataFilter:
-      output: "{repositoryURL: .repositoryURL, application: .repositoryURL as $r| if .applications == null then null else .applications|map(select(.repository.url == $r))[0] end}"
+      output: "{backstageUserOrGroup: .backstageUserOrGroup, repositoryURL: .repositoryURL, application: .repositoryURL as $r| if .applications == null then null else .applications|map(select(.repository.url == $r))[0] end}"
     transition: AppExist
   - name: AppExist
     type: switch
@@ -165,7 +165,6 @@ states:
             actions:
               - title: "View report"
                 url: "$SECRET.mta_url + \"/hub/applications/\" + (.application.id|tostring) + \"/bucket/\" + .data.output"
-
     transition: report
   - name: report
     type: operation
