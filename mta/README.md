@@ -10,13 +10,14 @@ the cloud-readiness compatibility of their code.
 
 # Inputs
 - `repositoryUrl` [mandatory] - the git repo url to examine
-- `backstageUserOrGroup` [optional] - the backstage user or group to send backstage notification with the analysis results
+- `backstageUser` [optional] - the backstage user to send backstage notification with the analysis results
+- `backstageGroup` [optional] - the backstage group to send backstage notification with the analysis results
 
 # Output
 1. On completion the workflow returns an [options structure][2] in the exit state of the workflow (also named variables in SonataFlow)
 linking to the [move2kube][3] workflow that will generate k8s manifests for container deployment.
 1. When the workflow completes there should be a report link on the exit state of the workflow (also named variables in SonataFlow)
-If `backstageUserOrGroup` is set then the link is also attached to a backstage notification.
+If `backstageUser` or `backstageGroup` are set then the link is also attached to a backstage notification.
 Currently this is working with MTA version 6.2.x and in the future 7.x version the report link will be removed or will be made
 optional. Instead of an html report the workflow will use a machine friendly json file.
 
