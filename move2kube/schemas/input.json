@@ -32,10 +32,6 @@
           "description": "If set to true, notification will NOT be sent to backstage",
           "type": "boolean",
           "default": false
-      },
-      "token": {
-          "description": "The token to use to authenticate with GitHub",
-          "type": "string"
       }
   },
   "required": [

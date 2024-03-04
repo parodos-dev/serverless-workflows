@@ -94,7 +94,7 @@ public class SaveTransformationFunctionTest {
   }
 
   @Test
-  public void testSaveTransformationIsWorkingWithToken() throws GitAPIException, IOException, ApiException, URISyntaxException {
+  public void testSaveTransformationIsWorking() throws GitAPIException, IOException, ApiException, URISyntaxException {
     UUID workflowCallerId = UUID.randomUUID();
     UUID transformId = UUID.randomUUID();
     transformOutputPath = Files.createTempDirectory(String.format("move2kube-transform-TEST-%s", transformId));
@@ -105,63 +105,12 @@ public class SaveTransformationFunctionTest {
 
     when(folderCreatorService.createGitRepositoryLocalFolder(eq("gitRepo"), anyString())).thenReturn(gitRepoLocalFolder);
     when(move2KubeServiceMock.getTransformationOutput(anyString(), anyString(), anyString())).thenReturn(transformOutputPath);
-    when(gitServiceMock.cloneRepo(anyString(), anyString(), anyString(), any())).thenReturn(git);
+    when(gitServiceMock.cloneRepo(anyString(), anyString(), any())).thenReturn(git);
     when(gitServiceMock.branchExists(any(), anyString())).thenReturn(false);
     doNothing().when(gitServiceMock).createBranch(eq(git), anyString());
     doNothing().when(gitServiceMock).commit(eq(git), anyString(), anyString());
     doNothing().when(gitServiceMock).createBranch(eq(git), anyString());
-    doNothing().when(gitServiceMock).push(eq(git), anyString());
-
-    RestAssured.given().contentType("application/json")
-        .header("ce-specversion", "1.0")
-        .header("ce-id", UUID.randomUUID().toString())
-        .header("ce-type", "save-transformation")
-        .header("ce-source", "test")
-        .body("{\"gitRepo\": \"gitRepo\", " +
-            "\"branch\": \"branch\"," +
-            " \"token\": \"token\"," +
-            " \"workspaceId\": \"workspaceId\"," +
-            " \"projectId\": \"projectId\"," +
-            " \"workflowCallerId\": \"" + workflowCallerId + "\"," +
-            " \"transformId\": \"" + transformId + "\"" +
-            "}")
-        .post("/")
-        .then()
-        .statusCode(200)
-        .contentType(ContentType.JSON)
-        .header("ce-type", transformationSavedEventName)
-        .header("ce-kogitoprocrefid", workflowCallerId.toString())
-        .header("ce-source", SaveTransformationFunction.SOURCE)
-        .body(containsString("\"error\":null"));
-
-    verify(move2KubeServiceMock, times(1)).getTransformationOutput(anyString(), anyString(), anyString());
-    verify(gitServiceMock, times(1)).cloneRepo(anyString(), anyString(), anyString(), any());
-    verify(gitServiceMock, times(1)).createBranch(eq(git), anyString());
-    verify(gitServiceMock, times(1)).branchExists(any(), anyString());
-    verify(gitServiceMock, times(1)).commit(eq(git), anyString(), anyString());
-    verify(gitServiceMock, times(1)).push(eq(git), anyString());
-
-    AssertFileMovedToGitLocalFolder(REFERENCE_OUTPUT_UNZIP_PATH.toPath());
-  }
-
-  @Test
-  public void testSaveTransformationIsWorkingWithoutToken() throws GitAPIException, IOException, ApiException, URISyntaxException {
-    UUID workflowCallerId = UUID.randomUUID();
-    UUID transformId = UUID.randomUUID();
-    transformOutputPath = Files.createTempDirectory(String.format("move2kube-transform-TEST-%s", transformId));
-    gitRepoLocalFolder = Files.createTempDirectory(String.format("local-git-transform-TEST-%s", transformId));
-
-    URL transformedZip = classLoader.getResource(TRANSFORMED_ZIP);
-    Move2KubeServiceImpl.extractZipFile(new File(transformedZip.getFile()), transformOutputPath);
-
-    when(folderCreatorService.createGitRepositoryLocalFolder(eq("gitRepo"), anyString())).thenReturn(gitRepoLocalFolder);
-    when(move2KubeServiceMock.getTransformationOutput(anyString(), anyString(), anyString())).thenReturn(transformOutputPath);
-    when(gitServiceMock.cloneRepo(anyString(), anyString(), eq(null), any())).thenReturn(git);
-    when(gitServiceMock.branchExists(any(), anyString())).thenReturn(false);
-    doNothing().when(gitServiceMock).createBranch(eq(git), anyString());
-    doNothing().when(gitServiceMock).commit(eq(git), anyString(), anyString());
-    doNothing().when(gitServiceMock).createBranch(eq(git), anyString());
-    doNothing().when(gitServiceMock).push(eq(git), eq(null));
+    doNothing().when(gitServiceMock).push(eq(git));
 
     RestAssured.given().contentType("application/json")
         .header("ce-specversion", "1.0")
@@ -185,11 +134,11 @@ public class SaveTransformationFunctionTest {
         .body(containsString("\"error\":null"));
 
     verify(move2KubeServiceMock, times(1)).getTransformationOutput(anyString(), anyString(), anyString());
-    verify(gitServiceMock, times(1)).cloneRepo(anyString(), anyString(), eq(null), any());
+    verify(gitServiceMock, times(1)).cloneRepo(anyString(), anyString(), any());
     verify(gitServiceMock, times(1)).createBranch(eq(git), anyString());
     verify(gitServiceMock, times(1)).branchExists(any(), anyString());
     verify(gitServiceMock, times(1)).commit(eq(git), anyString(), anyString());
-    verify(gitServiceMock, times(1)).push(eq(git), eq(null));
+    verify(gitServiceMock, times(1)).push(eq(git));
 
     AssertFileMovedToGitLocalFolder(REFERENCE_OUTPUT_UNZIP_PATH.toPath());
   }
@@ -213,7 +162,6 @@ public class SaveTransformationFunctionTest {
         .header("ce-source", "test")
         .body("{\"gitRepo\": \"gitRepo\", " +
             "\"branch\": \"branch\"," +
-            " \"token\": \"token\"," +
             " \"workspaceId\": \"workspaceId\"," +
             " \"projectId\": \"projectId\"," +
             " \"workflowCallerId\": \"" + workflowCallerId + "\"," +
@@ -229,11 +177,11 @@ public class SaveTransformationFunctionTest {
         .body(not(containsString("\"error\":null")));
 
     verify(move2KubeServiceMock, times(1)).getTransformationOutput(anyString(), anyString(), anyString());
-    verify(gitServiceMock, times(0)).cloneRepo(anyString(), anyString(), anyString(), any());
+    verify(gitServiceMock, times(0)).cloneRepo(anyString(), anyString(), any());
     verify(gitServiceMock, times(0)).createBranch(eq(git), anyString());
     verify(gitServiceMock, times(0)).branchExists(any(), anyString());
     verify(gitServiceMock, times(0)).commit(eq(git), anyString(), anyString());
-    verify(gitServiceMock, times(0)).push(eq(git), anyString());
+    verify(gitServiceMock, times(0)).push(eq(git));
   }
 
   @Test
@@ -247,7 +195,7 @@ public class SaveTransformationFunctionTest {
 
     when(folderCreatorService.createGitRepositoryLocalFolder(eq("gitRepo"), anyString())).thenReturn(gitRepoLocalFolder);
     when(move2KubeServiceMock.getTransformationOutput(anyString(), anyString(), anyString())).thenReturn(transformOutputPath);
-    when(gitServiceMock.cloneRepo(anyString(), anyString(), anyString(), any())).thenThrow(new InvalidRemoteException("Error while cloning repo"));
+    when(gitServiceMock.cloneRepo(anyString(), anyString(), any())).thenThrow(new InvalidRemoteException("Error while cloning repo"));
 
     RestAssured.given().contentType("application/json")
         .header("ce-specversion", "1.0")
@@ -256,7 +204,6 @@ public class SaveTransformationFunctionTest {
         .header("ce-source", "test")
         .body("{\"gitRepo\": \"gitRepo\", " +
             "\"branch\": \"branch\"," +
-            " \"token\": \"token\"," +
             " \"workspaceId\": \"workspaceId\"," +
             " \"projectId\": \"projectId\"," +
             " \"workflowCallerId\": \"" + workflowCallerId + "\"," +
@@ -272,11 +219,11 @@ public class SaveTransformationFunctionTest {
         .body(not(containsString("\"error\":null")));
 
     verify(move2KubeServiceMock, times(1)).getTransformationOutput(anyString(), anyString(), anyString());
-    verify(gitServiceMock, times(1)).cloneRepo(anyString(), anyString(), anyString(), any());
+    verify(gitServiceMock, times(1)).cloneRepo(anyString(), anyString(), any());
     verify(gitServiceMock, times(0)).branchExists(any(), anyString());
     verify(gitServiceMock, times(0)).createBranch(eq(git), anyString());
     verify(gitServiceMock, times(0)).commit(eq(git), anyString(), anyString());
-    verify(gitServiceMock, times(0)).push(eq(git), anyString());
+    verify(gitServiceMock, times(0)).push(eq(git));
   }
 
   @Test
@@ -290,7 +237,7 @@ public class SaveTransformationFunctionTest {
 
     when(folderCreatorService.createGitRepositoryLocalFolder(eq("gitRepo"), anyString())).thenReturn(gitRepoLocalFolder);
     when(move2KubeServiceMock.getTransformationOutput(anyString(), anyString(), anyString())).thenReturn(transformOutputPath);
-    when(gitServiceMock.cloneRepo(anyString(), anyString(), anyString(), any())).thenReturn(git);
+    when(gitServiceMock.cloneRepo(anyString(), anyString(), any())).thenReturn(git);
     when(gitServiceMock.branchExists(any(), anyString())).thenReturn(true);
 
     RestAssured.given().contentType("application/json")
@@ -300,7 +247,6 @@ public class SaveTransformationFunctionTest {
         .header("ce-source", "test")
         .body("{\"gitRepo\": \"gitRepo\", " +
             "\"branch\": \"branch\"," +
-            " \"token\": \"token\"," +
             " \"workspaceId\": \"workspaceId\"," +
             " \"projectId\": \"projectId\"," +
             " \"workflowCallerId\": \"" + workflowCallerId + "\"," +
@@ -316,11 +262,11 @@ public class SaveTransformationFunctionTest {
         .body(not(containsString("\"error\":null")));
 
     verify(move2KubeServiceMock, times(1)).getTransformationOutput(anyString(), anyString(), anyString());
-    verify(gitServiceMock, times(1)).cloneRepo(anyString(), anyString(), anyString(), any());
+    verify(gitServiceMock, times(1)).cloneRepo(anyString(), anyString(), any());
     verify(gitServiceMock, times(1)).branchExists(any(), anyString());
     verify(gitServiceMock, times(0)).createBranch(eq(git), anyString());
     verify(gitServiceMock, times(0)).commit(eq(git), anyString(), anyString());
-    verify(gitServiceMock, times(0)).push(eq(git), anyString());
+    verify(gitServiceMock, times(0)).push(eq(git));
   }
 
   @Test
@@ -334,7 +280,7 @@ public class SaveTransformationFunctionTest {
 
     when(folderCreatorService.createGitRepositoryLocalFolder(eq("gitRepo"), anyString())).thenReturn(gitRepoLocalFolder);
     when(move2KubeServiceMock.getTransformationOutput(anyString(), anyString(), anyString())).thenReturn(transformOutputPath);
-    when(gitServiceMock.cloneRepo(anyString(), anyString(), anyString(), any())).thenReturn(git);
+    when(gitServiceMock.cloneRepo(anyString(), anyString(), any())).thenReturn(git);
     when(gitServiceMock.branchExists(any(), anyString())).thenReturn(false);
     doThrow(new InvalidRemoteException("Error while creating new branch")).when(gitServiceMock).createBranch(eq(git), anyString());
 
@@ -345,7 +291,6 @@ public class SaveTransformationFunctionTest {
         .header("ce-source", "test")
         .body("{\"gitRepo\": \"gitRepo\", " +
             "\"branch\": \"branch\"," +
-            " \"token\": \"token\"," +
             " \"workspaceId\": \"workspaceId\"," +
             " \"projectId\": \"projectId\"," +
             " \"workflowCallerId\": \"" + workflowCallerId + "\"," +
@@ -361,11 +306,11 @@ public class SaveTransformationFunctionTest {
         .body(not(containsString("\"error\":null")));
 
     verify(move2KubeServiceMock, times(1)).getTransformationOutput(anyString(), anyString(), anyString());
-    verify(gitServiceMock, times(1)).cloneRepo(anyString(), anyString(), anyString(), any());
+    verify(gitServiceMock, times(1)).cloneRepo(anyString(), anyString(), any());
     verify(gitServiceMock, times(1)).branchExists(any(), anyString());
     verify(gitServiceMock, times(1)).createBranch(eq(git), anyString());
     verify(gitServiceMock, times(0)).commit(eq(git), anyString(), anyString());
-    verify(gitServiceMock, times(0)).push(eq(git), anyString());
+    verify(gitServiceMock, times(0)).push(eq(git));
   }
 
   @Test
@@ -379,7 +324,7 @@ public class SaveTransformationFunctionTest {
 
     when(folderCreatorService.createGitRepositoryLocalFolder(eq("gitRepo"), anyString())).thenReturn(gitRepoLocalFolder);
     when(move2KubeServiceMock.getTransformationOutput(anyString(), anyString(), anyString())).thenReturn(transformOutputPath);
-    when(gitServiceMock.cloneRepo(anyString(), anyString(), anyString(), any())).thenReturn(git);
+    when(gitServiceMock.cloneRepo(anyString(), anyString(), any())).thenReturn(git);
     when(gitServiceMock.branchExists(any(), anyString())).thenReturn(false);
     doNothing().when(gitServiceMock).createBranch(eq(git), anyString());
     doThrow(new InvalidRemoteException("Error while committing changes")).when(gitServiceMock).commit(eq(git), anyString(), anyString());
@@ -391,7 +336,6 @@ public class SaveTransformationFunctionTest {
         .header("ce-source", "test")
         .body("{\"gitRepo\": \"gitRepo\", " +
             "\"branch\": \"branch\"," +
-            " \"token\": \"token\"," +
             " \"workspaceId\": \"workspaceId\"," +
             " \"projectId\": \"projectId\"," +
             " \"workflowCallerId\": \"" + workflowCallerId + "\"," +
@@ -407,11 +351,11 @@ public class SaveTransformationFunctionTest {
         .body(not(containsString("\"error\":null")));
 
     verify(move2KubeServiceMock, times(1)).getTransformationOutput(anyString(), anyString(), anyString());
-    verify(gitServiceMock, times(1)).cloneRepo(anyString(), anyString(), anyString(), any());
+    verify(gitServiceMock, times(1)).cloneRepo(anyString(), anyString(), any());
     verify(gitServiceMock, times(1)).branchExists(any(), anyString());
     verify(gitServiceMock, times(1)).createBranch(eq(git), anyString());
     verify(gitServiceMock, times(1)).commit(eq(git), anyString(), anyString());
-    verify(gitServiceMock, times(0)).push(eq(git), anyString());
+    verify(gitServiceMock, times(0)).push(eq(git));
 
     AssertFileMovedToGitLocalFolder(REFERENCE_OUTPUT_UNZIP_PATH.toPath());
   }
@@ -427,10 +371,10 @@ public class SaveTransformationFunctionTest {
 
     when(folderCreatorService.createGitRepositoryLocalFolder(eq("gitRepo"), anyString())).thenReturn(gitRepoLocalFolder);
     when(move2KubeServiceMock.getTransformationOutput(anyString(), anyString(), anyString())).thenReturn(transformOutputPath);
-    when(gitServiceMock.cloneRepo(anyString(), anyString(), anyString(), any())).thenReturn(git);
+    when(gitServiceMock.cloneRepo(anyString(), anyString(), any())).thenReturn(git);
     doNothing().when(gitServiceMock).commit(eq(git), anyString(), anyString());
     doNothing().when(gitServiceMock).createBranch(eq(git), anyString());
-    doThrow(new InvalidRemoteException("Error while pushing to remote")).when(gitServiceMock).push(eq(git), anyString());
+    doThrow(new InvalidRemoteException("Error while pushing to remote")).when(gitServiceMock).push(eq(git));
 
     RestAssured.given().contentType("application/json")
         .header("ce-specversion", "1.0")
@@ -439,7 +383,6 @@ public class SaveTransformationFunctionTest {
         .header("ce-source", "test")
         .body("{\"gitRepo\": \"gitRepo\", " +
             "\"branch\": \"branch\"," +
-            " \"token\": \"token\"," +
             " \"workspaceId\": \"workspaceId\"," +
             " \"projectId\": \"projectId\"," +
             " \"workflowCallerId\": \"" + workflowCallerId + "\"," +
@@ -455,11 +398,11 @@ public class SaveTransformationFunctionTest {
         .body(not(containsString("\"error\":null")));
 
     verify(move2KubeServiceMock, times(1)).getTransformationOutput(anyString(), anyString(), anyString());
-    verify(gitServiceMock, times(1)).cloneRepo(anyString(), anyString(), anyString(), any());
+    verify(gitServiceMock, times(1)).cloneRepo(anyString(), anyString(), any());
     verify(gitServiceMock, times(1)).branchExists(any(), anyString());
     verify(gitServiceMock, times(1)).createBranch(eq(git), anyString());
     verify(gitServiceMock, times(1)).commit(eq(git), anyString(), anyString());
-    verify(gitServiceMock, times(1)).push(eq(git), anyString());
+    verify(gitServiceMock, times(1)).push(eq(git));
 
     AssertFileMovedToGitLocalFolder(REFERENCE_OUTPUT_UNZIP_PATH.toPath());
   }
@@ -474,7 +417,6 @@ public class SaveTransformationFunctionTest {
         .header("ce-source", "test")
         .body("{\"gitRepo\": \"gitRepo\", " +
             "\"branch\": \"branch\"," +
-            " \"token\": \"token\"," +
             " \"projectId\": \"projectId\"," +
             " \"workflowCallerId\": \"" + workflowCallerId + "\"" +
             "}")
@@ -488,11 +430,11 @@ public class SaveTransformationFunctionTest {
         .body(not(containsString("\"error\":null")));
 
     verify(move2KubeServiceMock, times(0)).getTransformationOutput(anyString(), anyString(), anyString());
-    verify(gitServiceMock, times(0)).cloneRepo(anyString(), anyString(), anyString(), any());
+    verify(gitServiceMock, times(0)).cloneRepo(anyString(), anyString(), any());
     verify(gitServiceMock, times(0)).branchExists(any(), anyString());
     verify(gitServiceMock, times(0)).createBranch(eq(git), anyString());
     verify(gitServiceMock, times(0)).commit(eq(git), anyString(), anyString());
-    verify(gitServiceMock, times(0)).push(eq(git), anyString());
+    verify(gitServiceMock, times(0)).push(eq(git));
   }
 
   private void AssertFileMovedToGitLocalFolder(Path localOutputRef) {
