@@ -12,10 +12,8 @@ import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.api.TransportConfigCallback;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
-import org.eclipse.jgit.transport.CredentialsProvider;
 import org.eclipse.jgit.transport.SshTransport;
 import org.eclipse.jgit.transport.Transport;
-import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.eclipse.jgit.transport.ssh.jsch.JschConfigSessionFactory;
 import org.eclipse.jgit.transport.ssh.jsch.OpenSshConfig;
 import org.eclipse.jgit.util.FS;
@@ -31,7 +29,7 @@ public class GitServiceImpl implements GitService {
   private static final Logger log = LoggerFactory.getLogger(GitServiceImpl.class);
   public static final Path SSH_PRIV_KEY_PATH = Path.of(ConfigProvider.getConfig().getValue("ssh-priv-key-path", String.class));
   @Override
-  public Git cloneRepo(String repo, String branch, String token, Path targetDirectory) throws GitAPIException, IOException {
+  public Git cloneRepo(String repo, String branch, Path targetDirectory) throws GitAPIException, IOException {
     try {
       if (repo.startsWith("ssh") && !repo.contains("@")) {
         log.info("No user specified in ssh git url, using 'git' user");
@@ -40,14 +38,9 @@ public class GitServiceImpl implements GitService {
         repo = protocolAndHost[0] + "://" + repoWithGitUser;
       }
       CloneCommand cloneCommand = Git.cloneRepository().setURI(repo).setDirectory(targetDirectory.toFile());
-      if (token != null && !token.isBlank()) {
-        log.info("Cloning repo {} in {} using token", repo, targetDirectory);
-        CredentialsProvider credentialsProvider = new UsernamePasswordCredentialsProvider(token, "");
-        cloneCommand.setCredentialsProvider(credentialsProvider);
-      } else {
-        log.info("Cloning repo {} in {} using ssh keys {}", repo, targetDirectory, SSH_PRIV_KEY_PATH);
-        cloneCommand.setTransportConfigCallback(getTransport(SSH_PRIV_KEY_PATH));
-      }
+      log.info("Cloning repo {} in {} using ssh keys {}", repo, targetDirectory, SSH_PRIV_KEY_PATH);
+      cloneCommand.setTransportConfigCallback(getTransport(SSH_PRIV_KEY_PATH));
+
       return cloneCommand.call();
     } catch (InvalidRemoteException e) {
       log.error("remote repository server '{}' is not available", repo, e);
@@ -89,17 +82,13 @@ public class GitServiceImpl implements GitService {
   }
 
   @Override
-  public void push(Git repo, String token) throws GitAPIException, IOException {
+  public void push(Git repo) throws GitAPIException, IOException {
     log.info("Pushing to repo {}", repo);
     PushCommand pushCommand = repo.push().setForce(false).setRemote("origin");
-    if (token != null && !token.isBlank()) {
-      log.info("Push using token");
-      CredentialsProvider credentialsProvider = new UsernamePasswordCredentialsProvider(token, "");
-      pushCommand.setCredentialsProvider(credentialsProvider);
-    } else {
-      log.info("Push using ssh key {}", SSH_PRIV_KEY_PATH);
-      pushCommand.setTransportConfigCallback(getTransport(SSH_PRIV_KEY_PATH));
-    }
+
+    log.info("Push using ssh key {}", SSH_PRIV_KEY_PATH);
+    pushCommand.setTransportConfigCallback(getTransport(SSH_PRIV_KEY_PATH));
+
     pushCommand.call();
   }
 

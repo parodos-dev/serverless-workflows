@@ -5,6 +5,7 @@ name: Move2Kube workflow
 description: Workflow to execute Move2Kube
 dataInputSchema: schemas/input.json
 start: StartPlanning
+secrets: ["GIT_TOKEN"]
 extensions:
   - extensionid: workflow-uri-definitions
     definitions:
@@ -107,7 +108,7 @@ states:
       nextState: WaitForSaveTransformationCompletionEvent
       produceEvents:
         - eventRef: saveTransformationEvent
-          data: "{gitRepo:.repositoryURL|sub(\"http(s)?://\";\"ssh://\"), branch: .targetBranch, token: .token, workspaceId: .workspaceId, projectId: .projectId, transformId: .transformId, workflowCallerId: $WORKFLOW.instanceId}"
+          data: "{gitRepo:.repositoryURL|sub(\"http(s)?://\";\"ssh://\"), branch: .targetBranch, workspaceId: .workspaceId, projectId: .projectId, transformId: .transformId, workflowCallerId: $WORKFLOW.instanceId}"
   - name: WaitForSaveTransformationCompletionEvent
     type: switch
     eventConditions:
