@@ -77,7 +77,7 @@ public class SaveTransformationFunction {
     try {
       Path gitDir = folderCreatorService.createGitRepositoryLocalFolder(input.gitRepo, String.format("%s-%s_%d", input.branch, input.transformId, new Date().getTime()));
 
-      try (Git clonedRepo = gitService.cloneRepo(input.gitRepo, input.branch, input.token, gitDir)) {
+      try (Git clonedRepo = gitService.cloneRepo(input.gitRepo, input.branch, gitDir)) {
         CloudEvent errorEvent = createBranch(input, clonedRepo);
         if (errorEvent != null) return errorEvent;
 
@@ -186,7 +186,7 @@ public class SaveTransformationFunction {
     }
     log.info("Pushing commit to branch {} of repo {}", input.branch, input.gitRepo);
     try {
-      gitService.push(clonedRepo, input.token);
+      gitService.push(clonedRepo);
     } catch (GitAPIException | IOException e) {
       log.error("Cannot push branch {} to remote repo {}", input.branch, input.gitRepo, e);
       return EventGenerator.createErrorEvent(input.workflowCallerId, String.format("Cannot push branch %s to remote repo %s; error: %s",
@@ -202,7 +202,6 @@ public class SaveTransformationFunction {
   public static class FunInput {
     public String gitRepo;
     public String branch;
-    public String token;
 
     public String workspaceId;
     public String projectId;
