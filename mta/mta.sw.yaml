@@ -144,6 +144,8 @@ states:
     dataConditions:
       - condition: (.taskgroup.state == "Ready" and .taskgroup.tasks[0].state == "Succeeded")
         transition: NotifyBackstage
+      - condition: (.taskgroup.state == "Ready" and .taskgroup.tasks[0].state == "Failed")
+        transition: NotifyFailureBackstage
     defaultCondition:
       transition: poll
     transition: NotifyBackstage
@@ -187,5 +189,28 @@ states:
     stateDataFilter:
       output: '{workflowOptions: {migrationOptions: [{id: "m2k", name: "Move2Kube workflow"}]}, repositoryURL: .repositoryURL}'
     end: true
-
+  - name: NotifyFailureBackstage
+    type: operation
+    actions:
+      - condition: .backstageUser != null
+        functionRef:
+          refName: createNotification
+          arguments:
+            title: "MTA analysis failed"
+            message: '"MTA analysis for " + .application.repository.url + " failed. Check logs of task pod: " + .taskgroup.tasks[0].pod'
+            origin: "MTA Analysis Workflow"
+            topic: "MTA Analysis Workflow"
+            targetUsers:
+              - .backstageUser
+      - condition: .backstageGroup != null
+        functionRef:
+          refName: createNotification
+          arguments:
+            title: "MTA analysis failed"
+            message: '"MTA analysis for " + .application.repository.url + " failed. Check logs of task pod: " + .taskgroup.tasks[0].pod'
+            origin: "MTA Analysis Workflow"
+            topic: "MTA Analysis Workflow"
+            targetGroups:
+              - .backstageGroup
+    end: true
 
