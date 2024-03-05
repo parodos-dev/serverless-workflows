@@ -5,7 +5,7 @@ This projects implements the Knative functions that will interact with Move2Kube
   * Triggered by the event `save-transformation`
   * This function will first retrieve the transformation output archive from the Move2Kube project
   * Then it will create a new branch based on the provided input in the provided BitBucket repo
-  * Finally, it will un-archive the previously downloaded file, commit the change and push them to BitBucket using the token if provided, otherwise the ssh keys will be used
+  * Finally, it will un-archive the previously downloaded file, commit the change and push them to BitBucket using the ssh keys provided.
   * Will send events:
     * `transformation_saved` if success
     * `error` if any error

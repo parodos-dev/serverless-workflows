@@ -227,7 +227,6 @@ public class SaveTransformationFunction {
           ", projectId='" + projectId + '\'' +
           ", transformId='" + transformId + '\'' +
           ", workflowCallerId='" + workflowCallerId + '\'' +
-          ", token='" + (token == null ? "<empty token>" : "<token not displayed>") + '\'' +
           '}';
     }
   }
