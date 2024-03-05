@@ -5,7 +5,6 @@ name: Move2Kube workflow
 description: Workflow to execute Move2Kube
 dataInputSchema: schemas/input.json
 start: StartPlanning
-secrets: ["GIT_TOKEN"]
 extensions:
   - extensionid: workflow-uri-definitions
     definitions:

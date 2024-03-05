@@ -58,9 +58,8 @@ backstage-backstage   backstage-backstage-backstage-system.apps.cluster-c68jb.dy
    * ie: `a46b802d-511c-4097-a5cb-76c892b48d71`
 9. In the `projectId` field, put the ID of the move2kube instance project under the previous workspace to use for the transformation. Use the ID of the project created at the 1st step.
    * ie: `9c7f8914-0b63-4985-8696-d46c17ba4ebe`
-10. The field `token` can be used to authenticate to your git repository when persisting change. By default using the same ssh keys as the move2kube instance
-11. If you want to disable notifications, check `notificationsDisabled`.
-12. Then click on `nextStep` 
-13. Click on `run` to trigger the execution
-14. Once a new transformation has started and is waiting for your input, you will receive a notification with a link to the Q&A
-15. Once you completed the Q&A, the process will continue and the output of the transformation will be saved in your git repository, you will receive a notification to inform you of the completion of the workflow.
+10. If you want to disable notifications, check `notificationsDisabled`.
+11. Then click on `nextStep` 
+12. Click on `run` to trigger the execution
+13. Once a new transformation has started and is waiting for your input, you will receive a notification with a link to the Q&A
+14. Once you completed the Q&A, the process will continue and the output of the transformation will be saved in your git repository, you will receive a notification to inform you of the completion of the workflow.
