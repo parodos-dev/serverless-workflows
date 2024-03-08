@@ -152,7 +152,7 @@ states:
   - name: NotifyBackstage
     type: operation
     actions:
-      - condition: .backstageUser != null
+      - condition: .backstageUser != null or .backstageGroup != null
         functionRef:
           refName: createNotification
           arguments:
@@ -160,21 +160,8 @@ states:
             message: '"MTA analysis is completed and the report for " + .application.repository.url + " is ready."'
             origin: "MTA Analysis Workflow"
             topic: "MTA Analysis Workflow"
-            targetUsers:
-              - .backstageUser
-            actions:
-              - title: "View report"
-                url: "$SECRET.mta.url + \"/hub/applications/\" + (.application.id|tostring) + \"/bucket/\" + .data.output"
-      - condition: .backstageGroup != null
-        functionRef:
-          refName: createNotification
-          arguments:
-            title: "MTA analysis completed"
-            message: '"MTA analysis is completed and the report for " + .application.repository.url + " is ready."'
-            origin: "MTA Analysis Workflow"
-            topic: "MTA Analysis Workflow"
-            targetGroups:
-              - .backstageGroup
+            targetUsers: if .backstageUser != null then [.backstageUser] else [] end
+            targetGroups: if .backstageGroup != null then [.backstageGroup] else [] end
             actions:
               - title: "View report"
                 url: "$SECRET.mta.url + \"/hub/applications/\" + (.application.id|tostring) + \"/bucket/\" + .data.output"
@@ -192,7 +179,7 @@ states:
   - name: NotifyFailureBackstage
     type: operation
     actions:
-      - condition: .backstageUser != null
+      - condition: .backstageUser != null or .backstageGroup != null
         functionRef:
           refName: createNotification
           arguments:
@@ -200,17 +187,7 @@ states:
             message: '"MTA analysis for " + .application.repository.url + " failed. Check logs of task pod: " + .taskgroup.tasks[0].pod'
             origin: "MTA Analysis Workflow"
             topic: "MTA Analysis Workflow"
-            targetUsers:
-              - .backstageUser
-      - condition: .backstageGroup != null
-        functionRef:
-          refName: createNotification
-          arguments:
-            title: "MTA analysis failed"
-            message: '"MTA analysis for " + .application.repository.url + " failed. Check logs of task pod: " + .taskgroup.tasks[0].pod'
-            origin: "MTA Analysis Workflow"
-            topic: "MTA Analysis Workflow"
-            targetGroups:
-              - .backstageGroup
+            targetUsers: if .backstageUser != null then [.backstageUser] else [] end
+            targetGroups: if .backstageGroup != null then [.backstageGroup] else [] end
     end: true
 
