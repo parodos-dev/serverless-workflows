@@ -31,15 +31,13 @@ optional. Instead of an html report the workflow will use a machine friendly jso
       ```
 # Runtime configuration
 
-| key | default | description                  |
-| --- | ------- |------------------------------|
-| mta.endpoint | mta-ui.openshift-mta.svc.cluster.local:8080 | Endpoint (with port) for MTA |
-| mta.protocol | http | Schema of the mta endpoint   |
-| mta_url | ${mta.protocol}://${mta.endpoint} | Full url of the mta endpoint |
-| quarkus.rest-client.mta_json.url | ${mta.protocol}://${mta.endpoint}:${mta.port}/hub | MTA hub api                  |
-| quarkus.rest-client.notifications.url|${BACKSTAGE_NOTIFICATIONS_URL:http://backstage-backstage.backstage-system/api/notifications/} | Backstage notification url   |
-| quarkus.rest-client.mta_json.auth.basicAuth.username | username | Username for the MTA api     |
-| quarkus.rest-client.mta_json.auth.basicAuth.password | password | Password for the MTA api     |
+| key                                                  | default                                                                                      | description                               |
+|------------------------------------------------------|----------------------------------------------------------------------------------------------|-------------------------------------------|
+| mta.url                                              | http://mta-ui.openshift-mta.svc.cluster.local:8080                                           | Endpoint (with protocol and port) for MTA |
+| quarkus.rest-client.mta_json.url                     | ${mta.url}/hub                                             | MTA hub api                               |
+| quarkus.rest-client.notifications.url                | ${BACKSTAGE_NOTIFICATIONS_URL:http://backstage-backstage.backstage-system/api/notifications/} | Backstage notification url                |
+| quarkus.rest-client.mta_json.auth.basicAuth.username | username                                                                                     | Username for the MTA api                  |
+| quarkus.rest-client.mta_json.auth.basicAuth.password | password                                                                                     | Password for the MTA api                  |
 
 All the configuration items are on [./application.properties]
 

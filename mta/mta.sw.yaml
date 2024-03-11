@@ -180,7 +180,7 @@ states:
   - name: report
     type: operation
     stateDataFilter:
-      output: '{result: (.taskgroup.tasks[0]| "report will be ready here -> " + $SECRET.mta_url + "/hub/applications/" + (.application.id|tostring) + "/bucket" + .data.output), repositoryURL: .repositoryURL}'
+      output: '{result: (.taskgroup.tasks[0]| "report will be ready here -> " + $SECRET.mta.url + "/hub/applications/" + (.application.id|tostring) + "/bucket" + .data.output), repositoryURL: .repositoryURL}'
     transition: GetWorkflowOptions
   - name: GetWorkflowOptions
     type: operation
