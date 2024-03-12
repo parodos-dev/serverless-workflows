@@ -34,6 +34,9 @@ functions:
     operation: specs/move2kube.yaml#start-transformation
   - name: createNotification
     operation: notifications#createNotification
+  - name: increasePlanRetries
+    type: expression
+    operation: ".planRetries=.planRetries + 1"
 states:
   - name: StartPlanning
     type: operation
@@ -44,6 +47,11 @@ states:
             workspace-id: ".workspaceId"
             project-id: ".projectId"
             remote-source: "\"git+\" + (.repositoryURL|sub(\"http(s)://?\";\"ssh://\")) + \"@\" + .sourceBranch"
+    transition: InitGetPlanningRetry
+  - name: InitGetPlanningRetry
+    type: inject
+    data:
+      planRetries: 0
     transition: GetPlanning
   - name: GetPlanning
     type: operation
@@ -57,6 +65,12 @@ states:
           toStateData: .
         sleep:
           before: PT2S
+    transition: IncreaseGetPlanningRetry
+  - name: IncreaseGetPlanningRetry
+    type: operation
+    actions:
+      - functionRef:
+          refName: increasePlanRetries
     transition: PlanRetrievedCheck
   - name: PlanRetrievedCheck
     type: switch
@@ -64,6 +78,9 @@ states:
       - condition: (has("plan") and .plan != "")
         transition:
           nextState: StartTransformation
+      - condition: (.planRetries >  ($SECRET.move2kube_get_plan_max_retries | tonumber))
+        transition:
+          nextState: GetPlanRetryExceededError
     defaultCondition:
       transition: GetPlanning
   - name: StartTransformation
@@ -129,6 +146,11 @@ states:
     data:
       exitMessage: '"Error while saving transformation output. If no context, it was due to timeout expiration"'
     transition: PrintExitErrorMessage
+  - name: GetPlanRetryExceededError
+    type: inject
+    data:
+      exitMessage: '"Get plan retries exceeded, an error probably occurred, check the move2kube instance logs"'
+    transition: PrintExitErrorMessage
   - name: PrintExitErrorMessage
     type: parallel
     branches:
@@ -138,7 +160,7 @@ states:
           functionRef:
             refName: systemOut
             arguments:
-              message: '${"m2k workflow: " + $WORKFLOW.instanceId + " has finalized with error. Exit message: " + .exitMessage + " -- Context: "  + .error }'
+              message: '${"m2k workflow: " + $WORKFLOW.instanceId + " has finalized with error. Exit message: " + .exitMessage + " -- Plan retries: " + (.planRetries|tostring) + " -- Context: "  + .error }'
     - name: createNotification
       actions:
         - name: createNotification
@@ -147,7 +169,7 @@ states:
             refName: createNotification
             arguments:
               title: '"Move2Kube workflow " + $WORKFLOW.instanceId + " failed"'
-              message: '"Move2Kube workflow  " + $WORKFLOW.instanceId + " on workspace " + .workspaceId + " and project " + .projectId + " failed with exit message: "+ .exitMessage + "\n\nError: "  + .error'
+              message: '"Move2Kube workflow  " + $WORKFLOW.instanceId + " on workspace " + .workspaceId + " and project " + .projectId + " failed with exit message: "+ .exitMessage + " -- Plan retries: "  + (.planRetries|tostring) + " -- Error: "  + .error'
               origin: "Move2Kube Workflow"
               topic: "Move2Kube Workflow"
     end: true
