@@ -11,6 +11,7 @@ Once the transformation is over, move2kube provides a zip file containing the tr
 ### Workflow
 ![m2k.svg](https://raw.githubusercontent.com/parodos-dev/serverless-workflows/main/move2kube/m2k.svg)
 
+Note that if an error occurs during the migration planning there is no feedback given by the move2kube instance API. To overcome this, we defined a maximum amount of retries  (`move2kube_get_plan_max_retries`) to execute while getting the planning before exiting with an error. By default the value is set to 10 and it can be overridden with the environment variable `MOVE2KUBE_GET_PLAN_MAX_RETRIES`.
 ## Components
 The use case has the following components:
 1. `m2k`: the `Sonataflow` resource representing the workflow. A matching `Deployment` is created by the sonataflow operator..
