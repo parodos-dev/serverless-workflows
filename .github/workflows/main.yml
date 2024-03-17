@@ -99,6 +99,7 @@ jobs:
           gh repo clone $WF_HELM_REPO helm-repo
           cd helm-repo
           git switch -c autopr-$RANDOM
+          ./hack/bump_version.sh ${{ inputs.workflow_id }}:minor minor
           mkdir -p charts/workflows/charts/${{ inputs.workflow_id }}/templates
           cp ../${{ inputs.workflow_id }}/manifests/* charts/workflows/charts/${{ inputs.workflow_id }}/templates
           git add -A
