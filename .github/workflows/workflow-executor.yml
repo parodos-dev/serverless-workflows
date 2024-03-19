@@ -16,7 +16,7 @@ on:
         default: true
 
 env:
-  DEPLOYMENT_REPO: parodos-dev/serverless-workflows-helm
+  DEPLOYMENT_REPO: parodos-dev/serverless-workflows-config
   REGISTRY_REPO: orchestrator
   GH_TOKEN: ${{ secrets.HELM_REPO_TOKEN }}
 jobs:
