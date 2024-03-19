@@ -26,6 +26,9 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.util.UUID;
 
 import static org.hamcrest.Matchers.containsString;
@@ -94,7 +97,7 @@ public class SaveTransformationFunctionTest {
   }
 
   @Test
-  public void testSaveTransformationIsWorking() throws GitAPIException, IOException, ApiException, URISyntaxException {
+  public void testSaveTransformationIsWorking() throws GitAPIException, IOException, ApiException, URISyntaxException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
     UUID workflowCallerId = UUID.randomUUID();
     UUID transformId = UUID.randomUUID();
     transformOutputPath = Files.createTempDirectory(String.format("move2kube-transform-TEST-%s", transformId));
@@ -144,7 +147,7 @@ public class SaveTransformationFunctionTest {
   }
 
   @Test
-  public void testSaveTransformationIsFailingWhenRetrievingTransformationOutput() throws IOException, ApiException, GitAPIException {
+  public void testSaveTransformationIsFailingWhenRetrievingTransformationOutput() throws IOException, ApiException, GitAPIException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
     UUID workflowCallerId = UUID.randomUUID();
     UUID transformId = UUID.randomUUID();
     transformOutputPath = Files.createTempDirectory(String.format("move2kube-transform-TEST-%s", transformId));
@@ -185,7 +188,7 @@ public class SaveTransformationFunctionTest {
   }
 
   @Test
-  public void testSaveTransformationGitCloneFail() throws GitAPIException, IOException, ApiException {
+  public void testSaveTransformationGitCloneFail() throws GitAPIException, IOException, ApiException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
     UUID workflowCallerId = UUID.randomUUID();
     UUID transformId = UUID.randomUUID();
     transformOutputPath = Files.createTempDirectory(String.format("move2kube-transform-TEST-%s", transformId));
@@ -227,7 +230,7 @@ public class SaveTransformationFunctionTest {
   }
 
   @Test
-  public void testSaveTransformationBranchExists() throws GitAPIException, IOException, ApiException, URISyntaxException {
+  public void testSaveTransformationBranchExists() throws GitAPIException, IOException, ApiException, URISyntaxException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
     UUID workflowCallerId = UUID.randomUUID();
     UUID transformId = UUID.randomUUID();
     transformOutputPath = Files.createTempDirectory(String.format("move2kube-transform-TEST-%s", transformId));
@@ -270,7 +273,7 @@ public class SaveTransformationFunctionTest {
   }
 
   @Test
-  public void testSaveTransformationCreateBranchFail() throws GitAPIException, IOException, ApiException, URISyntaxException {
+  public void testSaveTransformationCreateBranchFail() throws GitAPIException, IOException, ApiException, URISyntaxException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
     UUID workflowCallerId = UUID.randomUUID();
     UUID transformId = UUID.randomUUID();
     transformOutputPath = Files.createTempDirectory(String.format("move2kube-transform-TEST-%s", transformId));
@@ -314,7 +317,7 @@ public class SaveTransformationFunctionTest {
   }
 
   @Test
-  public void testSaveTransformationCommitChangesFail() throws GitAPIException, IOException, ApiException, URISyntaxException {
+  public void testSaveTransformationCommitChangesFail() throws GitAPIException, IOException, ApiException, URISyntaxException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
     UUID workflowCallerId = UUID.randomUUID();
     UUID transformId = UUID.randomUUID();
     transformOutputPath = Files.createTempDirectory(String.format("move2kube-transform-TEST-%s", transformId));
@@ -361,7 +364,7 @@ public class SaveTransformationFunctionTest {
   }
 
   @Test
-  public void testSaveTransformationGitPushFails() throws GitAPIException, IOException, ApiException, URISyntaxException {
+  public void testSaveTransformationGitPushFails() throws GitAPIException, IOException, ApiException, URISyntaxException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
     UUID workflowCallerId = UUID.randomUUID();
     UUID transformId = UUID.randomUUID();
     transformOutputPath = Files.createTempDirectory(String.format("move2kube-transform-TEST-%s", transformId));
@@ -408,7 +411,7 @@ public class SaveTransformationFunctionTest {
   }
 
   @Test
-  public void testSaveTransformationMissingInput() throws GitAPIException, IOException, ApiException {
+  public void testSaveTransformationMissingInput() throws GitAPIException, IOException, ApiException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
     UUID workflowCallerId = UUID.randomUUID();
     RestAssured.given().contentType("application/json")
         .header("ce-specversion", "1.0")

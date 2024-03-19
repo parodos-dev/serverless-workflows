@@ -2,8 +2,6 @@ package dev.parodos.service;
 
 import dev.parodos.move2kube.ApiClient;
 import dev.parodos.move2kube.ApiException;
-import dev.parodos.move2kube.api.PlanApi;
-import dev.parodos.move2kube.api.ProjectInputsApi;
 import dev.parodos.move2kube.api.ProjectOutputsApi;
 import dev.parodos.move2kube.api.ProjectsApi;
 import dev.parodos.move2kube.client.model.Project;
@@ -12,6 +10,14 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipFile;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
+import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactoryBuilder;
+import org.apache.hc.core5.ssl.SSLContextBuilder;
+import org.apache.hc.core5.ssl.TrustStrategy;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,6 +27,9 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Collections;
 
 @ApplicationScoped
@@ -34,10 +43,11 @@ public class Move2KubeServiceImpl implements Move2KubeService {
   String move2kubeApi;
 
   @Override
-  public Path getTransformationOutput(String workspaceId, String projectId, String transformationId) throws IllegalArgumentException, IOException, ApiException {
+  public Path getTransformationOutput(String workspaceId, String projectId, String transformationId) throws IllegalArgumentException, IOException, ApiException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
     Path outputPath = folderCreatorService.createMove2KubeTransformationFolder(String.format("move2kube-transform-%s", transformationId));
-    ApiClient client = new ApiClient();
+    ApiClient client = new ApiClient(createHttpClientAcceptingSelfSignedCerts());
     client.setBasePath(move2kubeApi);
+
     ProjectOutputsApi output = new ProjectOutputsApi(client);
 
     waitForTransformationToBeDone(workspaceId, projectId, transformationId, client);
@@ -93,5 +103,19 @@ public class Move2KubeServiceImpl implements Move2KubeService {
         }
       }
     }
+  }
+
+  private static CloseableHttpClient createHttpClientAcceptingSelfSignedCerts() throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException {
+    PoolingHttpClientConnectionManager connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
+        .setSSLSocketFactory(SSLConnectionSocketFactoryBuilder.create()
+            .setSslContext(new SSLContextBuilder().loadTrustMaterial(null, (TrustStrategy) (x509Certificates, s) -> true).build()
+            )
+            .setHostnameVerifier(NoopHostnameVerifier.INSTANCE)
+            .build())
+        .build();
+    return HttpClientBuilder
+        .create()
+        .setConnectionManager(connectionManager)
+        .build();
   }
 }
