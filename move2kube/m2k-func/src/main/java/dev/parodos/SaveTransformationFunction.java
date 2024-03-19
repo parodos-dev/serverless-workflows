@@ -19,6 +19,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 
 @ApplicationScoped
@@ -56,6 +59,11 @@ public class SaveTransformationFunction {
     } catch (IllegalArgumentException | IOException | ApiException e) {
       log.error("Error while retrieving transformation output", e);
       return EventGenerator.createErrorEvent(input.workflowCallerId, String.format("Cannot get transformation output of transformation %s" +
+              " in workspace %s for project %s for repo %s; error: %s",
+          input.transformId, input.workspaceId, input.projectId, input.gitRepo, e), SOURCE);
+    } catch (NoSuchAlgorithmException | KeyStoreException | KeyManagementException e) {
+      log.error("Error while creating httpclient to get transformation output", e);
+      return EventGenerator.createErrorEvent(input.workflowCallerId, String.format("Cannot create client to get transformation output of transformation %s" +
               " in workspace %s for project %s for repo %s; error: %s",
           input.transformId, input.workspaceId, input.projectId, input.gitRepo, e), SOURCE);
     }
