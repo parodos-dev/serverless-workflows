@@ -44,7 +44,7 @@ Variables can be used to configure the behavior of the [Makefile](./Makefile):
 | REGISTRY_PASSWORD | Container registry user password | `""`  (e.g., no login attempted) |
 | IMAGE_PREFIX | Automatically added image prefix | `serverless-workflow` |
 | IMAGE_TAG | Automatically added image tag | 8 chars commit hash of the latest commit |
-| DEPLOYMENT_REPO | Git repo of the deployment source code | `parodos-dev/serverless-workflows-helm` |
+| DEPLOYMENT_REPO | Git repo of the deployment source code | `parodos-dev/serverless-workflows-config` |
 | DEPLOYMENT_BRANCH | Branch of the deployment git repo | `main` |
 
 Override the default values with:
@@ -65,7 +65,7 @@ make <VAR1>=<VALUE1> ... <VARn>=<VALUEn> <TARGET>
 See the [setup](./setup/README.md) documentation.
 
 ### Requirements for the deployment repo
-The procedure assumes that the folder structure of the target deployment repository reflects the one of the [default repository](https://github.com/parodos-dev/serverless-workflows-helm), e.g.:
+The procedure assumes that the folder structure of the target deployment repository reflects the one of the [default repository](https://github.com/parodos-dev/serverless-workflows-config), e.g.:
 * `kustomize` projects are located under the `kustomize/WORKFLOW_ID` folder
   * Manifests are stored in the `base` subfolder
   * Image is customized in the `overlays/prod` subfolder

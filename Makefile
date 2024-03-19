@@ -67,7 +67,7 @@ else
 IMAGE_NAME = $(REGISTRY)/$(REGISTRY_REPO)/$(IMAGE_PREFIX)-$(APPLICATION_ID)
 endif
 
-DEPLOYMENT_REPO ?= parodos-dev/serverless-workflows-helm
+DEPLOYMENT_REPO ?= parodos-dev/serverless-workflows-config
 DEPLOYMENT_BRANCH ?= main
 
 .PHONY: all
