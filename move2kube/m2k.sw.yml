@@ -32,6 +32,9 @@ functions:
   - name: startTransformation
     type: rest
     operation: specs/move2kube.yaml#start-transformation
+  - name: throwError
+    type: rest
+    operation: notifications#unknown-action
   - name: createNotification
     operation: notifications#createNotification
   - name: increasePlanRetries
@@ -151,28 +154,6 @@ states:
     data:
       exitMessage: '"Get plan retries exceeded, an error probably occurred, check the move2kube instance logs"'
     transition: PrintExitErrorMessage
-  - name: PrintExitErrorMessage
-    type: parallel
-    branches:
-    - name: printSystemOut
-      actions:
-        - name: printSystemOut
-          functionRef:
-            refName: systemOut
-            arguments:
-              message: '${"m2k workflow: " + $WORKFLOW.instanceId + " has finalized with error. Exit message: " + .exitMessage + " -- Plan retries: " + (.planRetries|tostring) + " -- Context: "  + .error }'
-    - name: createNotification
-      actions:
-        - name: createNotification
-          condition: ((has("notificationsDisabled") and .notificationsDisabled != null and .notificationsDisabled == true)|not)
-          functionRef:
-            refName: createNotification
-            arguments:
-              title: '"Move2Kube workflow " + $WORKFLOW.instanceId + " failed"'
-              message: '"Move2Kube workflow  " + $WORKFLOW.instanceId + " on workspace " + .workspaceId + " and project " + .projectId + " failed with exit message: "+ .exitMessage + " -- Plan retries: "  + (.planRetries|tostring) + " -- Error: "  + .error'
-              origin: "Move2Kube Workflow"
-              topic: "Move2Kube Workflow"
-    end: true
   - name: PrintExitSuccessMessage
     type: parallel
     branches:
@@ -194,4 +175,33 @@ states:
                message: '"Move2Kube workflow  " + $WORKFLOW.instanceId + " on workspace " + .workspaceId + " and project " + .projectId + " was successful; the output is available in the branch " + .targetBranch + " of your git repository "+ .repositoryURL"'
                origin: "Move2Kube Workflow"
                topic: "Move2Kube Workflow"
+    end: true
+  - name: PrintExitErrorMessage
+    type: parallel
+    branches:
+      - name: printSystemOut
+        actions:
+          - name: printSystemOut
+            functionRef:
+              refName: systemOut
+              arguments:
+                message: '${"m2k workflow: " + $WORKFLOW.instanceId + " has finalized with error. Exit message: " + .exitMessage + " -- Plan retries: " + (.planRetries|tostring) + " -- Context: "  + .error }'
+      - name: createNotification
+        actions:
+          - name: createNotification
+            condition: ((has("notificationsDisabled") and .notificationsDisabled != null and .notificationsDisabled == true)|not)
+            functionRef:
+              refName: createNotification
+              arguments:
+                title: '"Move2Kube workflow " + $WORKFLOW.instanceId + " failed"'
+                message: '"Move2Kube workflow  " + $WORKFLOW.instanceId + " on workspace " + .workspaceId + " and project " + .projectId + " failed with exit message: "+ .exitMessage + " -- Plan retries: "  + (.planRetries|tostring) + " -- Error: "  + .error'
+                origin: "Move2Kube Workflow"
+                topic: "Move2Kube Workflow"
+    transition: ThrowError
+  - name: ThrowError
+    type: operation
+    actions:
+      - name: throwError
+        functionRef:
+          refName: throwError
     end: true
