@@ -69,7 +69,13 @@ echo "Wait until plan exists"
   http_status=$(curl -X GET -s -o /dev/null -w "%{http_code}" "${MOVE2KUBE_URL}/api/v1/workspaces/${WORKSPACE_ID}/projects/${PROJECT_ID}/plan")
 done
 
-if [ "${http_status}" -gt 300 ]
+if [ "${http_status}" -eq 204 ]
+then
+  echo "Plan not created, error when creating it, checks move2kbe logs, http status=${http_status}...exiting "
+  exit 1
+fi
+
+if [ "${http_status}" -eq 404 ]
 then
   echo "Plan not created, http status=${http_status}...exiting "
   exit 1
