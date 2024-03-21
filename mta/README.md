@@ -35,7 +35,7 @@ optional. Instead of an html report the workflow will use a machine friendly jso
 |------------------------------------------------------|----------------------------------------------------------------------------------------------|-------------------------------------------|
 | mta.url                                              | http://mta-ui.openshift-mta.svc.cluster.local:8080                                           | Endpoint (with protocol and port) for MTA |
 | quarkus.rest-client.mta_json.url                     | ${mta.url}/hub                                             | MTA hub api                               |
-| quarkus.rest-client.notifications.url                | ${BACKSTAGE_NOTIFICATIONS_URL:http://backstage-backstage.backstage-system/api/notifications/} | Backstage notification url                |
+| quarkus.rest-client.notifications.url                | ${BACKSTAGE_NOTIFICATIONS_URL:http://backstage-backstage.rhdh-operator/api/notifications/} | Backstage notification url                |
 | quarkus.rest-client.mta_json.auth.basicAuth.username | username                                                                                     | Username for the MTA api                  |
 | quarkus.rest-client.mta_json.auth.basicAuth.password | password                                                                                     | Password for the MTA api                  |
 
