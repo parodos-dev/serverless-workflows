@@ -39,12 +39,12 @@ The use case has the following components:
 
 To get it, you can run 
 ```bash
-oc -n backstage-system get routes
+oc -n rhdh-operator get routes
 ```
 Sample output:
 ```
 NAME                  HOST/PORT                                                                            PATH   SERVICES              PORT           TERMINATION     WILDCARD
-backstage-backstage   backstage-backstage-backstage-system.apps.cluster-c68jb.dynamic.redhatworkshops.io   /      backstage-backstage   http-backend   edge/Redirect   None
+backstage-backstage   backstage-backstage-rhdh-operator.apps.cluster-c68jb.dynamic.redhatworkshops.io   /      backstage-backstage   http-backend   edge/Redirect   None
 ```
 3. Go to the `Orchestrator` page. 
 
