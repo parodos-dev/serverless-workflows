@@ -66,9 +66,11 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: setup kn-workflow
-      run: curl -L https://github.com/rgolangh/kie-tools/releases/download/0.0.2/kn-workflow-linux-amd64 -o kn-workflow && chmod +x kn-workflow
+      run: |
+          KN_CLI_URL="https://mirror.openshift.com/pub/openshift-v4/clients/serverless/latest/kn-linux-amd64.tar.gz"
+          curl -L "$KN_CLI_URL" | tar -xz && chmod +x kn-linux-amd64 && mv kn-linux-amd64 kn
     - name: kn-workflow
-      run: cd ${{ inputs.workflow_id }} && ../kn-workflow gen-manifest --namespace ""
+      run: cd ${{ inputs.workflow_id }} && ../kn workflow gen-manifest --namespace ""
     - name: Remove dev profile
       run: yq -i 'del(.metadata.annotations."sonataflow.org/profile")' ${{ inputs.workflow_id }}/manifests/01-sonataflow*.yaml
     - name: Set container image ref in SonataFlow resource
