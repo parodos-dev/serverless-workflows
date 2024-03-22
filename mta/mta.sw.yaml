@@ -135,7 +135,7 @@ states:
         actionDataFilter:
           toStateData: ".taskgroup"
         sleep:
-          before: PT2S
+          before: PT30S
     name: poll
     type: operation
     transition: checkReportDone
