@@ -35,7 +35,7 @@ spec:
           lifecycle:
             postStart:
               exec:
-                command: [ "/bin/sh", "-c", "ssh-agent -a /tmp/unix-socket && ssh-add /root/.ssh/id_rsa" ]
+                command: [ "/bin/sh", "-c", "ssh-agent -a /tmp/unix-socket && ssh-add /root/.ssh/id_rsa && ssh git@github.com -o StrictHostKeyChecking=accept-new || true && ssh git@gitlab.com -o StrictHostKeyChecking=accept-new|| true && ssh git@bitbucket.org -o StrictHostKeyChecking=accept-new|| true" ]
       volumes:
         - name: ssh-priv-key
           secret:
