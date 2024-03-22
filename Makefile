@@ -89,6 +89,8 @@ prepare-workdir:
 	@rm -rf $(WORKDIR)
 	@mkdir -p $(WORKDIR)
 	@cp -R . $(WORKDIR)
+	@find $(WORKDIR) -type d -name target -prune -exec rm -rf {} \;
+
 
 # Target: build-image
 # Description: Builds the workflow containerized image from the given WORKDIR.
