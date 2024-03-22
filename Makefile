@@ -41,11 +41,13 @@ GIT_REMOTE_URL := $(shell echo "$(GIT_REMOTE_URL)" | sed 's/\.git//')
 GIT_REMOTE_URL := $(shell echo "$(GIT_REMOTE_URL)" | sed 's/git@/https:\/\//')
 GIT_REMOTE_URL := $(shell echo "$(GIT_REMOTE_URL)" | sed 's/com:/com\//')
 PR_OR_COMMIT_URL ?= "$(GIT_REMOTE_URL)/commits/$(shell git rev-parse --short=8 HEAD)"
-ifndef GIT_TOKEN
-ifeq ($(wildcard .git_token),)
-$(error No Git token found. Please provide it either via the GIT_TOKEN variable or the .git_token file)
-endif
-GIT_TOKEN ?= $(shell cat .git_token)
+ifneq (,$(findstring push-manifests,$(MAKECMDGOALS)))
+  ifndef GIT_TOKEN
+    ifeq ($(wildcard .git_token),)
+      $(error No Git token found. Please provide it either via the GIT_TOKEN variable or the .git_token file )
+    endif
+    GIT_TOKEN ?= $(shell cat .git_token)
+  endif
 endif
 
 LINUX_IMAGE ?= quay.io/orchestrator/ubi9-pipeline:latest
