@@ -191,7 +191,7 @@ states:
              refName: createNotification
              arguments:
                title: '"Move2Kube workflow " + $WORKFLOW.instanceId + " success"'
-               message: '"Move2Kube workflow  " + $WORKFLOW.instanceId + " on workspace " + .workspaceId + " and project " + .projectId + " was successful; the output is available in the branch " + .targetBranch + " of your git repository "+ .repositoryURL"'
+               message: '"Move2Kube workflow  " + $WORKFLOW.instanceId + " on workspace " + .workspaceId + " and project " + .projectId + " was successful; the output is available in the branch " + .targetBranch + " of your git repository "+ .repositoryURL'
                origin: "Move2Kube Workflow"
                topic: "Move2Kube Workflow"
     end: true
