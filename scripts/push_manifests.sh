@@ -20,7 +20,7 @@ git switch -c autopr-${RANDOM} origin/"${DEPLOYMENT_BRANCH}"
 # We assume the kustomize project already exists, this is not part of the PR
 cp ../"${WORKFLOW_ID}"/manifests/* kustomize/"${WORKFLOW_ID}"/base
 # Applying image kustomization
-cd kustomize/"${WORKFLOW_ID}"/overlays/prod || exit
+cd kustomize/"${WORKFLOW_ID}"/base || exit
 if [ -n "$APPLICATION_ID" ] && [ "$APPLICATION_ID" != "UNDEFINED" ]; then
   kustomize edit set image serverless-workflow-"${APPLICATION_ID}"="${IMAGE_NAME}":"${IMAGE_TAG}"
 else
