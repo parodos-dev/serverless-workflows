@@ -5,7 +5,7 @@ WORKFLOW_ID=$1
 if [ ! -f kn ]; then
   echo "Installing kn-workflow CLI"
   KN_CLI_URL="https://mirror.openshift.com/pub/openshift-v4/clients/serverless/latest/kn-linux-amd64.tar.gz"
-  curl -L "$KN_CLI_URL" | tar -xz && chmod +x kn-linux-amd64 && mv kn-linux-amd64 kn
+  curl -L "$KN_CLI_URL" | tar -xz --no-same-owner && chmod +x kn-linux-amd64 && mv kn-linux-amd64 kn
 else 
   echo "kn cli already available"
 fi
