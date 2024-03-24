@@ -10,10 +10,15 @@ on:
         required: false
         type: boolean
         default: true
+    secrets:
+      REGISTRY_REDHAT_IO_USER:
+        required: true
+      REGISTRY_REDHAT_IO_PASSWORD:
+        required: true
+
 env:
   WF_CONFIG_REPO: parodos-dev/serverless-workflows-config
-  REGISTRY_RH_IO_USER: ${{ secrets.REGISTRY_REDHAT_IO_USER }}
-  REGISTRY_RH_IO_PASSWORD: ${{ secrets.REGISTRY_REDHAT_IO_PASSWORD }}
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -22,8 +27,8 @@ jobs:
       uses: redhat-actions/podman-login@v1
       with:
         registry: registry.redhat.io
-        username: ${{ env.REGISTRY_RH_IO_USER }}
-        password: ${{ env.REGISTRY_RH_IO_PASSWORD }}
+        username: ${{ secrets.REGISTRY_REDHAT_IO_USER }}
+        password: ${{ secrets.REGISTRY_REDHAT_IO_PASSWORD }}
     - uses: actions/checkout@v3
     - name: Buildah Action
       id: build-image
