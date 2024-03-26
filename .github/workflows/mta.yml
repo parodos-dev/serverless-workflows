@@ -10,7 +10,7 @@ on:
 
 jobs:
   call-main-workflow:
-    uses: parodos-dev/serverless-workflows/.github/workflows/main.yml@main
+    uses: masayag/serverless-workflows/.github/workflows/main.yml@main
     with:
       workflow_id: mta
     secrets: inherit
