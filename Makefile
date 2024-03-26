@@ -27,7 +27,7 @@ else
 	DOCKER_CONF := $(HOME)/.docker
 endif
 
-WORKDIR ?= $(shell mktemp -d)
+WORKDIR := $(shell mktemp -d)
 ifeq ($(shell uname),Darwin)
 	# Use a fixed folder to simplify limactl configuration (must be mounted with Write permissions)
 	WORKDIR := /tmp/serverless-workflows
