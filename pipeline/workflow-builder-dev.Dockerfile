@@ -1,4 +1,4 @@
-FROM registry.redhat.io/openshift-serverless-1-tech-preview/logic-swf-builder-rhel8@sha256:d19b3ecaeac10e6aa03530008d25c8171254d561dc5519b9efd18dd4f0de5675 AS builder
+FROM quay.io/kiegroup/kogito-swf-builder-nightly:main-2024-02-16 AS builder
 
 # variables that can be overridden by the builder
 # To add a Quarkus extension to your application
