@@ -106,8 +106,8 @@ jobs:
       env:
         GH_TOKEN: ${{ secrets.HELM_REPO_TOKEN }}
       run: |
-          git config --global user.email "${{ github.event.head_commit.author.email }}"
-          git config --global user.name ${{ github.event.head_commit.author.name }}
+          git config --global user.email "${{ github.event.head_commit.author.email || 'parodos@redhat.com' }}"
+          git config --global user.name ${{ github.event.head_commit.author.name || github.triggering_actor }}
           gh repo clone $WF_CONFIG_REPO config-repo
           cd config-repo
           git switch -c autopr-$RANDOM
@@ -119,7 +119,7 @@ jobs:
           if [ ${{ fromJSON(steps.get_pr_data.outputs.result)}} != "" ]; then
             PR_OR_COMMIT_URL="${{ fromJSON(steps.get_pr_data.outputs.result).html_url }}"
           else
-            PR_OR_COMMIT_URL="${{ github.event.head_commit.url }}"
+            PR_OR_COMMIT_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           fi
           git commit -m "Automated PR from $PR_OR_COMMIT_URL"
           git remote set-url origin https://${{ env.GH_TOKEN }}@github.com/$WF_CONFIG_REPO
