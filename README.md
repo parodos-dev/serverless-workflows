@@ -5,8 +5,8 @@ A selected set of serverless workflows
 The structure of this repo a directory per workflow at the root. Each folder
 contains at least:
 - `application.properties` the configuration item specific for the workflow app itself.
-- `${workflow}.sw.yaml`    the [serverless workflow definitions][1]. 
-- `specs/`                 optional folder with openapi specs if the flow needs them. 
+- `${workflow}.sw.yaml`    the [serverless workflow definitions][1].
+- `specs/`                 optional folder with OpenAPI specs if the flow needs them.
 
 All .svg can be ignored, there's no real functional use for them in deployment
 and all of them are created by VSCode extension. TODO remove all svg and gitignore them.
@@ -19,6 +19,7 @@ in the form of `quay.io/orchestrator/serverless-workflow-${workflow}`.
 - https://quay.io/repository/orchestrator/serverless-workflow-mta
 - https://quay.io/repository/orchestrator/serverless-workflow-m2k 
 - https://quay.io/repository/orchestrator/serverless-workflow-greeting
+- https://quay.io/repository/orchestrator/serverless-workflow-escalation
 
 
 After image publishing, github action will generate kubernetes manifests and push a PR to [the workflows helm chart repo][3]
@@ -35,7 +36,13 @@ with [Sonataflow operator][2] running.
 6. Create a PR to [serverless-workflows-config][3] and make sure its merge.
 7. Now the PR from 4 can be merged and an automatic PR will be created with the generated manifests. Review and merge. 
    
-See [Continuous Integration with make](make.md) for implemantation details of the CI pipeline.
+See [Continuous Integration with make](make.md) for implementation details of the CI pipeline.
+
+### Builder image
+There are two builder images under ./pipeline folder:
+- workflow-builder-dev.Dockerfile - references nightly build image from quay.io/kiegroup/kogito-swf-builder-nightly that doesn't required any authorization
+- workflow-builder.Dockerfile - references OpenShift Serverless Logic builder image from registry.redhat.io which requires authorization. See details [here](https://catalog.redhat.com/software/containers/openshift-serverless-1-tech-preview/logic-swf-builder-rhel8/6483079349c48023fc262858?architecture=amd64&image=65e1a56104e00058ecdd52eb&container-tabs=gti) and [here](https://access.redhat.com/terms-based-registry/accounts).
+
 
 Note on CI:
 On each merge under a workflow directory a matching github workflow executes 
