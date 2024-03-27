@@ -6,16 +6,12 @@ on:
       workflow_id:
         required: true
         type: string
-      push_pr:
-        required: false
+      it_mode:
         type: boolean
-        default: true
-      build_mode:
-        required: false
-        type: string
-        default: ''
+        default: false
 
 env:
+  DOCKERFILE: workflow-builder${{ fromJSON('["-dev", ""]')[inputs.it_mode] }}.Dockerfile
   WF_CONFIG_REPO: parodos-dev/serverless-workflows-config
 
 jobs:
@@ -27,7 +23,7 @@ jobs:
 
     - name: Log in to Red Hat Registry
       uses: redhat-actions/podman-login@v1
-      if: ${{ inputs.build_mode == ''}}
+      if: ${{ ! inputs.it_mode }}
       with:
         registry: registry.redhat.io
         username: ${{ secrets.REGISTRY_REDHAT_IO_USER }}
@@ -41,18 +37,18 @@ jobs:
         tags: latest ${{ github.sha }}
         extra-args: --ulimit nofile=4096:4096
         containerfiles: |
-          pipeline/workflow-builder${{ inputs.build_mode }}.Dockerfile
+          pipeline/${{ env.DOCKERFILE }}
         build-args: |
           WF_RESOURCES=${{ inputs.workflow_id }}/
           QUARKUS_EXTENSIONS=org.kie.kogito:kogito-addons-quarkus-jobs-knative-eventing:999-SNAPSHOT
 
     - name: Buildah push to OCI Arcive
-      if: ${{ ! inputs.push_pr }}
+      if: ${{ inputs.it_mode }}
       run: |
         buildah push serverless-workflow-${{ inputs.workflow_id }}:${{ github.sha }} \
           oci-archive:serverless-workflow-${{ inputs.workflow_id }}-${{ github.sha }}.tar:quay.io/orchestrator/serverless-workflow-${{ inputs.workflow_id }}:${{ github.sha }}
     - name: Save OCI archive
-      if: ${{ ! inputs.push_pr }}
+      if: ${{ inputs.it_mode }}
       uses: actions/upload-artifact@v3
       with:
         name: serverless-workflow-${{ inputs.workflow_id }}-${{ github.sha }}.tar
@@ -60,7 +56,7 @@ jobs:
 
     - name: Push To quay.io
       id: push-to-quay
-      if: ${{ inputs.push_pr }}
+      if: ${{ ! inputs.it_mode }}
       uses: redhat-actions/push-to-registry@v2
       with:
         image: ${{ steps.build-image.outputs.image }}
@@ -107,7 +103,7 @@ jobs:
             })
           ).data[0];
     - name: Send PRs to config repo
-      if: ${{ inputs.push_pr }}
+      if: ${{ ! inputs.it_mode }}
       env:
         GH_TOKEN: ${{ secrets.HELM_REPO_TOKEN }}
       run: |

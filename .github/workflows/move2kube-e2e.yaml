@@ -14,14 +14,14 @@ on:
 
 jobs:
   build:
-    uses: parodos-dev/serverless-workflows/.github/workflows/main.yml@main
+    uses: ./.github/workflows/main.yml
     secrets: inherit
     with:
       workflow_id: move2kube
-      push_pr: false
+      it_mode: true
 
   build-m2k-kfunc:
-    uses: parodos-dev/serverless-workflows/.github/workflows/m2k-func.yaml@main
+    uses: ./.github/workflows/m2k-func.yaml
     secrets: inherit
     with:
       push_pr: false
