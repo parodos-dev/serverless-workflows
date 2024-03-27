@@ -10,7 +10,7 @@ on:
       - 'pipeline/**'
       - 'e2e/mta.sh'
       - '!mta/*.svg'
-      - .github/workflows/mta-e2e.yml
+      - .github/workflows/mta-e2e.yaml
       - .github/workflows/main.yml
 
 jobs:
