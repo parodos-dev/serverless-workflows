@@ -7,6 +7,9 @@ on:
     paths:
       - 'escalation/jira-listener/**'
       - 'pipeline/**'
+      - 'scripts/**'
+      - .github/workflows/jira-listener.yml
+      - .github/workflows/workflow-executor.yml
 
 jobs:
   jira-listener:

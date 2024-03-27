@@ -7,6 +7,8 @@ on:
     paths:
       - 'greeting/**'
       - 'pipeline/**'
+      - .github/workflows/greeting.yml
+      - .github/workflows/main.yml
 
 jobs:
   call-main-workflow:

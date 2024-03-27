@@ -7,6 +7,8 @@ on:
       - main
     paths:
       - '**/*.sh'
+      - .github/workflows/checks.yml
+
 jobs:
   shellcheck:
     runs-on: ubuntu-latest
