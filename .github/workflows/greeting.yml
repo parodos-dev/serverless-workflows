@@ -12,7 +12,7 @@ on:
 
 jobs:
   call-main-workflow:
-    uses: parodos-dev/serverless-workflows/.github/workflows/main.yml@main
+    uses: ./.github/workflows/main.yml
     with:
       workflow_id: greeting
     secrets: inherit

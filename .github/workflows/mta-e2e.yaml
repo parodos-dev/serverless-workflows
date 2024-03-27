@@ -19,8 +19,7 @@ jobs:
     secrets: inherit
     with:
       workflow_id: mta
-      push_pr: false
-      build_mode: '-dev'
+      it_mode: true
   run-e2e:
     runs-on: ubuntu-latest
     needs: build
