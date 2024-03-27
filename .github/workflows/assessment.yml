@@ -5,6 +5,9 @@ on:
     branches: [ "main" ]
     paths:
       - 'assessment/**'
+      - 'pipeline/**'
+      - .github/workflows/assessment.yml
+      - .github/workflows/main.yml
 
 jobs:
   call-main-workflow:

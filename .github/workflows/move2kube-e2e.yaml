@@ -8,6 +8,9 @@ on:
     paths:
       - 'move2kube/**'
       - 'pipeline/**'
+      - .github/workflows/move2kube-e2e.yml
+      - .github/workflows/m2k-func.yml
+      - .github/workflows/main.yml
 
 jobs:
   build:
