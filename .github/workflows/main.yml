@@ -10,6 +10,17 @@ on:
         required: false
         type: boolean
         default: true
+    secrets:
+      REGISTRY_REDHAT_IO_USER:
+        required: true
+      REGISTRY_REDHAT_IO_PASSWORD:
+        required: true
+      NEW_QUAY_USERNAME:
+        required: true
+      NEW_QUAY_PASSWORD:
+        required: true
+      HELM_REPO_TOKEN:
+        required: true
 
 env:
   WF_CONFIG_REPO: parodos-dev/serverless-workflows-config
