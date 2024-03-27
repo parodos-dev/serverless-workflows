@@ -41,7 +41,7 @@ jobs:
         tags: latest ${{ github.sha }}
         extra-args: --ulimit nofile=4096:4096
         containerfiles: |
-          pipeline/workflow-builder${{ ! inputs.build_mode }}.Dockerfile
+          pipeline/workflow-builder${{ inputs.build_mode }}.Dockerfile
         build-args: |
           WF_RESOURCES=${{ inputs.workflow_id }}/
           QUARKUS_EXTENSIONS=org.kie.kogito:kogito-addons-quarkus-jobs-knative-eventing:999-SNAPSHOT
