@@ -7,7 +7,7 @@ on:
       - main
     paths:
       - '**/*.sh'
-      - .github/workflows/checks.yml
+      - .github/workflows/checks.yaml
 
 jobs:
   shellcheck:
