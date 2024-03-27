@@ -16,16 +16,10 @@ on:
 jobs:
   build:
     uses: ./.github/workflows/main.yml
+    secrets: inherit
     with:
       workflow_id: mta
-      push_pr: false
-    secrets:
-      REGISTRY_REDHAT_IO_USER: ${{ secrets.REGISTRY_REDHAT_IO_USER }}
-      REGISTRY_REDHAT_IO_PASSWORD: ${{ secrets.REGISTRY_REDHAT_IO_PASSWORD }}
-      NEW_QUAY_USERNAME: ${{ secrets.NEW_QUAY_USERNAME }}
-      NEW_QUAY_PASSWORD: ${{ secrets.NEW_QUAY_PASSWORD }}
-      HELM_REPO_TOKEN: ${{ secrets.HELM_REPO_TOKEN }}
-  
+      build_mode: '-dev'
   run-e2e:
     runs-on: ubuntu-latest
     needs: build

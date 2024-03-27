@@ -10,17 +10,10 @@ on:
         required: false
         type: boolean
         default: true
-    secrets:
-      REGISTRY_REDHAT_IO_USER:
-        required: true
-      REGISTRY_REDHAT_IO_PASSWORD:
-        required: true
-      NEW_QUAY_USERNAME:
-        required: true
-      NEW_QUAY_PASSWORD:
-        required: true
-      HELM_REPO_TOKEN:
-        required: true
+      build_mode:
+        required: false
+        type: string
+        default: ''
 
 env:
   WF_CONFIG_REPO: parodos-dev/serverless-workflows-config
@@ -34,6 +27,7 @@ jobs:
 
     - name: Log in to Red Hat Registry
       uses: redhat-actions/podman-login@v1
+      if: ${{ inputs.build_mode == ''}}
       with:
         registry: registry.redhat.io
         username: ${{ secrets.REGISTRY_REDHAT_IO_USER }}
@@ -47,7 +41,7 @@ jobs:
         tags: latest ${{ github.sha }}
         extra-args: --ulimit nofile=4096:4096
         containerfiles: |
-          pipeline/workflow-builder.Dockerfile
+          pipeline/workflow-builder${{ ! inputs.build_mode }}.Dockerfile
         build-args: |
           WF_RESOURCES=${{ inputs.workflow_id }}/
           QUARKUS_EXTENSIONS=org.kie.kogito:kogito-addons-quarkus-jobs-knative-eventing:999-SNAPSHOT
