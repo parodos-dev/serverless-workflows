@@ -15,7 +15,7 @@ on:
 
 jobs:
   build:
-    uses: parodos-dev/serverless-workflows/.github/workflows/main.yml@main
+    uses: ./.github/workflows/main.yml
     secrets: inherit
     with:
       workflow_id: mta
