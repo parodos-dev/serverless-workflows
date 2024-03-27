@@ -8,8 +8,8 @@ on:
       - 'move2kube/**'
       - 'pipeline/**'
       - 'e2e/move2kube.sh'
-      - .github/workflows/move2kube-e2e.yml
-      - .github/workflows/m2k-func.yml
+      - .github/workflows/move2kube-e2e.yaml
+      - .github/workflows/m2k-func.yaml
       - .github/workflows/main.yml
 
 jobs:

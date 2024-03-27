@@ -13,7 +13,7 @@ on:
     paths:
       - 'move2kube/m2k-func/**'
       - 'pipeline/**'
-      - .github/workflows/m2k-func.yml
+      - .github/workflows/m2k-func.yaml
 
 env:
   WORKDIR: move2kube/m2k-func
