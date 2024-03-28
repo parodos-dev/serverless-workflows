@@ -76,6 +76,8 @@ jobs:
       pull-requests: write
     steps:
     - uses: actions/checkout@v3
+    - name: Add auto DB migration in props
+      run: echo "quarkus.flyway.migrate-at-start=true" >> ${{ inputs.workflow_id }}/application.properties
     - name: setup kn-workflow
       run: |
           KN_CLI_URL="https://mirror.openshift.com/pub/openshift-v4/clients/serverless/latest/kn-linux-amd64.tar.gz"
