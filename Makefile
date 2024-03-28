@@ -97,7 +97,7 @@ prepare-workdir:
 # Depends on: prepare-workdir target.
 # Usage: make build-image
 ifeq ($(IS_WORKFLOW),true)
-build-image: BUILD_ARGS=--build-arg WF_RESOURCES=$(WORKFLOW_ID)
+build-image: BUILD_ARGS=--build-arg WF_RESOURCES=$(WORKFLOW_ID) --build-arg QUARKUS_EXTENSIONS=org.kie.kogito:kogito-addons-persistence-jdbc:9.99.0.redhat-00007,io.quarkus:quarkus-jdbc-postgresql:3.2.9.Final,io.quarkus:quarkus-agroal:3.2.9.Final
 endif
 build-image: EXTRA_ARGS=--ulimit nofile=4096:4096
 build-image: prepare-workdir
