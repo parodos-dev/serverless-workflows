@@ -3,6 +3,8 @@ id: m2k
 version: '1.0'
 name: Move2Kube workflow
 description: Workflow to execute Move2Kube
+annotations:
+  - "workflow-type/infrastructure"
 dataInputSchema: schemas/input.json
 start: StartPlanning
 extensions:
