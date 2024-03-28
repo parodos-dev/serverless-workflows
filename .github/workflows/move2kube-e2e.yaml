@@ -102,7 +102,9 @@ jobs:
           ###### end workaround
           
           yq  --inplace '.spec.podTemplate.container |= ( . +  {"env": [{"name": "K_SINK", "value": "http://broker-ingress.knative-eventing.svc.cluster.local/sonataflow-infra/default"}]} )' manifests/01-sonataflow_m2k.yaml
-
+          # Disable persistence for e2e tests
+          yq  --inplace 'del(.spec.persistence)' manifests/01-sonataflow_m2k.yaml
+          
           # deploy the manifests created by the  ${{ steps.build-image.outputs.image }}"                                                                    
           kubectl apply -f manifests
           sleep 5
