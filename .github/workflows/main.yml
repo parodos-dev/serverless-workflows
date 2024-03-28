@@ -89,7 +89,7 @@ jobs:
     - name: Set persistence spec in SonataFlow resource
       run: |
         yq -i '.spec.podTemplate.container.image="quay.io/orchestrator/serverless-workflow-${{ inputs.workflow_id }}:${{ github.sha }}"' ${{ inputs.workflow_id }}/manifests/01-sonataflow*.yaml
-        yq  --inplace '.spec |= ( . +  {"persistence":{"postgresql":{"secretRef":{"name":"postgres-secrets","userKey":"POSTGRES_USER","passwordKey":"POSTGRES_PASSWORD"},"serviceRef":{"name":"postgres","port":5432,"databaseName":"sonataflow","databaseSchema":"${{ inputs.workflow_id }}"}}}} )' ${{ inputs.workflow_id }}/manifests/01-sonataflow*.yaml
+        yq  --inplace '.spec |= ( . +  {"persistence":{"postgresql":{"secretRef":{"name":"sonataflow-psql-postgresql","userKey":"postgres-username","passwordKey":"postgres-password"},"serviceRef":{"name":"sonataflow-psql-postgresql","port":5432,"databaseName":"sonataflow","databaseSchema":"${{ inputs.workflow_id }}"}}}} )' ${{ inputs.workflow_id }}/manifests/01-sonataflow*.yaml
 
     - name: Archive manifests
       uses: actions/upload-artifact@v3
