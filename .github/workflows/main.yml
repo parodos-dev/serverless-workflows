@@ -113,8 +113,8 @@ jobs:
           cd config-repo
           git switch -c autopr-$RANDOM
           ./hack/bump_version.sh ${{ inputs.workflow_id }}:patch patch
-          mkdir -p charts/workflows/charts/${{ inputs.workflow_id }}/templates
-          cp ../${{ inputs.workflow_id }}/manifests/* charts/workflows/charts/${{ inputs.workflow_id }}/templates
+          mkdir -p charts/${{ inputs.workflow_id }}/templates
+          cp ../${{ inputs.workflow_id }}/manifests/* charts/${{ inputs.workflow_id }}/templates
           git add -A
           # determine pr or commit url
           if [ ${{ fromJSON(steps.get_pr_data.outputs.result)}} != "" ]; then
