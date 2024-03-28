@@ -41,7 +41,10 @@ See [Continuous Integration with make](make.md) for implementation details of th
 ### Builder image
 There are two builder images under ./pipeline folder:
 - workflow-builder-dev.Dockerfile - references nightly build image from quay.io/kiegroup/kogito-swf-builder-nightly that doesn't required any authorization
-- workflow-builder.Dockerfile - references OpenShift Serverless Logic builder image from registry.redhat.io which requires authorization. See details [here](https://catalog.redhat.com/software/containers/openshift-serverless-1-tech-preview/logic-swf-builder-rhel8/6483079349c48023fc262858?architecture=amd64&image=65e1a56104e00058ecdd52eb&container-tabs=gti) and [here](https://access.redhat.com/terms-based-registry/accounts).
+- workflow-builder.Dockerfile - references OpenShift Serverless Logic builder image from registry.redhat.io which requires authorization.
+  - To use this dockerfile locally, you must be logged to registry.redhat.io. To get access to that registry, follow:
+    1. Get tokens [here](https://access.redhat.com/terms-based-registry/accounts). Once logged in to podman, you should be able to pull the image.
+    2. Verify pulling the image [here](https://catalog.redhat.com/software/containers/openshift-serverless-1-tech-preview/logic-swf-builder-rhel8/6483079349c48023fc262858?architecture=amd64&image=65e1a56104e00058ecdd52eb&container-tabs=gti)
 
 
 Note on CI:
