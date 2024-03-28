@@ -40,7 +40,7 @@ jobs:
           pipeline/${{ env.DOCKERFILE }}
         build-args: |
           WF_RESOURCES=${{ inputs.workflow_id }}/
-          QUARKUS_EXTENSIONS=org.kie.kogito:kogito-addons-quarkus-jobs-knative-eventing:999-SNAPSHOT
+          QUARKUS_EXTENSIONS=org.kie.kogito:kogito-addons-quarkus-jobs-knative-eventing:999-SNAPSHOT,org.kie.kogito:kogito-addons-persistence-jdbc:9.99.0.redhat-00007,io.quarkus:quarkus-jdbc-postgresql:3.2.9.Final,io.quarkus:quarkus-agroal:3.2.9.Final
 
     - name: Buildah push to OCI Arcive
       if: ${{ inputs.it_mode }}
