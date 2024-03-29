@@ -8,8 +8,8 @@ Email service is using [MailTrap Send email API](https://api-docs.mailtrap.io/do
 * Access to an OpenShift cluster with `admin` Role
 * An account to [MailTrap](https://mailtrap.io/home) with a [testing Inbox](https://mailtrap.io/inboxes) and an [API token](https://mailtrap.io/api-tokens)
 
-## Escalation flow
-![SWF VIZ](https://github.com/parodos-dev/serverless-workflows/blob/main/escalation/ticketEscalation.svg)
+## Workflow diagram
+![Escalation workflow diagram](https://github.com/parodos-dev/serverless-workflows/blob/main/escalation/ticketEscalation.svg?raw=true)
 
 **Note**:
 The value of the `.jiraIssue.fields.status.statusCategory.key` field is the one to be used to identify when the `done` status is reached, all the other
