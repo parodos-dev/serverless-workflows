@@ -3,6 +3,8 @@ version: '1.0'
 specVersion: '1.0'
 name: Greeting workflow
 description: YAML based greeting workflow
+annotations:
+  - "workflow-type/infrastructure"
 expressionLang: jsonpath
 dataInputSchema: "specs/greeting.sw.input-schema.json"
 start: ChooseOnLanguage
