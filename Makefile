@@ -77,6 +77,12 @@ endif
 DEPLOYMENT_REPO ?= parodos-dev/serverless-workflows-config
 DEPLOYMENT_BRANCH ?= main
 
+# extra extensions needed for persistence at build time.
+QUARKUS_EXTENSIONS=org.kie:kie-addons-quarkus-persistence-jdbc:999-20240317-SNAPSHOT,io.quarkus:quarkus-jdbc-postgresql:3.2.9.Final,io.quarkus:quarkus-agroal:3.2.9.Final
+# build time properties required for persistence.
+MAVEN_ARGS_APPEND="-Dkogito.persistence.type=jdbc -Dquarkus.datasource.db-kind=postgresql -Dkogito.persistence.proto.marshaller=false"
+
+
 .PHONY: all
 
 all: build-image push-image gen-manifests push-manifests
@@ -97,7 +103,7 @@ prepare-workdir:
 # Depends on: prepare-workdir target.
 # Usage: make build-image
 ifeq ($(IS_WORKFLOW),true)
-build-image: BUILD_ARGS=--build-arg WF_RESOURCES=$(WORKFLOW_ID) --build-arg QUARKUS_EXTENSIONS=org.kie.kogito:kogito-addons-persistence-jdbc:9.99.0.redhat-00007,io.quarkus:quarkus-jdbc-postgresql:3.2.9.Final,io.quarkus:quarkus-agroal:3.2.9.Final
+build-image: BUILD_ARGS=--build-arg WF_RESOURCES=$(WORKFLOW_ID) --build-arg=QUARKUS_EXTENSIONS=$(QUARKUS_EXTENSIONS) --build-arg=MAVEN_ARGS_APPEND=$(MAVEN_ARGS_APPEND)
 endif
 build-image: EXTRA_ARGS=--ulimit nofile=4096:4096
 build-image: prepare-workdir
