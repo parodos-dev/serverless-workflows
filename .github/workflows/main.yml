@@ -130,12 +130,13 @@ jobs:
           else
             PR_OR_COMMIT_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           fi
-          git commit -m "Automated PR from $PR_OR_COMMIT_URL"
+          git commit -m "(${{ inputs.workflow_id }}) Automated PR"
+          echo "Automated PR from $PR_OR_COMMIT_URL" | git commit --amend --file=-
           git remote set-url origin https://${{ env.GH_TOKEN }}@github.com/$WF_CONFIG_REPO
           git push origin HEAD
-          gh pr create -f --title "Automatic manifests generation from $PR_OR_COMMIT_URL" \
+          gh pr create -f --title "(${{ inputs.workflow_id }}) Automatic manifests generation" \
             --body "
               Updating generated manifests for ${{ inputs.workflow_id }} workflow
-
+ 
               This PR was created automatically as a result of merging $PR_OR_COMMIT_URL
             "
