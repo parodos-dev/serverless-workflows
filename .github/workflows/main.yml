@@ -157,7 +157,7 @@ jobs:
           git push origin HEAD
           gh pr create -f --title "${{ inputs.workflow_id }}: Automatic manifests generation" \
             --body "
-              Updating generated manifests for ${{ inputs.workflow_id }} workflow
+          Updating generated manifests for ${{ inputs.workflow_id }} workflow
  
-              This PR was created automatically as a result of merging $PR_OR_COMMIT_URL
-            "
+          This PR was created automatically as a result of merging $PR_OR_COMMIT_URL
+          "
