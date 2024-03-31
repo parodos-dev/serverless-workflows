@@ -78,9 +78,14 @@ jobs:
         fi
 
         gh repo set-default ${{ env.DEPLOYMENT_REPO }}
-        gh pr create -f --title "Automatic manifests generation from ${PR_OR_COMMIT_URL}" \
-        --body "
-          Updating generated manifests for ${{ inputs.workflow_id }} workflow
 
-          This PR was created automatically as a result of merging ${PR_OR_COMMIT_URL}
-        "
+        # Construct the PR body
+        PR_BODY="Updating generated manifests"
+        PR_BODY+=" for ${{ inputs.workflow_id }} workflow"
+        if [ "${{ inputs.application_id }}" != "" ]; then
+          PR_BODY+=" and application ${{ inputs.application_id }}"
+        fi
+        PR_BODY+="\n\nThis PR was created automatically as a result of merging ${PR_OR_COMMIT_URL}"
+
+        # Create the PR using the constructed body
+        gh pr create -f --title "${{ inputs.workflow_id }}: Automatic manifests generation" --body "${PR_BODY}"
