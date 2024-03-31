@@ -92,8 +92,25 @@ jobs:
     - name: Set persistence spec in SonataFlow resource
       run: |
         yq -i '.spec.podTemplate.container.image="quay.io/orchestrator/serverless-workflow-${{ inputs.workflow_id }}:${{ github.sha }}"' ${{ inputs.workflow_id }}/manifests/01-sonataflow*.yaml
-        yq  --inplace '.spec |= ( . +  {"persistence":{"postgresql":{"secretRef":{"name":"sonataflow-psql-postgresql","userKey":"postgres-username","passwordKey":"postgres-password"},"serviceRef":{"name":"sonataflow-psql-postgresql","port":5432,"databaseName":"sonataflow","databaseSchema":"${{ inputs.workflow_id }}"}}}} )' ${{ inputs.workflow_id }}/manifests/01-sonataflow*.yaml
-
+        yq --inplace '.spec |= (
+          . + {
+            "persistence": {
+              "postgresql": {
+                "secretRef": {
+                  "name": "sonataflow-psql-postgresql",
+                  "userKey": "postgres-username",
+                  "passwordKey": "postgres-password"
+                },
+                "serviceRef": {
+                  "name": "sonataflow-psql-postgresql",
+                  "port": 5432,
+                  "databaseName": "sonataflow",
+                  "databaseSchema": "${{ inputs.workflow_id }}"
+                }
+              }
+            }
+          }
+        )' ${{ inputs.workflow_id }}/manifests/01-sonataflow*.yaml
     - name: Archive manifests
       uses: actions/upload-artifact@v3
       with:
@@ -119,22 +136,26 @@ jobs:
           git config --global user.name ${{ github.event.head_commit.author.name || github.triggering_actor }}
           gh repo clone $WF_CONFIG_REPO config-repo
           cd config-repo
-          git switch -c autopr-$RANDOM
-          ./hack/bump_version.sh ${{ inputs.workflow_id }}:patch patch
+          git switch -c ${{ inputs.workflow_id }}-autopr-$RANDOM
+
+          ./hack/bump_chart_version.sh ${{ inputs.workflow_id }} --bump-patch-version
+
           mkdir -p charts/${{ inputs.workflow_id }}/templates
           cp ../${{ inputs.workflow_id }}/manifests/* charts/${{ inputs.workflow_id }}/templates
           git add -A
+
           # determine pr or commit url
           if [ ${{ fromJSON(steps.get_pr_data.outputs.result)}} != "" ]; then
             PR_OR_COMMIT_URL="${{ fromJSON(steps.get_pr_data.outputs.result).html_url }}"
           else
             PR_OR_COMMIT_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           fi
+
           git commit -m "(${{ inputs.workflow_id }}) Automated PR"
           echo "Automated PR from $PR_OR_COMMIT_URL" | git commit --amend --file=-
           git remote set-url origin https://${{ env.GH_TOKEN }}@github.com/$WF_CONFIG_REPO
           git push origin HEAD
-          gh pr create -f --title "(${{ inputs.workflow_id }}) Automatic manifests generation" \
+          gh pr create -f --title "${{ inputs.workflow_id }}: Automatic manifests generation" \
             --body "
               Updating generated manifests for ${{ inputs.workflow_id }} workflow
  
