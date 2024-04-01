@@ -10,6 +10,10 @@ ARG QUARKUS_EXTENSIONS
 # add extension command
 ARG QUARKUS_ADD_EXTENSION_ARGS
 
+# Additional java/mvn arguments to pass to the builder.
+# This are is conventient to pass sonataflow and quarkus build time properties.
+ARG MAVEN_ARGS_APPEND
+
 # Argument for passing the resources folder if not current context dir
 ARG WF_RESOURCES
 
