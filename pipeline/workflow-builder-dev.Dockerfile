@@ -8,7 +8,7 @@ ENV MAVEN_REPO_URL=https://maven.repository.redhat.com/earlyaccess/all
 ARG QUARKUS_EXTENSIONS
 # Args to pass to the Quarkus CLI
 # add extension command
-ARG QUARKUS_ADD_EXTENSION_ARGS
+# ARG QUARKUS_ADD_EXTENSION_ARGS
 
 # Additional java/mvn arguments to pass to the builder.
 # This are is conventient to pass sonataflow and quarkus build time properties.
