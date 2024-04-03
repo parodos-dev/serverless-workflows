@@ -101,14 +101,15 @@ jobs:
       - name: Deploy MTA serverless workflow
         run: |
           ###### workaround till https://issues.redhat.com/browse/FLPATH-892 is solved
-          yq  --inplace '.spec.podTemplate.container |= ( . +  {"imagePullPolicy": "IfNotPresent"} )' manifests/01-sonataflow_mtaanalysis.yaml
+          # yq --inplace '.spec.podTemplate.container |= ( . +  {"imagePullPolicy": "IfNotPresent"} )' manifests/01-sonataflow_mtaanalysis.yaml
           ###### end workfaround
 
           # Set the endpoint to the tackle-ui service
           yq --inplace '.spec.podTemplate.container.env |= ( . + [{"name": "QUARKUS_REST_CLIENT_MTA_JSON_URL", "value": "http://tackle-ui.my-konveyor-operator.svc:8080/hub"}, {"name": "BACKSTAGE_NOTIFICATIONS_URL", "value": "http://janus-idp-workflows-backstage.default.svc.cluster.local:7007/api/notifications/"}] )' manifests/01-sonataflow_mtaanalysis.yaml
           
           # Disable persistence for e2e tests
-          yq  --inplace 'del(.spec.persistence)' manifests/01-sonataflow_mtaanalysis.yaml
+          yq --inplace 'del(.spec.persistence)' manifests/01-sonataflow_mtaanalysis.yaml
+          sed -i '/quarkus\.flyway\.migrate-at-start=true/d' manifests/02-configmap_mtaanalysis-props.yaml
           
           # deploy the manifests created by the  ${{ steps.build-image.outputs.image }}"                                                                    
           kubectl apply -f manifests
