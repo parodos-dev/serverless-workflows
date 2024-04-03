@@ -6,7 +6,7 @@ download-openapi:
 	curl https://raw.githubusercontent.com/konveyor/move2kube-api/main/assets/openapi.json -o openapi.json
 
 generate: download-openapi
-	rm -rf java-client
+	rm -rf $(PWD)/java-client
 	docker run --rm \
 		-u $(USER):$(GROUP) \
 		-v $(PWD):/tmp \
