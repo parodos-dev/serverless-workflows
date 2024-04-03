@@ -1,3 +1,5 @@
+USER=$(shell id -u $(shell whoami))
+GROUP=$(shell id -g $(shell whoami))
 VERSION="2.0.0"
 
 download-openapi:
@@ -6,7 +8,7 @@ download-openapi:
 generate: download-openapi
 	rm -rf java-client
 	docker run --rm \
-		-u $(id -u):$(id -g) \
+		-u $(USER):$(GROUP) \
 		-v $(PWD):/tmp \
 		-e GENERATE_PERMISSIONS=true \
 		openapitools/openapi-generator-cli generate \
