@@ -78,7 +78,9 @@ DEPLOYMENT_REPO ?= parodos-dev/serverless-workflows-config
 DEPLOYMENT_BRANCH ?= main
 
 # extra extensions needed for persistence at build time.
-QUARKUS_EXTENSIONS=org.kie.kogito:kogito-addons-quarkus-jobs-knative-eventing:999-SNAPSHOT,org.kie:kie-addons-quarkus-persistence-jdbc:999-20240317-SNAPSHOT,io.quarkus:quarkus-jdbc-postgresql:3.2.9.Final,io.quarkus:quarkus-agroal:3.2.9.Final
+# The extentions listed below are included in the cache in the image or available from maven central repository
+# The image is quay.io/kiegroup/kogito-swf-builder:9.99.1.CR1
+QUARKUS_EXTENSIONS=org.kie.kogito:kogito-addons-quarkus-jobs-knative-eventing:9.99.1.redhat-00003,org.kie:kie-addons-quarkus-persistence-jdbc:999-20240317-SNAPSHOT,io.quarkus:quarkus-jdbc-postgresql:3.2.9.Final,io.quarkus:quarkus-agroal:3.2.9.Final
 
 # build time properties required for persistence.
 MAVEN_ARGS_APPEND="-Dkogito.persistence.type=jdbc -Dquarkus.datasource.db-kind=postgresql -Dkogito.persistence.proto.marshaller=false"

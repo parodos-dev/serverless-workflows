@@ -1,7 +1,9 @@
-FROM registry.redhat.io/openshift-serverless-1-tech-preview/logic-swf-builder-rhel8@sha256:d19b3ecaeac10e6aa03530008d25c8171254d561dc5519b9efd18dd4f0de5675 AS builder
+# FROM registry.redhat.io/openshift-serverless-1-tech-preview/logic-swf-builder-rhel8@sha256:d19b3ecaeac10e6aa03530008d25c8171254d561dc5519b9efd18dd4f0de5675 AS builder
+# Using the builder image below to address bugs https://issues.redhat.com/browse/FLPATH-1141 and https://issues.redhat.com/browse/FLPATH-1127
+FROM quay.io/kiegroup/kogito-swf-builder:9.99.1.CR1 AS builder
 
-# Temp hack to provide persistence artifacts
-ENV MAVEN_REPO_URL=https://maven.repository.redhat.com/earlyaccess/all
+# Temp hack to provide persistence artifacts - with quay.io/kiegroup/kogito-swf-builder:9.99.1.CR1 those dependencies are included in the base image.
+# ENV MAVEN_REPO_URL=https://maven.repository.redhat.com/earlyaccess/all
 
 # variables that can be overridden by the builder
 # To add a Quarkus extension to your application
