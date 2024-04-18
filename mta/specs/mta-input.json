@@ -3,7 +3,8 @@
   "type": "object",
   "properties": {
     "repositoryURL": {
-      "type": "string"
+      "type": "string",
+      "pattern": "^(git|http|https)://.+$"
     },
     "backstageUser": {
       "type": "string"
