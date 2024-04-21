@@ -11,7 +11,6 @@ on:
         default: false
 
 env:
-  DOCKERFILE: workflow-builder${{ inputs.it_mode== true && '-dev' || ''}}.Dockerfile
   WF_CONFIG_REPO: parodos-dev/serverless-workflows-config
 
 jobs:
@@ -32,16 +31,33 @@ jobs:
     - name: Buildah Action
       id: build-image
       uses: redhat-actions/buildah-build@v2
+      if: ${{ ! inputs.it_mode }}
       with:
         image: serverless-workflow-${{ inputs.workflow_id }}
         tags: latest ${{ github.sha }}
         extra-args: --ulimit nofile=4096:4096
         containerfiles: |
-          pipeline/${{ env.DOCKERFILE }}
+          pipeline/workflow-builder.Dockerfile
         build-args: |
           WF_RESOURCES=${{ inputs.workflow_id }}/
           MAVEN_ARGS_APPEND=-Dkogito.persistence.type=jdbc -Dquarkus.datasource.db-kind=postgresql -Dkogito.persistence.proto.marshaller=false
           QUARKUS_EXTENSIONS=org.kie.kogito:kogito-addons-quarkus-jobs-knative-eventing:9.99.1.redhat-00003,org.kie.kogito:kogito-addons-quarkus-persistence-jdbc:9.99.1.redhat-00003,org.kie.kogito:kogito-addons-persistence-jdbc:9.99.1.redhat-00003,io.quarkus:quarkus-jdbc-postgresql:3.2.9.Final,io.quarkus:quarkus-agroal:3.2.9.Final
+
+    - name: Buildah Action for testing
+      id: build-dev-image
+      uses: redhat-actions/buildah-build@v2
+      if: ${{ inputs.it_mode }}
+      with:
+        image: serverless-workflow-${{ inputs.workflow_id }}
+        tags: latest ${{ github.sha }}
+        extra-args: --ulimit nofile=4096:4096
+        containerfiles: |
+          pipeline/workflow-builder-dev.Dockerfile
+        build-args: |
+          WF_RESOURCES=${{ inputs.workflow_id }}/
+          MAVEN_ARGS_APPEND=
+          QUARKUS_EXTENSIONS=
+
     - name: Buildah push to OCI Arcive
       if: ${{ inputs.it_mode }}
       run: |

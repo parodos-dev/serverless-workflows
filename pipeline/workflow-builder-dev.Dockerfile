@@ -1,7 +1,7 @@
 FROM quay.io/kiegroup/kogito-swf-builder-nightly:main-2024-04-08 AS builder
 
 # Temp hack to provide persistence artifacts
-ENV MAVEN_REPO_URL=https://maven.repository.redhat.com/earlyaccess/all
+# ENV MAVEN_REPO_URL=https://maven.repository.redhat.com/earlyaccess/all
 
 # variables that can be overridden by the builder
 # To add a Quarkus extension to your application

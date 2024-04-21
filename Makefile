@@ -68,6 +68,8 @@ else
 DOCKERFILE ?= src/main/docker/Dockerfile.jvm
 endif
 
+DEV_DOCKERFILE ?= pipeline/workflow-builder-dev.Dockerfile
+
 ifeq ($(IS_WORKFLOW),true)
 IMAGE_NAME = $(REGISTRY)/$(REGISTRY_REPO)/$(IMAGE_PREFIX)-$(WORKFLOW_ID)
 else
@@ -80,6 +82,8 @@ DEPLOYMENT_BRANCH ?= main
 # extra extensions needed for persistence at build time.
 # The extentions listed below are included in the cache in image quay.io/kiegroup/kogito-swf-builder:9.99.1.CR1 or available from maven central repository
 QUARKUS_EXTENSIONS=org.kie.kogito:kogito-addons-quarkus-jobs-knative-eventing:9.99.1.redhat-00003,org.kie.kogito:kogito-addons-quarkus-persistence-jdbc:9.99.1.redhat-00003,org.kie.kogito:kogito-addons-persistence-jdbc:9.99.1.redhat-00003,io.quarkus:quarkus-jdbc-postgresql:3.2.9.Final,io.quarkus:quarkus-agroal:3.2.9.Final
+QUARKUS_DEV_EXTENSIONS=""
+#org.kie:kie-addons-quarkus-persistence-jdbc:999-20240317-SNAPSHOT,io.quarkus:quarkus-jdbc-postgresql:3.2.9.Final,io.quarkus:quarkus-agroal:3.2.9.Final
 
 # build time properties required for persistence.
 MAVEN_ARGS_APPEND="-Dkogito.persistence.type=jdbc -Dquarkus.datasource.db-kind=postgresql -Dkogito.persistence.proto.marshaller=false"
@@ -121,6 +125,10 @@ else
 		$(BUILD_ARGS) $(EXTRA_ARGS) \
 		--tag ${IMAGE_NAME}:${IMAGE_TAG} --tag ${IMAGE_NAME}:latest .
 endif
+
+build-dev-image: QUARKUS_EXTENSIONS=$(QUARKUS_DEV_EXTENSIONS)
+build-dev-image: DOCKERFILE=$(DEV_DOCKERFILE)
+build-dev-image: build-image
 
 # Target: push-image
 # Description: Pushes the workflow containerized image to the configured REGISTRY.
