@@ -110,16 +110,7 @@ jobs:
           
           # Disable persistence for e2e tests
           yq e '.spec.persistence = {}' -i manifests/01-sonataflow_mtaanalysis.yaml
-          # sed -i '/quarkus\.flyway\.migrate-at-start=true/d' manifests/02-configmap_mtaanalysis-props.yaml
-          # sed -i '/^data:/a \ \ \ \ quarkus.datasource.jdbc.url = ""' manifests/02-configmap_mtaanalysis-props.yaml
-
-          # The purpose of this ugly hack is to prevent the workflow application start with DB enabled.
-          # While the workflow be responsive for incoming requests, it will also produce warnings since the persistence attributes
-          # are build-time only in Quarkus 3.2. When we'll switch to Quarkus 3.8 we can easily disable persistence by introducing line:
-          # quarkus.datasource.jdbc = false
-          # See https://quarkus.io/guides/datasource#jdbc-and-reactive-datasources-simultaneously and
-          # https://quarkus.io/guides/datasource#quarkus-agroal_quarkus-datasource-jdbc
-          sed -i 's/quarkus.flyway.migrate-at-start=true/quarkus.datasource.jdbc.url = ""/' manifests/02-configmap_mtaanalysis-props.yaml
+          sed -i '/quarkus\.flyway\.migrate-at-start=true/d' manifests/02-configmap_mtaanalysis-props.yaml
 
           echo "manifests/02-configmap_mtaanalysis-props.yaml"
           cat manifests/02-configmap_mtaanalysis-props.yaml
