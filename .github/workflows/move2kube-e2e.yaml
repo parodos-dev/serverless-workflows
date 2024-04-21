@@ -81,6 +81,7 @@ jobs:
         run: |
           helm repo add janus-idp-workflows https://rgolangh.github.io/janus-idp-workflows-helm/
           helm install janus-idp-workflows janus-idp-workflows/janus-idp-workflows \
+            --set backstage.upstream.backstage.image.tag=1.1 \
             -f https://raw.githubusercontent.com/rgolangh/janus-idp-workflows-helm/main/charts/kubernetes/orchestrator/values-k8s.yaml
           echo "sleep bit long till the PV for data index and kaniko cache is ready. its a bit slow. TODO fixit"
           kubectl get pv
@@ -107,7 +108,8 @@ jobs:
           yq  --inplace 'del(.spec.persistence)' manifests/01-sonataflow_m2k.yaml
           # The 'for loop' added due to inconsistency of the generated numbers of the configmaps
           for file in manifests/*-configmap_m2k-props.yaml; do
-            sed -i '/quarkus\.flyway\.migrate-at-start=true/d' "$file"
+            # sed -i '/quarkus\.flyway\.migrate-at-start=true/d' "$file"
+            sed -i 's/quarkus.flyway.migrate-at-start=true/quarkus.datasource.jdbc.url = ""/' "$file"
           done
 
           # deploy the manifests created by the  ${{ steps.build-image.outputs.image }}"                                                                    

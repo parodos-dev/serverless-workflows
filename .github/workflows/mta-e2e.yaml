@@ -72,6 +72,7 @@ jobs:
         run: |
           helm repo add janus-idp-workflows https://rgolangh.github.io/janus-idp-workflows-helm/
           helm install janus-idp-workflows janus-idp-workflows/janus-idp-workflows \
+            --set backstage.upstream.backstage.image.tag=1.1 \
             -f https://raw.githubusercontent.com/rgolangh/janus-idp-workflows-helm/main/charts/kubernetes/orchestrator/values-k8s.yaml
 
           echo "sleep bit long till the PV for data index and kaniko cache is ready. its a bit slow. TODO fixit"
@@ -108,11 +109,28 @@ jobs:
           yq --inplace '.spec.podTemplate.container.env |= ( . + [{"name": "QUARKUS_REST_CLIENT_MTA_JSON_URL", "value": "http://tackle-ui.my-konveyor-operator.svc:8080/hub"}, {"name": "BACKSTAGE_NOTIFICATIONS_URL", "value": "http://janus-idp-workflows-backstage.default.svc.cluster.local:7007/api/notifications/"}] )' manifests/01-sonataflow_mtaanalysis.yaml
           
           # Disable persistence for e2e tests
-          yq --inplace 'del(.spec.persistence)' manifests/01-sonataflow_mtaanalysis.yaml
-          sed -i '/quarkus\.flyway\.migrate-at-start=true/d' manifests/02-configmap_mtaanalysis-props.yaml
-          
-          # deploy the manifests created by the  ${{ steps.build-image.outputs.image }}"                                                                    
-          kubectl apply -f manifests
+          yq e '.spec.persistence = {}' -i manifests/01-sonataflow_mtaanalysis.yaml
+          # sed -i '/quarkus\.flyway\.migrate-at-start=true/d' manifests/02-configmap_mtaanalysis-props.yaml
+          # sed -i '/^data:/a \ \ \ \ quarkus.datasource.jdbc.url = ""' manifests/02-configmap_mtaanalysis-props.yaml
+
+          # The purpose of this ugly hack is to prevent the workflow application start with DB enabled.
+          # While the workflow be responsive for incoming requests, it will also produce warnings since the persistence attributes
+          # are build-time only in Quarkus 3.2. When we'll switch to Quarkus 3.8 we can easily disable persistence by introducing line:
+          # quarkus.datasource.jdbc = false
+          # See https://quarkus.io/guides/datasource#jdbc-and-reactive-datasources-simultaneously and
+          # https://quarkus.io/guides/datasource#quarkus-agroal_quarkus-datasource-jdbc
+          sed -i 's/quarkus.flyway.migrate-at-start=true/quarkus.datasource.jdbc.url = ""/' manifests/02-configmap_mtaanalysis-props.yaml
+
+          echo "manifests/02-configmap_mtaanalysis-props.yaml"
+          cat manifests/02-configmap_mtaanalysis-props.yaml
+          echo "---"
+
+          echo "manifests/01-sonataflow_mtaanalysis.yaml"
+          cat manifests/01-sonataflow_mtaanalysis.yaml
+          echo "---"
+
+          # deploy the manifests created by the ${{ steps.build-image.outputs.image }} image
+          kubectl apply -f manifests/
           sleep 5
           kubectl get deployment mtaanalysis -o jsonpath={.spec.template.spec.containers[]}
           # give the pod time to start
