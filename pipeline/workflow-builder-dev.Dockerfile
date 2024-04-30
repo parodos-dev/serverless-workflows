@@ -28,7 +28,7 @@ RUN /home/kogito/launch/build-app.sh ./resources
 #=============================
 # Runtime Run
 #=============================
-FROM registry.access.redhat.com/ubi8/openjdk-17:latest
+FROM registry.access.redhat.com/ubi8/openjdk-17:1.19-4
 
 ENV LANG='en_US.UTF-8' LANGUAGE='en_US:en'
 
