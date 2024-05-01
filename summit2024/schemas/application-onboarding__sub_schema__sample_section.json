@@ -1,0 +1,24 @@
+{
+  "$id": "classpath:/schemas/application-onboarding__sub_schema__sample_section.json",
+  "title": "application-onboarding: Sample Section",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "sampleText": {
+      "title": "A sample text",
+      "type": "string",
+      "description": "Sample text data"
+    },
+    "sampleInteger": {
+      "title": "An integer number",
+      "type": "integer",
+      "description": "Sample integer number"
+    },
+    "sampleBoolean": {
+      "title": "A sample boolean",
+      "type": "boolean",
+      "description": "Sample boolean data"
+    }
+  },
+  "required": ["sampleText"]
+}

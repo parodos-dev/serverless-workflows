@@ -1,0 +1,15 @@
+{
+  "$id": "classpath:/schemas/application-onboarding-schema.json",
+  "title": "application-onboarding: Data Input Schema",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "application-onboarding__sub_schema__sample_data.json": {
+      "$ref": "application-onboarding__sub_schema__sample_section.json",
+      "type": "object"
+    }
+  },
+  "required": [
+    "application-onboarding__sub_schema__sample_data.json"
+  ]
+}

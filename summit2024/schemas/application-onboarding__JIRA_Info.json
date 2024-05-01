@@ -1,0 +1,24 @@
+{
+  "$id": "classpath:/schemas/application-onboarding__JIRA_Info.json",
+  "title": "Provide information about JIRA",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "projectKey": {
+      "title": "Project Key",
+      "description": "JIRA project key",
+      "type": "string"
+    },
+    "reporter": {
+      "title": "Reporter",
+      "description": "JIRA user name",
+      "type": "string"
+    },
+    "assignee": {
+      "title": "Assignee",
+      "description": "JIRA user name",
+      "type": "string"
+    }
+  },
+  "required": ["assignee", "projectKey", "reporter"]
+}

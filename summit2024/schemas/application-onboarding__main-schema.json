@@ -1,0 +1,13 @@
+{
+  "$id": "classpath:/schemas/application-onboarding__main-schema.json",
+  "title": "Data input schema",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "jiraInfo": {
+      "$ref": "application-onboarding__JIRA_Info.json",
+      "type": "object"
+    }
+  },
+  "required": ["jiraInfo"]
+}

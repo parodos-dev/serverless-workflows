@@ -1,0 +1,180 @@
+id: application-onboarding
+version: "1.0"
+specVersion: "0.8"
+name: "DEMO - Application onboarding with notifications and timeouts"
+description: Application onboarding demonstrating notifications and timeouts with external service
+dataInputSchema: schemas/application-onboarding__main-schema.json
+functions:
+  - name: jiraCreateIssue
+    operation: specs/jira-openapi.json#createIssue
+  - name: jiraCloseIssue
+    operation: specs/jira-openapi.json#transitionIssue
+  - name: jiraGetIssueTransitions
+    operation: specs/jira-openapi.json#getIssueTransitions
+  - name: createNotification
+    operation: specs/notifications-openapi.yaml#createNotification
+  - name: print
+    type: custom
+    operation: sysout
+events:
+  - name: callbackEvent
+    type: jira_webhook_callback
+    source: jira.callback
+errors:
+  - name: Error
+    code: java.lang.RuntimeException
+start: Notify Backstage
+states:
+  - name: "Notify Backstage"
+    type: operation
+    actions:
+      - name: "Create notification"
+        functionRef:
+          refName: createNotification
+          arguments:
+            title: "A simple notification"
+            message: '"A simple notification of the workflow Application onboarding with ID " + $WORKFLOW.instanceId + " working with JIRA" + .jiraInfo.projectKey'
+            origin: "SonataFlow"
+            topic: "Application onboarding workflow"
+            targetUsers:
+              - "default/guest"
+    transition: Open issue on JIRA
+  - name: Open issue on JIRA
+    type: operation
+    actions:
+      - name: callbackAction
+        functionRef:
+          refName: jiraCreateIssue
+          arguments:
+            fields:
+              description: '"Please create a new Github Repository: https://github.com/parodos-dev/application-onboarding \n Go to https://github.com/new"'
+              issuetype:
+                name: Task
+              labels:
+                - backstage-workflow
+                - '"workflowId=" + $WORKFLOW.instanceId'
+              project:
+                key: .jiraInfo.projectKey
+              summary: New Repository for Application onboarding project on Backstage
+        actionDataFilter:
+          toStateData: .jiraCreateIssueResult
+    transition: "Notify Backstage: JIRA ticket created"
+  - name: "Notify Backstage: JIRA ticket created"
+    type: operation
+    actions:
+      - name: "Create notification: JIRA ticket created"
+        functionRef:
+          refName: createNotification
+          arguments:
+            title: "JIRA ticket created"
+            message: "JIRA ticket created"
+            origin: "SonataFlow"
+            topic: "Application onboarding workflow"
+            targetUsers:
+              - "default/guest"
+            actions:
+              - title: "View on JIRA"
+                # There are more dynamic ways to get the JIRA URL, but for simplicity, we are using a hardcoded URL
+                url: '$SECRET.jira_url + "/jira/servicedesk/projects/" + .jiraInfo.projectKey + "/issues/" + .jiraCreateIssueResult.key'
+    transition: Wait for event from JIRA
+  - name: Wait for event from JIRA
+    type: callback
+    action:
+      name: Print waiting for event
+      functionRef:
+        refName: print
+        arguments:
+          message: Waiting for event
+    eventRef: callbackEvent
+    eventDataFilter:
+      toStateData: .jiraResolveIssueResult
+    timeouts:
+      eventTimeout: PT30S
+    compensatedBy: Close issue on JIRA due to Timeout
+    transition: Check repository created
+  - name: Check repository created
+    type: switch
+    dataConditions:
+      - condition: .jiraResolveIssueResult != null
+        transition: PrintJiraIssueSolved
+        name: Created
+      - condition: .jiraResolveIssueResult == null
+        transition: Wait for event from JIRA
+        name: Not created
+    defaultCondition:
+      transition:
+        compensate: true
+        nextState: Wait for event from JIRA
+  - name: PrintJiraIssueSolved
+    type: parallel
+    branches:
+      - name: printSystemOut
+        actions:
+          - name: printSystemOut
+            functionRef:
+              refName: print
+              arguments:
+                message: 'Jira issue closed: $SECRET.jira_url + "/jira/servicedesk/projects/" + .jiraInfo.projectKey + "/issues/" + .jiraCreateIssueResult.key'
+      - name: "Create notification: JIRA ticket closed"
+        actions:
+          - name: "Create notification: JIRA ticket closed"
+            functionRef:
+              refName: createNotification
+              arguments:
+                title: "JIRA ticket closed"
+                message: "JIRA ticket closed "
+                origin: "SonataFlow"
+                topic: "Application onboarding workflow"
+                targetUsers:
+                  - "default/guest"
+                actions:
+                  - title: "View on JIRA"
+                    # There are more dynamic ways to get the JIRA URL, but for simplicity, we are using a hardcoded URL
+                    url: '$SECRET.jira_url + "/jira/servicedesk/projects/" + .jiraInfo.projectKey + "/issues/" + .jiraCreateIssueResult.key'
+
+    end: true
+  - name: Close issue on JIRA due to Timeout
+    type: operation
+    actionMode: sequential
+    actions:
+      - name: get transition id
+        actionDataFilter:
+          toStateData: .jiraGetTransitionResult
+        functionRef:
+          refName: jiraGetIssueTransitions
+          arguments:
+            issueIdOrKey: .jiraCreateIssueResult.id
+      - name: Close issue on JIRA due to Timeout
+        actionDataFilter:
+          toStateData: .jiraCloseIssueResult
+        functionRef:
+          refName: jiraCloseIssue
+          arguments:
+            issueIdOrKey: .jiraCreateIssueResult.id
+            transition:
+              id: .jiraGetTransitionResult.transitions[] | select(.name | contains("Done")) | .id
+            update:
+              comment:
+                - add:
+                    body: Issue closed due to time out on Backstage workflow
+    usedForCompensation: true
+    transition: "Notify Backstage: JIRA ticket closed"
+  - name: "Notify Backstage: JIRA ticket closed"
+    type: operation
+    usedForCompensation: true
+    actions:
+      - name: "Create notification: JIRA ticket closed"
+        functionRef:
+          refName: createNotification
+          arguments:
+            title: "JIRA ticket closed due to time out"
+            message: "JIRA ticket closed due to time out on Backstage workflow"
+            origin: "SonataFlow"
+            topic: "Application onboarding workflow"
+            targetUsers:
+              - "default/guest"
+            actions:
+              - title: "View on JIRA"
+                # There are more dynamic ways to get the JIRA URL, but for simplicity, we are using a hardcoded URL
+                url: '$SECRET.jira_url + "/jira/servicedesk/projects/" + .jiraInfo.projectKey + "/issues/" + .jiraCreateIssueResult.key'
+    end: true
