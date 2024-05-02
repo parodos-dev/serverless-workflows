@@ -1,0 +1,385 @@
+specVersion: "0.8"
+id: mta-analysis
+name: MTA Analysis
+description: Workflow to execute MTA Analysis
+annotations:
+  - "workflow-type/assessment"
+version: "1.0"
+timeouts:
+  workflowExecTimeout:
+    duration: PT1H
+start: GetApplication
+dataInputSchema:
+  schema: schemas/mta-input.json
+  failOnValidationErrors: false
+extensions:
+  - extensionid: workflow-uri-definitions
+    definitions:
+      notifications: "https://raw.githubusercontent.com/janus-idp/backstage-plugins/%40janus-idp/plugin-notifications-backend%401.0.3/plugins/notifications-backend/src/openapi.yaml"
+functions:
+  - name: filterApplication
+    type: expression
+    operation: "{application: .applications|map(select(.repository.url == .repositoryURL))[0]}"
+  - name: getApplication
+    operation: specs/mta.json#getApplications
+  - name: createApplication
+    operation: specs/mta.json#createApplication
+  - name: createTaskgroup
+    operation: specs/mta.json#createTaskgroup
+  - name: submitTaskgroup
+    operation: specs/mta.json#submitTaskgroup
+  - name: getTaskgroup
+    operation: specs/mta.json#getTaskgroup
+  - name: getTrackers
+    operation: specs/mta.json#getTrackers
+  - name: getTracker
+    operation: specs/mta.json#getTracker
+  - name: getTrackerProjects
+    operation: specs/mta.json#getTrackerProjects
+  - name: getTrackerProject
+    operation: specs/mta.json#getTrackerProject
+  - name: getTrackerProjectIssueTypes
+    operation: specs/mta.json#getTrackerProjectIssueTypes
+  - name: getMigrationwaves
+    operation: specs/mta.json#getMigrationwaves
+  - name: getMigrationwave
+    operation: specs/mta.json#getMigrationwave
+  - name: createMigrationwave
+    operation: specs/mta.json#createMigrationwave
+  - name: batchCreateTickets
+    operation: specs/mta.json#batchCreateTickets
+  - name: createTicket
+    operation: specs/mta.json#createTicket
+  - name: getTickets
+    operation: specs/mta.json#getTickets
+  - name: createNotification
+    operation: notifications#createNotification
+  - name: logInfo
+    type: custom
+    operation: "sysout:INFO"
+states:
+  - name: GetApplication
+    type: operation
+    actionMode: sequential
+    actions:
+      - name: getApp
+        functionRef: getApplication
+        actionDataFilter:
+          toStateData: ".applications"
+    stateDataFilter:
+      output: "{backstageUser: .backstageUser, backstageGroup: .backstageGroup, repositoryURL: .repositoryURL, migrationStartDatetime: .migrationStartDatetime, migrationEndDatetime: .migrationEndDatetime, exportToIssueManager: .exportToIssueManager, application: .repositoryURL as $r| if .applications == null then null else .applications|map(select(.repository.url == $r))[0] end}"
+    transition: AppExist
+  - name: AppExist
+    type: switch
+    dataConditions:
+      - condition: ".application != null"
+        transition:
+          nextState: CreateTaskgroup
+    defaultCondition:
+      transition: CreateApplication
+  - name: CreateApplication
+    type: operation
+    actions:
+      - name: createApplication
+        actionDataFilter:
+          toStateData: ".application"
+        functionRef:
+          refName: createApplication
+          arguments:
+            name: ".repositoryURL"
+            repository:
+              url: ".repositoryURL"
+              kind: git
+    transition: CreateTaskgroup
+  - name: CreateTaskgroup
+    type: operation
+    actionMode: sequential
+    actions:
+      - name: createTaskgroup
+        actionDataFilter:
+          toStateData: ".taskgroup"
+        functionRef:
+          refName: createTaskgroup
+          arguments:
+            name: taskgroup.windup
+            addon: windup
+            data:
+              output: /windup/report
+              rules: 
+                labels:
+                  - konveyor.io/target=cloud-readiness
+                rulesets:
+                  - name: Containerization
+                    id: 2                    
+              tagger:
+                enabled: true
+              mode:
+                binary: false
+                withDeps: false
+                diva: false
+              scope:
+                withKnown: false
+    transition: SubmitAnalysis
+  - name: SubmitAnalysis
+    type: operation
+    actionMode: sequential
+    actions:
+      - name: submitTaskgroup
+        functionRef:
+          refName: submitTaskgroup
+          arguments:
+            id: .taskgroup.id
+            createUser: "admin"
+            name: "taskgroup.windup"
+            addon: windup
+            data: .taskgroup.data
+            bucket:
+              id: .application.bucket.id
+            state: Created
+            tasks:
+              - name: .application.name + ".1.windup"
+                application:
+                  id: .application.id
+                  name: .application.name
+    transition: pollResults
+  - name: pollResults
+    type: operation
+    actionMode: sequential
+    actions:
+      - name: "SleepBeforeChecking"
+        functionRef:
+          refName: "logInfo"
+          arguments:
+            message: "\"Sleeping before checking the analysis result \""
+        sleep:
+          after: PT30S
+      - name: "getTaskgroup" 
+        functionRef:
+          refName: getTaskgroup
+          arguments:
+            id: ".taskgroup.id"
+        actionDataFilter:
+          toStateData: .taskgroup
+      - name: "logTaskGroup"
+        functionRef:
+          refName: "logInfo"
+          arguments:
+            message: "\"Logging data: \\(.)\""
+    transition: checkReportDone
+  - name: checkReportDone
+    type: switch
+    dataConditions:
+      - condition: (.taskgroup.state == "Ready" and .taskgroup.tasks[0].state == "Running")
+        transition: pollResults
+      - condition: (.taskgroup.state == "Ready" and .exportToIssueManager == "true" and .taskgroup.tasks[0].state == "Succeeded")
+        transition: GetTrackers
+      - condition: (.taskgroup.state == "Ready" and .exportToIssueManager == "false" and .taskgroup.tasks[0].state == "Succeeded")
+        transition: NotifyCompletion
+      - condition: (.taskgroup.state == "Ready" and .taskgroup.tasks[0].state == "Failed")
+        transition: NotifyFailureBackstage
+    defaultCondition:
+      transition: NotifyCompletion
+  - name: GetTrackers
+    type: operation
+    actions:
+      - name: GetTrackers
+        functionRef:
+          refName: getTrackers
+        actionDataFilter:
+          toStateData: ".trackers"
+    transition: TrackersExist
+  - name: TrackersExist
+    type: switch
+    dataConditions:
+      - condition: (.trackers != null)
+        transition: GetTracker
+    defaultCondition:
+      transition: NotifyFailureBackstage
+  - name: GetTracker
+    type: operation
+    actions:
+      - condition: .trackers != null
+        functionRef:
+          refName: getTracker
+          arguments:
+            id: .trackers[0].id
+        actionDataFilter:
+          toStateData: ".tracker"
+    transition: TrackerExists
+  - name: TrackerExists
+    type: switch
+    dataConditions:
+      - condition: (.tracker != null)
+        transition: GetTrackerProjects
+    defaultCondition:
+      transition: NotifyFailureBackstage        
+  - name: GetTrackerProjects
+    type: operation
+    actions:
+      - condition: .tracker != null
+        functionRef:
+          refName: getTrackerProjects
+          arguments:
+            id: .tracker.id
+        actionDataFilter:
+          toStateData: ".trackerProjects"
+    transition: TrackerProjectsExist
+  - name: TrackerProjectsExist
+    type: switch
+    dataConditions:
+      - condition: (.trackerProjects != null)
+        transition: GetTrackerProject
+    defaultCondition:
+      transition: NotifyFailureBackstage        
+  - name: GetTrackerProject
+    type: operation
+    actions:
+      - condition: .trackerProjects != null
+        functionRef:
+          refName: getTrackerProject
+          arguments:
+            id: .tracker.id
+            id2: .trackerProjects[0].id
+        actionDataFilter:
+          toStateData: ".trackerProject"
+    transition: TrackerProjectExist
+  - name: TrackerProjectExist
+    type: switch
+    dataConditions:
+      - condition: (.trackerProject != null)
+        transition: GetTrackerProjectIssueTypes
+    defaultCondition:
+      transition: NotifyFailureBackstage        
+  - name: GetTrackerProjectIssueTypes
+    type: operation
+    actions:
+      - condition: .trackerProject != null
+        functionRef:
+          refName: getTrackerProjectIssueTypes
+          arguments:
+            id: .tracker.id
+            id2: .trackerProjects[0].id
+        actionDataFilter:
+          toStateData: ".trackerProjectIssueTypes"
+    transition: TrackerProjectIssueTypesExist
+  - name: TrackerProjectIssueTypesExist
+    type: switch
+    dataConditions:
+      - condition: (.trackerProjectIssueTypes != null)
+        transition: GetMigrationWaves
+    defaultCondition:
+      transition: NotifyFailureBackstage        
+  - name: GetMigrationWaves
+    type: operation
+    actions:
+      - condition: .trackerProjectIssueTypes != null
+        functionRef:
+          refName: getMigrationwaves
+        actionDataFilter:
+          toStateData: ".migrationWaves"
+    transition: MigrationWavesExist
+  - name: MigrationWavesExist
+    type: switch
+    dataConditions:
+      - condition: (.migrationWaves != null)
+        transition: GetJiraTickets
+      - condition: (.migrationWaves == null)
+        transition: CreateMigrationWave
+    defaultCondition:
+      transition: NotifyFailureBackstage
+  - name: CreateMigrationWave
+    type: operation
+    actions:
+      - condition: .migrationWaves == null
+        functionRef:
+          refName: createMigrationwave
+          arguments:
+            name: ("migrationWave_" + .application.name)
+            startDate: (.migrationStartDatetime)
+            endDate: (.migrationEndDatetime)
+            applications:
+            - id: .application.id
+              name: .application.name
+        actionDataFilter:
+          toStateData: ".createdMigrationWave"
+    transition: GetJiraTickets      
+  - name: GetJiraTickets
+    type: operation
+    actionMode: sequential
+    actions:
+      - name: getTickets
+        functionRef: getTickets
+        actionDataFilter:
+          toStateData: ".jiraTickets"
+    stateDataFilter:
+      output: "{repositoryURL: .repositoryURL, tracker: .tracker, trackerProject: .trackerProject, trackerProjectIssueTypes: .trackerProjectIssueTypes, application: .application, migrationWaveJiraTicket: .repositoryURL as $r| if .jiraTickets == null then null else .jiraTickets|map(select(.application.name == $r))[0] end}"
+    transition: MigrationWaveJiraTicketExists
+  - name: MigrationWaveJiraTicketExists
+    type: switch
+    dataConditions:
+      - condition: (.migrationWaveJiraTicket != null)
+        transition: NotifyCompletion
+      - condition: (.migrationWaveJiraTicket == null)
+        transition: CreateJira
+    defaultCondition:
+      transition: NotifyFailureBackstage
+  - name: CreateJira
+    type: operation
+    actionMode: sequential
+    actions:
+      - name: logInfo
+        functionRef:
+          refName: "logInfo"
+          arguments:
+            message: "\"Logging data: \\(.)\""
+      - name: "CreateTickets"
+        functionRef:
+          refName: createTicket
+          arguments:
+            tracker: 
+              id: .tracker.id
+              name: .tracker.name
+            parent: .trackerProject.id
+            kind: .trackerProjectIssueTypes[0].id
+            application:
+              id: .application.id
+              name: .application.name
+        actionDataFilter:
+          toStateData: ".migrationWaveJiraTicket"
+    transition: NotifyCompletion          
+  - name: NotifyCompletion
+    type: operation
+    actions:
+      - condition: .backstageUser != null or .backstageGroup != null
+        functionRef:
+          refName: createNotification
+          arguments:
+            title: "MTA analysis completed"
+            message: '"MTA analysis is completed and the report for " + .application.repository.url + " is ready."'
+            origin: "MTA Analysis Workflow"
+            topic: "MTA Analysis Workflow"
+            targetUsers: if .backstageUser != null then [.backstageUser] else [] end
+            targetGroups: if .backstageGroup != null then [.backstageGroup] else [] end
+            actions:
+              - title: "View report"
+                url: "$SECRET.mta.url + \"/applications/\" + (.application.id|tostring)"
+    transition: report
+  - name: report
+    type: operation
+    stateDataFilter:
+      output: '{mtaAnalysisResultURL: ($SECRET.mta.url + "/hub/applications/" + (.application.id|tostring) + "/bucket/windup/report/"), migrationWaveJiraTicketURL: .migrationWaveJiraTicket.link, repositoryURL: .repositoryURL, workflowOptions: {migrationOptions: [{id: "m2k", name: "Move2Kube workflow"}]}}'
+    end: true
+  - name: NotifyFailureBackstage
+    type: operation
+    actions:
+      - condition: .backstageUser != null or .backstageGroup != null
+        functionRef:
+          refName: createNotification
+          arguments:
+            title: "MTA analysis failed"
+            message: '"MTA analysis for " + .application.repository.url + " failed. Check logs of task pod: " + .taskgroup.tasks[0].pod'
+            origin: "MTA Analysis Workflow"
+            topic: "MTA Analysis Workflow"
+            targetUsers: if .backstageUser != null then [.backstageUser] else [] end
+            targetGroups: if .backstageGroup != null then [.backstageGroup] else [] end
+    end: true

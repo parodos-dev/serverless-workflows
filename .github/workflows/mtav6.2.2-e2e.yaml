@@ -1,4 +1,4 @@
-name: MTA Workflow end to end tests 
+name: MTA v6.2.2 Workflow end to end tests 
 
 on:
   workflow_dispatch:
@@ -6,11 +6,11 @@ on:
     branches:
       - main
     paths:
-      - 'mta/**'
+      - 'mtav6.2.2/**'
       - 'pipeline/**'
-      - 'e2e/mta.sh'
-      - '!mta/*.svg'
-      - .github/workflows/mta-e2e.yaml
+      - 'e2e/mtav6.2.2.sh'
+      - '!mtav6.2.2/*.svg'
+      - .github/workflows/mtav6.2.2-e2e.yaml
       - .github/workflows/main.yml
 
 jobs:
@@ -18,7 +18,7 @@ jobs:
     uses: ./.github/workflows/main.yml
     secrets: inherit
     with:
-      workflow_id: mta
+      workflow_id: mtav6.2.2
       it_mode: true
   run-e2e:
     runs-on: ubuntu-latest
@@ -132,7 +132,7 @@ jobs:
       - uses: actions/checkout@v3
       - name: Run e2e script
         run: |
-          e2e/mta.sh
+          e2e/mtav6.2.2.sh
 
       - name: Export kind Logs
         if: always()
