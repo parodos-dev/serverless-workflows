@@ -79,6 +79,8 @@ endif
 DEPLOYMENT_REPO ?= parodos-dev/serverless-workflows-config
 DEPLOYMENT_BRANCH ?= main
 
+ENABLE_PERSISTENCE ?= false
+
 # extra extensions needed for persistence at build time.
 # The extentions listed below are included in the cache in image quay.io/kiegroup/kogito-swf-builder:9.99.1.CR1 or available from maven central repository
 QUARKUS_EXTENSIONS=org.kie.kogito:kogito-addons-quarkus-jobs-knative-eventing:9.99.1.redhat-00003,org.kie.kogito:kogito-addons-quarkus-persistence-jdbc:9.99.1.redhat-00003,org.kie.kogito:kogito-addons-persistence-jdbc:9.99.1.redhat-00003,io.quarkus:quarkus-jdbc-postgresql:3.2.9.Final,io.quarkus:quarkus-agroal:3.2.9.Final
@@ -163,7 +165,8 @@ save-oci: build-image
 gen-manifests: prepare-workdir
 	cd $(WORKDIR)
 	@$(CONTAINER_ENGINE) run --rm -v $(WORKDIR):/workdir -w /workdir \
-		$(LINUX_IMAGE) /bin/bash -c "${SCRIPTS_DIR}/gen_manifests.sh $(WORKFLOW_ID)"
+		$(LINUX_IMAGE) /bin/bash -c "${SCRIPTS_DIR}/gen_manifests.sh $(WORKFLOW_ID) $(ENABLE_PERSISTENCE)"
+	@echo "Manifests are available in workdir $(WORKDIR)/$(WORKFLOW_ID)/manifests"
 
 # Target: push-manifests
 # Description: Pushes the generated k8s manifests from the configured WORKDIR to the 
