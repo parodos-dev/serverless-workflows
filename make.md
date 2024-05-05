@@ -46,6 +46,7 @@ Variables can be used to configure the behavior of the [Makefile](./Makefile):
 | IMAGE_TAG | Automatically added image tag | 8 chars commit hash of the latest commit |
 | DEPLOYMENT_REPO | Git repo of the deployment source code | `parodos-dev/serverless-workflows-config` |
 | DEPLOYMENT_BRANCH | Branch of the deployment git repo | `main` |
+| ENABLE_PERSISTENCE | Enables the addition of persistence to the generated manifests. Useful for local testing | `false` |
 
 Override the default values with:
 ```bash
@@ -105,6 +106,12 @@ Generate the k8s manifests in the WORKDIR folder:
 ```bash
 make CONTAINER_ENGINE=docker WORKFLOW_ID=escalation gen-manifests
 ```
+
+Generate the k8s manifests with persistence enabled in the Sonataflow CR and in the ConfigMap in the WORKDIR folder:
+```bash
+make CONTAINER_ENGINE=docker WORKFLOW_ID=escalation ENABLE_PERSISTENCE=true gen-manifests
+```
+
 Generate the k8s manifests and push them to the default deployment repo:
 ```bash
 make CONTAINER_ENGINE=docker WORKFLOW_ID=escalation gen-manifests push-manifests
