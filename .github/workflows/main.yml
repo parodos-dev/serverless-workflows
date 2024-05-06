@@ -112,7 +112,6 @@ jobs:
 
     - name: Set persistence spec in SonataFlow resource
       run: |
-        yq --inplace '.spec.podTemplate.container.image="quay.io/orchestrator/serverless-workflow-${{ inputs.workflow_id }}:${{ github.sha }}"' ${{ inputs.workflow_id }}/manifests/01-sonataflow*.yaml
         yq --inplace '.spec |= (
           . + {
             "persistence": {
