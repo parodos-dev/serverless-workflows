@@ -1,0 +1,19 @@
+name: MTA v7.0.2 workflow container image and manifest push
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'mtav7.0.2/**'
+      - 'pipeline/**'
+      - .github/workflows/mtav7.0.2.yml
+      - .github/workflows/main.yml
+
+jobs:
+  call-main-workflow:
+    uses: ./.github/workflows/main.yml
+    with:
+      workflow_id: mtav7.0.2
+    secrets: inherit
+
