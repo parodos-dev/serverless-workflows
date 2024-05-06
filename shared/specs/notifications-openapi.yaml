@@ -1,0 +1,120 @@
+openapi: 3.0.3
+info:
+  title: Notifications Plugin - OpenAPI Specs
+  description: |-
+    Notifications Plugin - OpenAPI Specs
+  version: 1.0.0
+tags:
+  - name: notifications
+    description: notifications plugin
+servers:
+  - url: http://localhost:7007/api/notifications
+paths:
+  /:
+    post:
+      tags:
+        - "notifications"
+      summary: Create a notification
+      description: Create a notification
+      operationId: createNotification
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBody'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notifications'
+      security:
+        - bearertoken: []
+components:
+  schemas:
+    NotificationPayload:
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        link:
+          type: string
+        severity:
+          type: string
+          enum:
+            - 'critical'
+            - 'high'
+            - 'normal'
+            - 'low'
+        topic:
+          type: string
+        scope:
+          type: string
+        icon:
+          type: string
+      required: [title]
+    CreateBody:
+      properties:
+        recipients:
+          oneOf:
+            - type: object
+              properties:
+                type:
+                  type: string
+                  enum:
+                    - 'broadcast'
+              required: ["type"]
+            - type: object
+              properties:
+                type:
+                  type: string
+                  enum:
+                    - 'entity'
+                entityRef:
+                  type: array
+                  items:
+                    type: string
+                excludeEntityRef:
+                  oneOf:
+                    - type: string
+                    - type: array
+                      items:
+                        type: string
+              required: ["type", "entityRef"]
+        payload:
+          $ref: '#/components/schemas/NotificationPayload'
+    Notification:
+      properties:
+        id:
+          type: string
+        user:
+          type: string
+          nullable: true
+        created:
+          type: string
+          format: date-time
+        saved:
+          type: string
+          format: date-time
+        read:
+          type: string
+          format: date-time
+        updated:
+          type: string
+          format: date-time
+        origin:
+          type: string
+        payload:
+          $ref: '#/components/schemas/NotificationPayload'
+      required: [id, user, created, origin, payload]
+    Notifications:
+      type: array
+      items:
+        $ref: '#/components/schemas/Notification'
+  securitySchemes:
+    bearertoken:
+      type: http
+      scheme: bearer
+      description: Bearer Token authentication   
