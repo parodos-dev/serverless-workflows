@@ -127,7 +127,7 @@ jobs:
           # give the pod time to start
           sleep 15
           kubectl get pods -o wide
-          kubectl wait --for=condition=Ready=true pods -l "app=mta-analysis" --timeout=5m
+          kubectl wait --for=condition=Ready=true pods -l "app=mta-analysis" --timeout=10m
 
       - uses: actions/checkout@v3
       - name: Run e2e script
