@@ -3,8 +3,11 @@
 set -x
 set -e
 
-# microk8s
-# sudo snap install microk8s --classic
+# git repo
+# git clone https://github.com/rhkp/serverless-workflows.git -b flpath751
+# cd serverless-workflows/experimental-ci-on-vm/
+# chmod 766 ubuntuvm.sh
+# chmod 766 expv6.2.2.sh
 
 sudo apt-get update
 
@@ -62,13 +65,6 @@ sudo wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd6
 [ $(uname -m) = aarch64 ] && curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.22.0/kind-linux-arm64
 chmod +x ./kind
 sudo mv ./kind /usr/local/bin/kind
-
-# git repo
-git clone https://github.com/rhkp/serverless-workflows.git -b flpath751
-cd serverless-workflows/
-mkdir temp; cd temp;
-vi expv6.2.2.sh
-chmod 766 expv6.2.2.sh
 
 # kubectl
 curl -LO https://dl.k8s.io/release/v1.30.0/bin/linux/amd64/kubectl
