@@ -4,6 +4,9 @@
 # .git_token file exists with current Token (or injected as the GIT_TOKEN env var)
 # Linux OS
 
+# NOTE: Kustomize related work is out-of-scope hence this Makefile is no longer needed.
+# However we will use this for experimental CI on a VM to generate manifests and test the workflows
+
 ifndef WORKFLOW_ID
 $(error WORKFLOW_ID variable is not defined. Please provide the required value)
 endif
@@ -27,11 +30,7 @@ else
 	DOCKER_CONF := $(HOME)/.docker
 endif
 
-WORKDIR := $(shell mktemp -d)
-ifeq ($(shell uname),Darwin)
-	# Use a fixed folder to simplify limactl configuration (must be mounted with Write permissions)
-	WORKDIR := ~/workdir
-endif
+WORKDIR := ~/workdir
 SCRIPTS_DIR := scripts
 
 GIT_USER_NAME ?= $(shell git config --get user.name)
@@ -167,12 +166,3 @@ gen-manifests: prepare-workdir
 	@$(CONTAINER_ENGINE) run --rm -v $(WORKDIR):/workdir -w /workdir \
 		$(LINUX_IMAGE) /bin/bash -c "${SCRIPTS_DIR}/gen_manifests.sh $(WORKFLOW_ID) $(ENABLE_PERSISTENCE)"
 	@echo "Manifests are available in workdir $(WORKDIR)/$(WORKFLOW_ID)/manifests"
-
-# Target: push-manifests
-# Description: Pushes the generated k8s manifests from the configured WORKDIR to the 
-# configured DEPLOYMENT_REPO.
-# Usage: make push-manifests
-push-manifests: prepare-workdir
-	cd $(WORKDIR)
-	@$(CONTAINER_ENGINE) run --rm -v $(WORKDIR):/workdir -w /workdir \
-		$(LINUX_IMAGE) /bin/bash -c "${SCRIPTS_DIR}/push_manifests.sh '$(GIT_USER_NAME)' $(GIT_USER_EMAIL) $(GIT_TOKEN) $(PR_OR_COMMIT_URL) $(DEPLOYMENT_REPO) $(DEPLOYMENT_BRANCH) $(WORKFLOW_ID) $(APPLICATION_ID) $(IMAGE_NAME) $(IMAGE_TAG)"
