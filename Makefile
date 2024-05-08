@@ -91,7 +91,7 @@ MAVEN_ARGS_APPEND="-Dkogito.persistence.type=jdbc -Dquarkus.datasource.db-kind=p
 
 .PHONY: all
 
-all: build-image push-image gen-manifests push-manifests
+all: build-image push-image gen-manifests
 
 # Target: prepare-workdir
 # Description: copies the local repo content in a temporary WORKDIR for file manipulation.
