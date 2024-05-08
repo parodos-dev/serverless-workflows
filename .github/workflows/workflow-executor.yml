@@ -23,7 +23,7 @@ jobs:
   build-and-push-image:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Log in to Red Hat Registry
       uses: redhat-actions/podman-login@v1
       with:
@@ -42,7 +42,7 @@ jobs:
   gen-and-push-manifests:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Push manifests to CD repo
       run: |
         # TODO: update PR_OR_COMMIT_URL with PR's URL, if it comes from a PR

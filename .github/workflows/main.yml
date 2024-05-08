@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Log in to Red Hat Registry
       uses: redhat-actions/podman-login@v1
@@ -91,7 +91,7 @@ jobs:
       contents: read
       pull-requests: write
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Add auto DB migration in props
       run: echo -e "\nquarkus.flyway.migrate-at-start=true" >> ${{ inputs.workflow_id }}/application.properties
