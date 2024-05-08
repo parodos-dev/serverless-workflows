@@ -65,7 +65,7 @@ jobs:
           oci-archive:serverless-workflow-${{ inputs.workflow_id }}-${{ github.sha }}.tar:quay.io/orchestrator/serverless-workflow-${{ inputs.workflow_id }}:${{ github.sha }}
     - name: Save OCI archive
       if: ${{ inputs.it_mode }}
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: serverless-workflow-${{ inputs.workflow_id }}-${{ github.sha }}.tar
         path: serverless-workflow-${{ inputs.workflow_id }}-${{ github.sha }}.tar
@@ -133,7 +133,7 @@ jobs:
         )' ${{ inputs.workflow_id }}/manifests/01-sonataflow*.yaml
 
     - name: Archive manifests
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: serverless-workflow-${{ inputs.workflow_id }}-manifests
         path: ${{ inputs.workflow_id }}/manifests

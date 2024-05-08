@@ -55,7 +55,7 @@ jobs:
 
     - name: Save OCI archive
       if: ${{ ! inputs.push_pr }}
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: serverless-workflow-m2k-kfunc-${{ github.sha }}.tar
         path: serverless-workflow-m2k-kfunc-${{ github.sha }}.tar
