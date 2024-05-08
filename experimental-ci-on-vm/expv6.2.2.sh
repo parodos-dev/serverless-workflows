@@ -3,15 +3,8 @@
 set -x
 set -e
 
-# kind delete cluster
-
+kind delete cluster
 kind create cluster
-
-#crc delete
-# crc start
-
-# minikube delete
-# minikube start
 
 kubectl apply -f https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/quickstart/crds.yaml
 # give the apiserver time
@@ -22,8 +15,8 @@ kubectl apply -f https://raw.githubusercontent.com/operator-framework/operator-l
 # version 0.2 is MTA 6.2 and 0.3 is 7.x
 kubectl create -f https://operatorhub.io/install/konveyor-0.2/konveyor-operator.yaml
 # give the apiserver time
-echo "sleeping 120 seconds to give time for the operator to pull images and start"
-sleep 120
+echo "sleeping 300 seconds to give time for the operator to pull images and start"
+sleep 300
 kubectl get csv -A 
 # TODO its a bit smelly that the csv name is coded here. 
 kubectl wait --for=jsonpath='{.status.phase}=Succeeded' -n my-konveyor-operator csv/konveyor-operator.v0.2.1 
@@ -49,7 +42,7 @@ sleep 60
 kubectl get tackle -n my-konveyor-operator -o yaml
 echo "wait for tackle ui to be ready"
 kubectl get pods -n my-konveyor-operator
-sleep 120
+sleep 300
 kubectl wait --for=condition=Ready=true pods -l "app.kubernetes.io/name=tackle-ui" -n my-konveyor-operator --timeout=240s
 
 # Install JanusIDP

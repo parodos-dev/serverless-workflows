@@ -11,19 +11,6 @@ set -e
 
 sudo apt-get update
 
-
-# qemu
-# sudo apt install qemu-system -y
-# sudo qemu-system-x86_64 -enable-kvm -cdrom http://archive.ubuntu.com/ubuntu/dists/bionic-updates/main/installer-amd64/current/images/netboot/mini.iso
-# sudo qemu-system-x86_64 -enable-kvm -cdrom http://archive.ubuntu.com/ubuntu/dists/bionic-updates/main/installer-amd64/current/images/netboot/mini.iso
-# sudo apt install qemu
-
-# kvm 
-# sudo apt install qemu-kvm libvirt-daemon-system libvirt-clients bridge-utils -y
-
-# podman
-# sudo apt-get -y install podman
-
 # docker
 # Add Docker's official GPG key:
 sudo apt-get update
@@ -41,22 +28,11 @@ sudo apt-get update
 
 sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y
 
-# gvproxy
-# sudo wget https://github.com/containers/gvisor-tap-vsock/releases/download/v0.7.3/gvproxy-linux-amd64 -O /usr/libexec/podman/gvproxy && sudo chmod +x /usr/libexec/podman/gvproxy
-# podman machine init
-# podman machine start
-
 # make
 sudo apt install make
 
 # yq
-# sudo apt  install yq -y
 sudo wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq &&  sudo  chmod +x /usr/bin/yq
-
-# minikube
-# curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
-# sudo install minikube-linux-amd64 /usr/local/bin/minikube && rm minikube-linux-amd64
-# minikube start
 
 # kind
 # For AMD64 / x86_64
@@ -77,7 +53,6 @@ sudo apt-get install apt-transport-https --yes
 echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/helm.gpg] https://baltocdn.com/helm/stable/debian/ all main" | sudo tee /etc/apt/sources.list.d/helm-stable-debian.list
 sudo apt-get update
 sudo apt-get install helm -y
-./expv6.2.2.sh
 
 # To invoke kind without sudo
 sudo chmod 666 /var/run/docker.sock
