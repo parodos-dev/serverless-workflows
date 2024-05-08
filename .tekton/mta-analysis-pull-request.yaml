@@ -8,7 +8,7 @@ metadata:
     build.appstudio.redhat.com/target_branch: '{{target_branch}}'
     pipelinesascode.tekton.dev/max-keep-runs: "3"
     pipelinesascode.tekton.dev/on-cel-expression: event == "pull_request" && target_branch
-      == "main" && ( "escalation/***".pathChanged() || ".tekton/mta-analysis-pull-request.yaml".pathChanged()
+      == "main" && ( "mta/***".pathChanged() || ".tekton/mta-analysis-pull-request.yaml".pathChanged()
       || "pipeline/workflow-builder.Dockerfile".pathChanged() )
   creationTimestamp: null
   labels:
@@ -28,7 +28,7 @@ spec:
   - name: output-image
     value: quay.io/redhat-user-workloads/rgolan1-tenant/serverless-workflows/mta-analysis:on-pr-{{revision}}
   - name: path-context
-    value: escalation
+    value: mta
   - name: revision
     value: '{{revision}}'
   pipelineSpec:
