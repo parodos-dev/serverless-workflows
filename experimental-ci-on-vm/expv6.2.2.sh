@@ -63,7 +63,7 @@ kubectl wait --for=condition=Ready=true pods -l "app=sonataflow-platform" --time
 cd ..
 
 # Create and push image, generate manifests
-rm -rf ~/workdir
+sudo rm -rf ~/workdir
 make WORKFLOW_ID=mtav6.2.2 REGISTRY_REPO=rhkp GIT_USER_NAME=rhkp
 
 # Load workflow image
