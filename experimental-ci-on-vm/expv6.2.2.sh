@@ -63,18 +63,18 @@ kubectl wait --for=condition=Ready=true pods -l "app=sonataflow-platform" --time
 cd ..
 
 # Create and push image, generate manifests
-make WORKFLOW_ID=mtav7.0.2 REGISTRY_REPO=rhkp GIT_USER_NAME=rhkp
+rm -rf ~/workdir
+make WORKFLOW_ID=mtav6.2.2 REGISTRY_REPO=rhkp GIT_USER_NAME=rhkp
 
 # Load workflow image
-docker save quay.io/rhkp/serverless-workflow-mtav7.0.2:latest -o serverless-workflow-mtav6.2.2.tar
+docker save quay.io/rhkp/serverless-workflow-mtav6.2.2:latest -o serverless-workflow-mtav6.2.2.tar
 # minikube image load image-archive serverless-workflow-mtav6.2.2.tar
 kind load image-archive serverless-workflow-mtav6.2.2.tar
 
 # Copy generated manifests
 rm -rf ./manifests
 mkdir ./manifests
-cp ~/workdir/mtav6.2.2/manifests ./manifests
-cp /tmp/tmp.wxewl6NEW0/mtav7.0.2/manifests .
+cp -r ~/workdir/mtav6.2.2/manifests .
 
 # Set the endpoint to the tackle-ui service
 yq --inplace '.spec.podTemplate.container.env |= ( . + [{"name": "QUARKUS_REST_CLIENT_MTA_JSON_URL", "value": "http://tackle-ui.my-konveyor-operator.svc:8080/hub"}, {"name": "BACKSTAGE_NOTIFICATIONS_URL", "value": "http://janus-idp-workflows-backstage.default.svc.cluster.local:7007/api/notifications/"}] )' manifests/01-sonataflow_mta-analysis.yaml

@@ -57,3 +57,5 @@ sudo apt-get install helm -y
 # To invoke kind without sudo
 sudo chmod 666 /var/run/docker.sock
 
+echo "IMPORTANT: Login to quay.io container registry"
+docker login quay.io
