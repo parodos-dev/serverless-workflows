@@ -64,7 +64,7 @@ cd ..
 
 # Create and push image, generate manifests
 sudo rm -rf ~/workdir
-make WORKFLOW_ID=mtav6.2.2 REGISTRY_REPO=rhkp GIT_USER_NAME=rhkp
+make WORKFLOW_ID=mtav6.2.2 REGISTRY_REPO=rhkp GIT_USER_NAME=rhkp LOCAL_TEST=true for-local-tests
 
 # Load workflow image
 docker save quay.io/rhkp/serverless-workflow-mtav6.2.2:latest -o serverless-workflow-mtav6.2.2.tar
