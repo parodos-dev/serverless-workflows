@@ -3,12 +3,6 @@
 set -x
 set -e
 
-#git repo
-git clone https://github.com/rhkp/serverless-workflows.git -b flpath751
-cd serverless-workflows/experimental-ci-on-vm/
-chmod +x ubuntuvm.sh
-chmod +x expv6.2.2.sh
-
 sudo apt-get update
 
 # docker
