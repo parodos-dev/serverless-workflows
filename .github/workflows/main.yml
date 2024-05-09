@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Log in to Red Hat Registry
       uses: redhat-actions/podman-login@v1
@@ -65,7 +65,7 @@ jobs:
           oci-archive:serverless-workflow-${{ inputs.workflow_id }}-${{ github.sha }}.tar:quay.io/orchestrator/serverless-workflow-${{ inputs.workflow_id }}:${{ github.sha }}
     - name: Save OCI archive
       if: ${{ inputs.it_mode }}
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: serverless-workflow-${{ inputs.workflow_id }}-${{ github.sha }}.tar
         path: serverless-workflow-${{ inputs.workflow_id }}-${{ github.sha }}.tar
@@ -91,7 +91,7 @@ jobs:
       contents: read
       pull-requests: write
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Add auto DB migration in props
       run: echo -e "\nquarkus.flyway.migrate-at-start=true" >> ${{ inputs.workflow_id }}/application.properties
@@ -133,7 +133,7 @@ jobs:
         )' ${{ inputs.workflow_id }}/manifests/01-sonataflow*.yaml
 
     - name: Archive manifests
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: serverless-workflow-${{ inputs.workflow_id }}-manifests
         path: ${{ inputs.workflow_id }}/manifests

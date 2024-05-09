@@ -84,13 +84,13 @@ jobs:
           kubectl wait --for=condition=Ready=true pods -l "app=sonataflow-platform" --timeout=120s
 
       - name: Download sonataflow artifacts generated manifests
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: serverless-workflow-mta-manifests
           path: manifests
 
       - name: Download serverless workflows mta image
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: serverless-workflow-mta-${{ github.sha }}.tar
 
@@ -129,7 +129,7 @@ jobs:
           kubectl get pods -o wide
           kubectl wait --for=condition=Ready=true pods -l "app=mtaanalysis" --timeout=5m
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Run e2e script
         run: |
           e2e/mta.sh
@@ -139,7 +139,7 @@ jobs:
         run: kind export logs ./kind_logs
 
       - name: Upload Kind Logs
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         # Always run this, even if one of th previous steps failed.
         if: always()
         with:

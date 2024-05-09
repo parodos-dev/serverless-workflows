@@ -23,7 +23,7 @@ jobs:
   build-and-push-m2k-func:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: actions/setup-java@v3
       with:
         java-version: '17'
@@ -55,7 +55,7 @@ jobs:
 
     - name: Save OCI archive
       if: ${{ ! inputs.push_pr }}
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: serverless-workflow-m2k-kfunc-${{ github.sha }}.tar
         path: serverless-workflow-m2k-kfunc-${{ github.sha }}.tar
