@@ -49,4 +49,4 @@ kubectl get pods -o wide
 kubectl wait --for=condition=Ready=true pods -l "app=mta-analysis" --timeout=10m
 
 # Run the end to end test
-./e2e/mtav6.2.2.sh
+./e2e/mtav6v7.sh
