@@ -1,6 +1,6 @@
 
 ## Prerequisites
-- An available Ubuntu Server 24.04 LTA VM with specs equivalent to AWS' t2.xlarge specifications
+- An available Ubuntu Server 24.04 LTA VM with specs equivalent to AWS' t3.2xlarge specifications
 
 ## Testing MTAv6.2.2 workflow
 - Clone the serverless-workflows repo which includes the code to ci tests

@@ -32,16 +32,17 @@ fi
 
 mta_analysis_pod=$(kubectl get pod -o name | grep mta-analysis)
 retries=20
-sleep 30
 until eval "test ${retries} -eq 0"; do
-  analysis_out=$(kubectl logs $mta_analysis_pod | grep "\"mtaAnalysisResultURL\" : \"http://tackle-ui.my-konveyor-operator.svc.cluster.local:8080/hub/applications")
-  if [ -z "$analysis_out" ] || [ "$analysis_out" == "null" ]; then
-    echo "checking workflow ${id} completed successfully"
-    sleep 5
-    retries=$((retries-1))
-  else
+  analysis_out=$(kubectl logs $mta_analysis_pod)
+  success_result="\"mtaAnalysisResultURL\" : \"http://tackle-ui.my-konveyor-operator.svc.cluster.local:8080/hub/applications"
+  if grep -q "${success_result}" <<< "$analysis_out"
+  then
     echo "End to end tests passed ✅"
     exit 0
+  else
+    echo "checking workflow ${id} completed successfully"
+    sleep 30
+    retries=$((retries-1))
   fi
 done
 
