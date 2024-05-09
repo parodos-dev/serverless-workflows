@@ -58,31 +58,22 @@ components:
     CreateBody:
       properties:
         recipients:
-          oneOf:
-            - type: object
-              properties:
-                type:
-                  type: string
-                  enum:
-                    - 'broadcast'
-              required: ["type"]
-            - type: object
-              properties:
-                type:
-                  type: string
-                  enum:
-                    - 'entity'
-                entityRef:
-                  type: array
-                  items:
-                    type: string
-                excludeEntityRef:
-                  oneOf:
-                    - type: string
-                    - type: array
-                      items:
-                        type: string
-              required: ["type", "entityRef"]
+          type: object
+          properties:
+            type:
+              type: string
+              enum:
+                - 'broadcast'
+                - 'entity'
+            entityRef:
+              type: array
+              items:
+                type: string
+            excludeEntityRef:
+              type: array
+              items:
+                type: string
+          required: ["type"]
         payload:
           $ref: '#/components/schemas/NotificationPayload'
     Notification:
