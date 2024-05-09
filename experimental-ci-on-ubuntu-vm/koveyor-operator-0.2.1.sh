@@ -34,5 +34,5 @@ sleep 60
 kubectl get tackle -n my-konveyor-operator -o yaml
 echo "wait for tackle ui to be ready"
 kubectl get pods -n my-konveyor-operator
-sleep 30
+sleep 300
 kubectl wait --for=condition=Ready=true pods -l "app.kubernetes.io/name=tackle-ui" -n my-konveyor-operator --timeout=240s
