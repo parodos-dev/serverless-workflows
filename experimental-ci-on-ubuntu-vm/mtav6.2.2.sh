@@ -4,7 +4,7 @@ set -x
 set -e
 
 # Standup the cluster and install janus and konveyor operator
-./clusterup.sh
+./cluster-up.sh
 ./janus-idp.sh
 ./koveyor-operator-0.2.1.sh
 
@@ -49,4 +49,4 @@ kubectl get pods -o wide
 kubectl wait --for=condition=Ready=true pods -l "app=mta-analysis" --timeout=10m
 
 # Run the end to end test
-../e2e/mtav6.2.2.sh
+./e2e/mtav6.2.2.sh
