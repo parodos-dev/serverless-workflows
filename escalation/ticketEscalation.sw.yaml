@@ -11,7 +11,7 @@ start: CreateTicket
 extensions:
   - extensionid: workflow-uri-definitions
     definitions:
-      notifications: "https://raw.githubusercontent.com/janus-idp/backstage-plugins/%40janus-idp/plugin-notifications-backend%401.0.3/plugins/notifications-backend/src/openapi.yaml"
+      notifications: ../shared/specs/notifications-openapi.yaml
 dataInputSchema:
   failOnValidationErrors: true
   schema: schemas/ticket-escalation-schema.json
@@ -87,13 +87,14 @@ states:
         functionRef:
           refName: createNotification
           arguments:
-            title: '"ATTN: Escalation for ticket - " + .createResponse.ticketId'
-            message: '"Please manage escalation ticket " + .createResponse.ticketId '
-            origin: "Escalation Workflow"
-            topic: "Escalation Workflow"
-            actions:
-              - title: '"Escalation ticket " + .createResponse.ticketId'
-                url: .createResponse.browseUrl
+            recipients:
+              type: 'broadcast'
+            payload:
+              title: '"ATTN: Escalation for ticket - " + .createResponse.ticketId'
+              description: '"Please manage escalation ticket " + .createResponse.ticketId '
+              scope: "Escalation Workflow"
+              topic: "Escalation Workflow"
+              link: .createResponse.browseUrl
     onErrors:
       - errorRef: notAvailable
         transition: GetTicket
