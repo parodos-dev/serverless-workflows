@@ -39,8 +39,8 @@ jobs:
           # version 0.2 is MTA 6.2 and 0.3 is 7.x
           kubectl create -f https://operatorhub.io/install/konveyor-0.3/konveyor-operator.yaml
           # give the apiserver time
-          echo "sleeping 120 seconds to give time for the operator to pull images and start"
-          sleep 120s
+          echo "sleeping 300 seconds to give time for the operator to pull images and start"
+          sleep 300s
           kubectl get csv -A 
           # TODO its a bit smelly that the csv name is coded here. 
           kubectl wait --for=jsonpath='{.status.phase}=Succeeded' -n my-konveyor-operator csv/konveyor-operator.v0.3.2
@@ -64,7 +64,7 @@ jobs:
           kubectl get tackle -n my-konveyor-operator -o yaml
           echo "wait for tackle ui to be ready"
           kubectl get pods -n my-konveyor-operator
-          sleep 30s
+          sleep 300s
           kubectl wait --for=condition=Ready=true pods -l "app.kubernetes.io/name=tackle-ui" -n my-konveyor-operator --timeout=240s
           # now MTA workflow can execute agains tackle-ui.my-konveyor-operator.svc:8080
 
@@ -79,18 +79,18 @@ jobs:
           kubectl get pv
           sleep 3m
           kubectl get sfp -A
-          kubectl wait --for=condition=Ready=true pods -l "app.kubernetes.io/name=backstage" --timeout=240s
+          kubectl wait --for=condition=Ready=true pods -l "app.kubernetes.io/name=backstage" --timeout=600s
           kubectl get pods -o wide
-          kubectl wait --for=condition=Ready=true pods -l "app=sonataflow-platform" --timeout=240s
+          kubectl wait --for=condition=Ready=true pods -l "app=sonataflow-platform" --timeout=600s
 
       - name: Download sonataflow artifacts generated manifests
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: serverless-workflow-mtav7.0.2-manifests
           path: manifests
 
       - name: Download serverless workflows mta image
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: serverless-workflow-mtav7.0.2-${{ github.sha }}.tar
 
@@ -106,7 +106,7 @@ jobs:
           ###### end workfaround
 
           # Set the endpoint to the tackle-ui service
-          yq --inplace '.spec.podTemplate.container.env |= ( . + [{"name": "QUARKUS_REST_CLIENT_MTA_JSON_URL", "value": "http://tackle-ui.my-konveyor-operator.svc:8080/hub"}, {"name": "BACKSTAGE_NOTIFICATIONS_URL", "value": "http://janus-idp-workflows-backstage.default.svc.cluster.local:7007/api/notifications/"}] )' manifests/01-sonataflow_mta-analysis.yaml
+          yq --inplace '.spec.podTemplate.container.env |= ( . + [{"name": "QUARKUS_REST_CLIENT_MTA_JSON_URL", "value": "http://tackle-ui.my-konveyor-operator.svc:8080/hub"}, {"name": "MTA_HUB_TOKEN", "value": "TEST_TOKEN_VALUE"}, {"name": "BACKSTAGE_NOTIFICATIONS_URL", "value": "http://janus-idp-workflows-backstage.default.svc.cluster.local:7007/api/notifications/"}] )' manifests/01-sonataflow_mta-analysis.yaml
           
           # Disable persistence for e2e tests
           yq e '.spec.persistence = {}' -i manifests/01-sonataflow_mta-analysis.yaml
@@ -129,7 +129,7 @@ jobs:
           kubectl get pods -o wide
           kubectl wait --for=condition=Ready=true pods -l "app=mta-analysis" --timeout=10m
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Run e2e script
         run: |
           e2e/mtav6v7.sh
@@ -139,7 +139,7 @@ jobs:
         run: kind export logs ./kind_logs
 
       - name: Upload Kind Logs
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         # Always run this, even if one of th previous steps failed.
         if: always()
         with:
