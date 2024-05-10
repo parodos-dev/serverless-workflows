@@ -1,7 +1,7 @@
+The purpose of this effort is to simulate the behavior of CI pipeline which performs end to end tests on workflows when we raise PR. Thus instead of checking if the workflow end to end tests are passing on github, we can use a simple Ubuntu VM and run scripts to see if the tests are passing.
 
 ## Prerequisites
 - An available Ubuntu Server 24.04 LTS VM with specs equivalent to AWS' t3.2xlarge specifications
-
 
 ## Testing MTAv6.2.2 workflow
 - Clone the serverless-workflows repo which includes the code to ci tests
