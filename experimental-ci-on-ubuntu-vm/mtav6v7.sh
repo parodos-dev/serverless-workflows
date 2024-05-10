@@ -6,23 +6,26 @@ set -e
 # Standup the cluster and install janus and konveyor operator
 ./cluster-up.sh
 ./janus-idp.sh
-./koveyor-operator-0.3.2.sh
+if [ "$WORKFLOW_ID" == "mtav6.2.2" ]; then
+    ./konveyor-operator-0.2.1.sh
+else
+    ./konveyor-operator-0.3.2.sh
+fi
 
 cd ..
 
 # Create and push MTA image, generate manifests
 sudo rm -rf ~/workdir
-make WORKFLOW_ID=mtav7.0.2 REGISTRY_REPO=rhkp GIT_USER_NAME=rhkp LOCAL_TEST=true for-local-tests
+make WORKFLOW_ID="$WORKFLOW_ID" REGISTRY_REPO="$REGISTRY_REPO" LOCAL_TEST=true for-local-tests
 
 # Load workflow image
-docker save quay.io/rhkp/serverless-workflow-mtav7.0.2:latest -o serverless-workflow-mtav7.0.2.tar
-# minikube image load image-archive serverless-workflow-mtav7.0.2.tar
-kind load image-archive serverless-workflow-mtav7.0.2.tar
+docker save quay.io/rhkp/serverless-workflow-"$WORKFLOW_ID":latest -o serverless-workflow-"$WORKFLOW_ID".tar
+kind load image-archive serverless-workflow-"$WORKFLOW_ID".tar
 
 # Copy generated manifests
 rm -rf ./manifests
 mkdir ./manifests
-cp -r ~/workdir/mtav7.0.2/manifests .
+cp -r ~/workdir/"$WORKFLOW_ID"/manifests .
 
 # Set the endpoint to the tackle-ui service
 yq --inplace '.spec.podTemplate.container.env |= ( . + [{"name": "QUARKUS_REST_CLIENT_MTA_JSON_URL", "value": "http://tackle-ui.my-konveyor-operator.svc:8080"}, {"name": "MTA_HUB_TOKEN", "value": "TEST_TOKEN_VALUE"}, {"name": "BACKSTAGE_NOTIFICATIONS_URL", "value": "http://janus-idp-workflows-backstage.default.svc.cluster.local:7007/api/notifications/"}] )' manifests/01-sonataflow_mta-analysis.yaml
