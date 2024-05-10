@@ -45,7 +45,7 @@ echo "---"
 # deploy the manifests created by the ${{ steps.build-image.outputs.image }} image
 kubectl apply -f manifests/
 sleep 5
-kubectl get deployment mta-analysis -o jsonpath={.spec.template.spec.containers[]}
+kubectl get deployment mta-analysis -o jsonpath='{.spec.template.spec.containers[]}'
 # give the pod time to start
 sleep 15
 kubectl get pods -o wide
