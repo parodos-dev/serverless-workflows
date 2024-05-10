@@ -8,7 +8,7 @@ The purpose of this effort is to simulate the behavior of CI pipeline which perf
 ```shell
 ssh <your ubuntu vm>
 git clone https://github.com/rhkp/serverless-workflows.git -b flpath751
-cd serverless-workflows/experimental-ci-on-ubuntu-vm/
+cd serverless-workflows/experimental-e2e-tests-on-ubuntu-vm/
 chmod +x ubuntuvm.sh
 chmod +x mtav6v7.sh
 chmod +x cluster-up.sh
