@@ -101,12 +101,12 @@ states:
             addon: windup
             data:
               output: /windup/report
-              rules: 
+              rules:
                 labels:
-                  - konveyor.io/target=cloud-readiness
+                  - "konveyor.io/target=cloud-readiness"
                 rulesets:
-                  - name: Containerization
-                    id: 2                    
+                  - id: 2
+                    name: Containerization
               tagger:
                 enabled: true
               mode:
