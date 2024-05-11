@@ -81,6 +81,11 @@ jobs:
           kubectl get sfp -A
           kubectl wait --for=condition=Ready=true pods -l "app.kubernetes.io/name=backstage" --timeout=600s
           kubectl get pods -o wide
+
+          # To debug why app=sonataflow-platform keeps timeout
+          sleep 120s
+          kubectl describe $(kubectl get pod -o name | grep sonataflow-platform-jobs-service)
+          kubectl wait --for=jsonpath='{.status.phase}'=Running $(kubectl get pod -o name | grep sonataflow-platform-jobs-service) --timeout=300s
           kubectl wait --for=condition=Ready=true pods -l "app=sonataflow-platform" --timeout=600s
 
       - name: Download sonataflow artifacts generated manifests
