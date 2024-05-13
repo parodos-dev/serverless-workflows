@@ -1,0 +1,29 @@
+architecture: standalone
+auth:
+  existingSecret: "sonataflow-psql-postgresql" # name of existing secret to use for PostgreSQL credentials.
+  secretKeys:
+    userPasswordKey: "postgres-password" # name of key in existing secret to use for PostgreSQL credentials. Only used when `existingSecret` is set.
+  database: sonataflow # database instance used by data index and job service
+  username: postgres # database user name
+primary:
+  persistence:
+    size: 2Gi # the database storage size
+  service:
+    ports:
+      postgresql: 5432 # service port to access the database
+  podSecurityContext:
+    fsGroup: null
+    seccompProfile:
+      type: RuntimeDefault
+  containerSecurityContext:
+    runAsUser: null
+    allowPrivilegeEscalation: false
+    runAsNonRoot: true
+    seccompProfile:
+      type: RuntimeDefault
+    capabilities:
+      drop: ["ALL"]
+volumePermissions:
+  enabled: false
+shmVolume:
+  enabled: false

@@ -5,10 +5,11 @@ set -e
 
 # Standup the cluster and install janus and konveyor operator
 ./cluster-up.sh
-./janus-idp.sh
 if [ "$WORKFLOW_ID" == "mtav6.2.2" ]; then
+    ./janus-idp.sh
     ./konveyor-operator-0.2.1.sh
 else
+    ./sonata-flow.sh # Due to GitHub Actions resource constraints just use Sonataflow
     ./konveyor-operator-0.3.2.sh
 fi
 

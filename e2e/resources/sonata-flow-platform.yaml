@@ -1,0 +1,54 @@
+apiVersion: sonataflow.org/v1alpha08
+kind: SonataFlowPlatform
+metadata:
+  name: sonataflow-platform
+  namespace: sonataflow-infra
+spec:
+  build:
+    config:
+      strategyOptions:
+        KanikoBuildCacheEnabled: "true"
+    template:
+      resources:
+        requests:
+          memory: "64Mi"
+          cpu: "250m"
+        limits:
+          memory: "1Gi"
+          cpu: "500m"
+  services:
+    dataIndex:
+      enabled: true
+      podTemplate:
+        container:
+          image: "quay.io/kiegroup/kogito-data-index-postgresql-nightly:latest" # To be removed when stable version is released
+          resources:
+            limits:
+              cpu: 500m
+              memory: 1Gi
+            requests:
+              cpu: 100m
+              memory: 512Mi
+      persistence:
+        postgresql:
+          secretRef:
+            name: sonataflow-psql-postgresql
+            userKey: postgres-username
+            passwordKey: postgres-password
+          serviceRef:
+            name: sonataflow-psql-postgresql
+            namespace: sonataflow-infra
+    jobService:
+      enabled: true
+      podTemplate:
+        container:
+          image: "quay.io/kiegroup/kogito-jobs-service-postgresql-nightly:latest" # To be removed when stable version is released
+      persistence:
+        postgresql:
+          secretRef:
+            name: sonataflow-psql-postgresql
+            userKey: postgres-username
+            passwordKey: postgres-password
+          serviceRef:
+            name: sonataflow-psql-postgresql
+            namespace: sonataflow-infra

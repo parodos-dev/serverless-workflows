@@ -1,0 +1,28 @@
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: sonataflow-operator-group
+  namespace: sonataflow-operator-system
+spec: {}
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+  name: sonataflow-operator
+  namespace: openshift-operators
+spec:
+  displayName: SonataFlow Operator (Development)
+  image: quay.io/masayag/kogito-serverless-operator-catalog:v2.0.0-snapshot
+  sourceType: grpc
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: sonataflow-operator
+  namespace: sonataflow-operator-system
+spec:
+  channel: alpha
+  installPlanApproval: Automatic
+  name: sonataflow-operator
+  source: sonataflow-operator
+  sourceNamespace: openshift-operators
