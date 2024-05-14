@@ -44,7 +44,9 @@ jobs:
           # PostgreSQL installation
           kubectl create secret generic sonataflow-psql-postgresql --from-literal=postgres-username=postgres --from-literal=postgres-password=postgres -n sonataflow-infra
           helm repo add bitnami https://charts.bitnami.com/bitnami
-          helm install sonataflow-psql bitnami/postgresql -f e2e/resources/psql-values.yaml -n sonataflow-infra
+          helm install sonataflow-psql bitnami/postgresql \
+            -f https://raw.githubusercontent.com/rgolangh/orchestrator-helm-chart/main/postgresql/values.yaml \
+            -n sonataflow-infra
           sleep 60s
           kubectl wait --for=jsonpath='{.status.phase}'=Running "$(kubectl get pod -o name -n sonataflow-infra | grep sonataflow-psql-postgresql)" --timeout=300s -n sonataflow-infra
 
