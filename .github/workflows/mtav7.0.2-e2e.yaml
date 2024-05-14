@@ -70,24 +70,26 @@ jobs:
 
       - name: Deploy Sonataflow-operator)
         run: |
+          # Namespace for Sonataflow
+          kubectl create namespace sonataflow-infra
+
+          # PostgreSQL installation
+          kubectl create secret generic sonataflow-psql-postgresql --from-literal=postgres-username=postgres --from-literal=postgres-password=postgres -n sonataflow-infra
+          helm repo add bitnami https://charts.bitnami.com/bitnami
+          helm install sonataflow-psql bitnami/postgresql -f ../e2e/resources/psql-values.yaml -n sonataflow-infra
+          sleep 60s
+          kubectl wait --for=jsonpath='{.status.phase}'=Running "$(kubectl get pod -o name -n sonataflow-infra | grep sonataflow-psql-postgresql)" --timeout=300s -n sonataflow-infra
+
+          # Sonataflow operator
           kubectl create -f https://raw.githubusercontent.com/kiegroup/kogito-serverless-operator/main/operator.yaml
-          helm repo add janus-idp-workflows https://rgolangh.github.io/janus-idp-workflows-helm/
-          helm install janus-idp-workflows janus-idp-workflows/janus-idp-workflows \
-            --set backstage.upstream.backstage.image.tag=1.1 \
-            -f https://raw.githubusercontent.com/rgolangh/janus-idp-workflows-helm/main/charts/kubernetes/orchestrator/values-k8s.yaml
+          kubectl apply -f ../e2e/resources/sonata-flow-operator.yaml
+          kubectl wait --for=jsonpath='{.status.phase}'=Running "$(kubectl get pod -o name -n sonataflow-operator-system | grep sonataflow-operator-controller-manager)" -n sonataflow-operator-system  --timeout=300s
 
-          echo "sleep bit long till the PV for data index and kaniko cache is ready. its a bit slow. TODO fixit"
-          kubectl get pv
-          sleep 3m
-          kubectl get sfp -A
-          kubectl wait --for=condition=Ready=true pods -l "app.kubernetes.io/name=backstage" --timeout=600s
-          kubectl get pods -o wide
-
-          # To debug why app=sonataflow-platform keeps timeout
-          sleep 120s
-          kubectl describe $(kubectl get pod -o name | grep sonataflow-platform-jobs-service)
-          kubectl wait --for=jsonpath='{.status.phase}'=Running $(kubectl get pod -o name | grep sonataflow-platform-jobs-service) --timeout=300s
-          kubectl wait --for=condition=Ready=true pods -l "app=sonataflow-platform" --timeout=600s
+          # Core services of Sonataflow
+          kubectl apply -f ../e2e/resources/sonata-flow-platform.yaml
+          sleep 60s
+          kubectl wait --for=jsonpath='{.status.phase}'=Running "$(kubectl get pod -o name -n sonataflow-infra | grep sonataflow-platform-jobs-service)" -n sonataflow-infra --timeout=300s
+          kubectl wait --for=jsonpath='{.status.phase}'=Running "$(kubectl get pod -o name -n sonataflow-infra | grep sonataflow-platform-data-index-service)" -n sonataflow-infra --timeout=300s
 
       - name: Download sonataflow artifacts generated manifests
         uses: actions/download-artifact@v4
