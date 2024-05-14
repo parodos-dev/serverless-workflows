@@ -33,7 +33,7 @@ fi
 mta_analysis_pod=$(kubectl get pod -o name | grep mta-analysis)
 retries=20
 until eval "test ${retries} -eq 0"; do
-  analysis_out=$(kubectl logs $mta_analysis_pod)
+  analysis_out=$(kubectl logs "$mta_analysis_pod")
   success_result="\"mtaAnalysisResultURL\" : \"http://tackle-ui.my-konveyor-operator.svc.cluster.local:8080/hub/applications"
   if grep -q "${success_result}" <<< "$analysis_out"
   then
