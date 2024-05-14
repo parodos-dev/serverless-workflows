@@ -1,6 +1,8 @@
 package dev.parodos;
 
 import dev.parodos.move2kube.ApiException;
+import dev.parodos.service.EventService;
+import dev.parodos.service.EventServiceImpl;
 import dev.parodos.service.FolderCreatorService;
 import dev.parodos.service.GitService;
 import dev.parodos.service.Move2KubeService;
@@ -11,6 +13,7 @@ import jakarta.inject.Inject;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.microprofile.config.ConfigProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,14 +46,16 @@ public class SaveTransformationFunction {
   @Inject
   FolderCreatorService folderCreatorService;
 
-
+  @Inject
+  EventService eventService;
 
   @Funq("saveTransformation")
-  public CloudEvent<EventGenerator.EventPOJO> saveTransformation(FunInput input) {
+  public void saveTransformation(FunInput input) throws IOException {
     if (!input.validate()) {
       log.error("One or multiple mandatory input field was missing; input: {}", input);
-      return EventGenerator.createErrorEvent(input.workflowCallerId, String.format("One or multiple mandatory input field was missing; input: %s", input),
-          SOURCE);
+      eventService.fireEvent(EventService.EventGenerator.createErrorEvent(input.workflowCallerId, String.format("One or multiple mandatory input field was missing; input: %s", input),
+          SOURCE));
+      return;
     }
 
     Path transformationOutputPath;
@@ -58,26 +63,29 @@ public class SaveTransformationFunction {
       transformationOutputPath = move2KubeService.getTransformationOutput(input.workspaceId, input.projectId, input.transformId);
     } catch (IllegalArgumentException | IOException | ApiException e) {
       log.error("Error while retrieving transformation output", e);
-      return EventGenerator.createErrorEvent(input.workflowCallerId, String.format("Cannot get transformation output of transformation %s" +
+      eventService.fireEvent(EventService.EventGenerator.createErrorEvent(input.workflowCallerId, String.format("Cannot get transformation output of transformation %s" +
               " in workspace %s for project %s for repo %s; error: %s",
-          input.transformId, input.workspaceId, input.projectId, input.gitRepo, e), SOURCE);
+          input.transformId, input.workspaceId, input.projectId, input.gitRepo, e), SOURCE));
+      return;
     } catch (NoSuchAlgorithmException | KeyStoreException | KeyManagementException e) {
       log.error("Error while creating httpclient to get transformation output", e);
-      return EventGenerator.createErrorEvent(input.workflowCallerId, String.format("Cannot create client to get transformation output of transformation %s" +
+      eventService.fireEvent(EventService.EventGenerator.createErrorEvent(input.workflowCallerId, String.format("Cannot create client to get transformation output of transformation %s" +
               " in workspace %s for project %s for repo %s; error: %s",
-          input.transformId, input.workspaceId, input.projectId, input.gitRepo, e), SOURCE);
+          input.transformId, input.workspaceId, input.projectId, input.gitRepo, e), SOURCE));
+      return;
     }
 
     try {
       cleanTransformationOutputFolder(transformationOutputPath);
     } catch (IOException e) {
       log.error("Error while cleaning extracted transformation output", e);
-      return EventGenerator.createErrorEvent(input.workflowCallerId, String.format("Cannot clean extracted transformation output of transformation %s" +
+      eventService.fireEvent(EventService.EventGenerator.createErrorEvent(input.workflowCallerId, String.format("Cannot clean extracted transformation output of transformation %s" +
               " in workspace %s for project %s for repo %s; error: %s",
-          input.transformId, input.workspaceId, input.projectId, input.gitRepo, e), SOURCE);
+          input.transformId, input.workspaceId, input.projectId, input.gitRepo, e), SOURCE));
+      return;
     }
 
-    return pushTransformationToGitRepo(input, transformationOutputPath);
+    eventService.fireEvent(pushTransformationToGitRepo(input, transformationOutputPath));
   }
 
 
@@ -95,7 +103,7 @@ public class SaveTransformationFunction {
           log.error("Cannot move transformation output to local git repo " +
                   "(repo {}; transformation: {}; workspace: {}; project: {})",
               input.gitRepo, input.transformId, input.workspaceId, input.projectId, e);
-          return EventGenerator.createErrorEvent(input.workflowCallerId, String.format("Cannot move transformation output to local git repo " +
+          return EventService.EventGenerator.createErrorEvent(input.workflowCallerId, String.format("Cannot move transformation output to local git repo " +
                   "(repo %s; transformation: %s; workspace: %s; project: %s); error: %s",
               input.gitRepo, input.transformId, input.workspaceId, input.projectId, e), SOURCE);
         }
@@ -104,12 +112,12 @@ public class SaveTransformationFunction {
 
       } catch (GitAPIException e) {
         log.error("Cannot clone repo {}", input.gitRepo, e);
-        return EventGenerator.createErrorEvent(input.workflowCallerId, String.format("Cannot clone repo %s; error: %s", input.gitRepo, e),
+        return EventService.EventGenerator.createErrorEvent(input.workflowCallerId, String.format("Cannot clone repo %s; error: %s", input.gitRepo, e),
             SOURCE);
       }
     } catch (IOException e) {
       log.error("Cannot create temp dir to clone repo {}", input.gitRepo, e);
-      return EventGenerator.createErrorEvent(input.workflowCallerId, String.format("Cannot create temp dir to clone repo %s; error: %s", input.gitRepo, e),
+      return EventService.EventGenerator.createErrorEvent(input.workflowCallerId, String.format("Cannot create temp dir to clone repo %s; error: %s", input.gitRepo, e),
           SOURCE);
     }
 
@@ -172,13 +180,13 @@ public class SaveTransformationFunction {
     try {
       if (gitService.branchExists(clonedRepo, input.branch)) {
         log.error("Branch {} already exists on repo {}", input.branch, input.gitRepo);
-        return EventGenerator.createErrorEvent(input.workflowCallerId, String.format("Branch '%s' already exists on repo %s",
+        return EventService.EventGenerator.createErrorEvent(input.workflowCallerId, String.format("Branch '%s' already exists on repo %s",
             input.branch, input.gitRepo), SOURCE);
       }
       gitService.createBranch(clonedRepo, input.branch);
     } catch (GitAPIException e) {
       log.error("Cannot create branch {} to remote repo {}", input.branch, input.gitRepo, e);
-      return EventGenerator.createErrorEvent(input.workflowCallerId, String.format("Cannot create branch '%s' on repo %s; error: %s",
+      return EventService.EventGenerator.createErrorEvent(input.workflowCallerId, String.format("Cannot create branch '%s' on repo %s; error: %s",
           input.branch, input.gitRepo, e), SOURCE);
     }
     return null;
@@ -189,7 +197,7 @@ public class SaveTransformationFunction {
       gitService.commit(clonedRepo, COMMIT_MESSAGE, ".");
     } catch (GitAPIException e) {
       log.error("Cannot commit to local repo {}", input.gitRepo, e);
-      return EventGenerator.createErrorEvent(input.workflowCallerId, String.format("Cannot commit to local repo %s; error: %s", input.gitRepo, e),
+      return EventService.EventGenerator.createErrorEvent(input.workflowCallerId, String.format("Cannot commit to local repo %s; error: %s", input.gitRepo, e),
           SOURCE);
     }
     log.info("Pushing commit to branch {} of repo {}", input.branch, input.gitRepo);
@@ -197,11 +205,11 @@ public class SaveTransformationFunction {
       gitService.push(clonedRepo);
     } catch (GitAPIException | IOException e) {
       log.error("Cannot push branch {} to remote repo {}", input.branch, input.gitRepo, e);
-      return EventGenerator.createErrorEvent(input.workflowCallerId, String.format("Cannot push branch %s to remote repo %s; error: %s",
+      return EventService.EventGenerator.createErrorEvent(input.workflowCallerId, String.format("Cannot push branch %s to remote repo %s; error: %s",
           input.branch, input.gitRepo, e), SOURCE);
     }
 
-    var event = EventGenerator.createTransformationSavedEvent(input.workflowCallerId, SOURCE);
+    var event = EventService.EventGenerator.createTransformationSavedEvent(input.workflowCallerId, SOURCE);
     log.info("Sending cloud event {} to workflow {}", event, input.workflowCallerId);
     return event;
   }

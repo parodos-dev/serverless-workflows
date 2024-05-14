@@ -1,10 +1,12 @@
 package dev.parodos;
 
 import dev.parodos.move2kube.ApiException;
+import dev.parodos.service.EventService;
 import dev.parodos.service.FolderCreatorService;
 import dev.parodos.service.GitService;
 import dev.parodos.service.Move2KubeService;
 import dev.parodos.service.Move2KubeServiceImpl;
+import io.quarkus.funqy.knative.events.CloudEvent;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.RestAssured;
@@ -19,6 +21,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 import java.io.File;
 import java.io.IOException;
@@ -31,8 +34,13 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.util.UUID;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -53,6 +61,9 @@ public class SaveTransformationFunctionTest {
 
   @InjectMock
   FolderCreatorService folderCreatorService;
+
+  @InjectMock
+  EventService eventService;
 
   @ConfigProperty(name = "transformation-saved.event.name")
   private String transformationSavedEventName;
@@ -105,11 +116,13 @@ public class SaveTransformationFunctionTest {
 
     URL transformedZip = classLoader.getResource(TRANSFORMED_ZIP);
     Move2KubeServiceImpl.extractZipFile(new File(transformedZip.getFile()), transformOutputPath);
+    ArgumentCaptor<CloudEvent<EventService.EventGenerator.EventPOJO>> argument = ArgumentCaptor.forClass(CloudEvent.class);
 
     when(folderCreatorService.createGitRepositoryLocalFolder(eq("gitRepo"), anyString())).thenReturn(gitRepoLocalFolder);
     when(move2KubeServiceMock.getTransformationOutput(anyString(), anyString(), anyString())).thenReturn(transformOutputPath);
     when(gitServiceMock.cloneRepo(anyString(), anyString(), any())).thenReturn(git);
     when(gitServiceMock.branchExists(any(), anyString())).thenReturn(false);
+    doNothing().when(eventService).fireEvent(argument.capture());
     doNothing().when(gitServiceMock).createBranch(eq(git), anyString());
     doNothing().when(gitServiceMock).commit(eq(git), anyString(), anyString());
     doNothing().when(gitServiceMock).createBranch(eq(git), anyString());
@@ -127,14 +140,14 @@ public class SaveTransformationFunctionTest {
             " \"workflowCallerId\": \"" + workflowCallerId + "\"," +
             " \"transformId\": \"" + transformId + "\"" +
             "}")
-        .post("/")
-        .then()
-        .statusCode(200)
-        .contentType(ContentType.JSON)
-        .header("ce-type", transformationSavedEventName)
-        .header("ce-kogitoprocrefid", workflowCallerId.toString())
-        .header("ce-source", SaveTransformationFunction.SOURCE)
-        .body(containsString("\"error\":null"));
+        .post("/");
+
+    CloudEvent<EventService.EventGenerator.EventPOJO> capturedEvent = argument.getValue();
+    assertNotNull(capturedEvent);
+    assertEquals(capturedEvent.type(), transformationSavedEventName);
+    assertEquals(capturedEvent.source(), SaveTransformationFunction.SOURCE);
+    assertEquals(capturedEvent.extensions().get("kogitoprocrefid"), workflowCallerId.toString());
+    assertNull(capturedEvent.data().error);
 
     verify(move2KubeServiceMock, times(1)).getTransformationOutput(anyString(), anyString(), anyString());
     verify(gitServiceMock, times(1)).cloneRepo(anyString(), anyString(), any());
@@ -142,6 +155,7 @@ public class SaveTransformationFunctionTest {
     verify(gitServiceMock, times(1)).branchExists(any(), anyString());
     verify(gitServiceMock, times(1)).commit(eq(git), anyString(), anyString());
     verify(gitServiceMock, times(1)).push(eq(git));
+    verify(eventService, times(1)).fireEvent(any());
 
     AssertFileMovedToGitLocalFolder(REFERENCE_OUTPUT_UNZIP_PATH.toPath());
   }
@@ -154,10 +168,12 @@ public class SaveTransformationFunctionTest {
     gitRepoLocalFolder = Files.createTempDirectory(String.format("local-git-transform-TEST-%s", transformId));
     URL transformedZip = classLoader.getResource(TRANSFORMED_ZIP);
     Move2KubeServiceImpl.extractZipFile(new File(transformedZip.getFile()), transformOutputPath);
+    ArgumentCaptor<CloudEvent<EventService.EventGenerator.EventPOJO>> argument = ArgumentCaptor.forClass(CloudEvent.class);
 
     when(folderCreatorService.createGitRepositoryLocalFolder(eq("gitRepo"), anyString())).thenReturn(gitRepoLocalFolder);
     when(move2KubeServiceMock.getTransformationOutput(anyString(), anyString(), anyString())).thenThrow(new IOException("Error while retrieving transformation output"));
-
+    doNothing().when(eventService).fireEvent(argument.capture());
+    
     RestAssured.given().contentType("application/json")
         .header("ce-specversion", "1.0")
         .header("ce-id", UUID.randomUUID().toString())
@@ -170,14 +186,14 @@ public class SaveTransformationFunctionTest {
             " \"workflowCallerId\": \"" + workflowCallerId + "\"," +
             " \"transformId\": \"" + transformId + "\"" +
             "}")
-        .post("/")
-        .then()
-        .statusCode(200)
-        .contentType(ContentType.JSON)
-        .header("ce-type", EventGenerator.ERROR_EVENT)
-        .header("ce-kogitoprocrefid", workflowCallerId.toString())
-        .header("ce-source", SaveTransformationFunction.SOURCE)
-        .body(not(containsString("\"error\":null")));
+        .post("/");
+
+    CloudEvent<EventService.EventGenerator.EventPOJO> capturedEvent = argument.getValue();
+    assertNotNull(capturedEvent);
+    assertEquals(capturedEvent.type(), EventService.EventGenerator.ERROR_EVENT);
+    assertEquals(capturedEvent.source(), SaveTransformationFunction.SOURCE);
+    assertEquals(capturedEvent.extensions().get("kogitoprocrefid"), workflowCallerId.toString());
+    assertNotNull(capturedEvent.data().error);
 
     verify(move2KubeServiceMock, times(1)).getTransformationOutput(anyString(), anyString(), anyString());
     verify(gitServiceMock, times(0)).cloneRepo(anyString(), anyString(), any());
@@ -185,6 +201,7 @@ public class SaveTransformationFunctionTest {
     verify(gitServiceMock, times(0)).branchExists(any(), anyString());
     verify(gitServiceMock, times(0)).commit(eq(git), anyString(), anyString());
     verify(gitServiceMock, times(0)).push(eq(git));
+    verify(eventService, times(1)).fireEvent(any());
   }
 
   @Test
@@ -195,11 +212,13 @@ public class SaveTransformationFunctionTest {
     gitRepoLocalFolder = Files.createTempDirectory(String.format("local-git-transform-TEST-%s", transformId));
     URL transformedZip = classLoader.getResource(TRANSFORMED_ZIP);
     Move2KubeServiceImpl.extractZipFile(new File(transformedZip.getFile()), transformOutputPath);
+    ArgumentCaptor<CloudEvent<EventService.EventGenerator.EventPOJO>> argument = ArgumentCaptor.forClass(CloudEvent.class);
 
     when(folderCreatorService.createGitRepositoryLocalFolder(eq("gitRepo"), anyString())).thenReturn(gitRepoLocalFolder);
     when(move2KubeServiceMock.getTransformationOutput(anyString(), anyString(), anyString())).thenReturn(transformOutputPath);
     when(gitServiceMock.cloneRepo(anyString(), anyString(), any())).thenThrow(new InvalidRemoteException("Error while cloning repo"));
-
+    doNothing().when(eventService).fireEvent(argument.capture());
+    
     RestAssured.given().contentType("application/json")
         .header("ce-specversion", "1.0")
         .header("ce-id", UUID.randomUUID().toString())
@@ -212,14 +231,14 @@ public class SaveTransformationFunctionTest {
             " \"workflowCallerId\": \"" + workflowCallerId + "\"," +
             " \"transformId\": \"" + transformId + "\"" +
             "}")
-        .post("/")
-        .then()
-        .statusCode(200)
-        .contentType(ContentType.JSON)
-        .header("ce-type", EventGenerator.ERROR_EVENT)
-        .header("ce-kogitoprocrefid", workflowCallerId.toString())
-        .header("ce-source", SaveTransformationFunction.SOURCE)
-        .body(not(containsString("\"error\":null")));
+        .post("/");
+
+    CloudEvent<EventService.EventGenerator.EventPOJO> capturedEvent = argument.getValue();
+    assertNotNull(capturedEvent);
+    assertEquals(capturedEvent.type(), EventService.EventGenerator.ERROR_EVENT);
+    assertEquals(capturedEvent.source(), SaveTransformationFunction.SOURCE);
+    assertEquals(capturedEvent.extensions().get("kogitoprocrefid"), workflowCallerId.toString());
+    assertNotNull(capturedEvent.data().error);
 
     verify(move2KubeServiceMock, times(1)).getTransformationOutput(anyString(), anyString(), anyString());
     verify(gitServiceMock, times(1)).cloneRepo(anyString(), anyString(), any());
@@ -227,6 +246,7 @@ public class SaveTransformationFunctionTest {
     verify(gitServiceMock, times(0)).createBranch(eq(git), anyString());
     verify(gitServiceMock, times(0)).commit(eq(git), anyString(), anyString());
     verify(gitServiceMock, times(0)).push(eq(git));
+    verify(eventService, times(1)).fireEvent(any());
   }
 
   @Test
@@ -237,11 +257,13 @@ public class SaveTransformationFunctionTest {
     gitRepoLocalFolder = Files.createTempDirectory(String.format("local-git-transform-TEST-%s", transformId));
     URL transformedZip = classLoader.getResource(TRANSFORMED_ZIP);
     Move2KubeServiceImpl.extractZipFile(new File(transformedZip.getFile()), transformOutputPath);
+    ArgumentCaptor<CloudEvent<EventService.EventGenerator.EventPOJO>> argument = ArgumentCaptor.forClass(CloudEvent.class);
 
     when(folderCreatorService.createGitRepositoryLocalFolder(eq("gitRepo"), anyString())).thenReturn(gitRepoLocalFolder);
     when(move2KubeServiceMock.getTransformationOutput(anyString(), anyString(), anyString())).thenReturn(transformOutputPath);
     when(gitServiceMock.cloneRepo(anyString(), anyString(), any())).thenReturn(git);
     when(gitServiceMock.branchExists(any(), anyString())).thenReturn(true);
+    doNothing().when(eventService).fireEvent(argument.capture());
 
     RestAssured.given().contentType("application/json")
         .header("ce-specversion", "1.0")
@@ -255,14 +277,14 @@ public class SaveTransformationFunctionTest {
             " \"workflowCallerId\": \"" + workflowCallerId + "\"," +
             " \"transformId\": \"" + transformId + "\"" +
             "}")
-        .post("/")
-        .then()
-        .statusCode(200)
-        .contentType(ContentType.JSON)
-        .header("ce-type", EventGenerator.ERROR_EVENT)
-        .header("ce-kogitoprocrefid", workflowCallerId.toString())
-        .header("ce-source", SaveTransformationFunction.SOURCE)
-        .body(not(containsString("\"error\":null")));
+        .post("/");
+
+    CloudEvent<EventService.EventGenerator.EventPOJO> capturedEvent = argument.getValue();
+    assertNotNull(capturedEvent);
+    assertEquals(capturedEvent.type(), EventService.EventGenerator.ERROR_EVENT);
+    assertEquals(capturedEvent.source(), SaveTransformationFunction.SOURCE);
+    assertEquals(capturedEvent.extensions().get("kogitoprocrefid"), workflowCallerId.toString());
+    assertNotNull(capturedEvent.data().error);
 
     verify(move2KubeServiceMock, times(1)).getTransformationOutput(anyString(), anyString(), anyString());
     verify(gitServiceMock, times(1)).cloneRepo(anyString(), anyString(), any());
@@ -270,6 +292,7 @@ public class SaveTransformationFunctionTest {
     verify(gitServiceMock, times(0)).createBranch(eq(git), anyString());
     verify(gitServiceMock, times(0)).commit(eq(git), anyString(), anyString());
     verify(gitServiceMock, times(0)).push(eq(git));
+    verify(eventService, times(1)).fireEvent(any());
   }
 
   @Test
@@ -280,12 +303,14 @@ public class SaveTransformationFunctionTest {
     gitRepoLocalFolder = Files.createTempDirectory(String.format("local-git-transform-TEST-%s", transformId));
     URL transformedZip = classLoader.getResource(TRANSFORMED_ZIP);
     Move2KubeServiceImpl.extractZipFile(new File(transformedZip.getFile()), transformOutputPath);
+    ArgumentCaptor<CloudEvent<EventService.EventGenerator.EventPOJO>> argument = ArgumentCaptor.forClass(CloudEvent.class);
 
     when(folderCreatorService.createGitRepositoryLocalFolder(eq("gitRepo"), anyString())).thenReturn(gitRepoLocalFolder);
     when(move2KubeServiceMock.getTransformationOutput(anyString(), anyString(), anyString())).thenReturn(transformOutputPath);
     when(gitServiceMock.cloneRepo(anyString(), anyString(), any())).thenReturn(git);
     when(gitServiceMock.branchExists(any(), anyString())).thenReturn(false);
     doThrow(new InvalidRemoteException("Error while creating new branch")).when(gitServiceMock).createBranch(eq(git), anyString());
+    doNothing().when(eventService).fireEvent(argument.capture());
 
     RestAssured.given().contentType("application/json")
         .header("ce-specversion", "1.0")
@@ -299,14 +324,14 @@ public class SaveTransformationFunctionTest {
             " \"workflowCallerId\": \"" + workflowCallerId + "\"," +
             " \"transformId\": \"" + transformId + "\"" +
             "}")
-        .post("/")
-        .then()
-        .statusCode(200)
-        .contentType(ContentType.JSON)
-        .header("ce-type", EventGenerator.ERROR_EVENT)
-        .header("ce-kogitoprocrefid", workflowCallerId.toString())
-        .header("ce-source", SaveTransformationFunction.SOURCE)
-        .body(not(containsString("\"error\":null")));
+        .post("/");
+
+    CloudEvent<EventService.EventGenerator.EventPOJO> capturedEvent = argument.getValue();
+    assertNotNull(capturedEvent);
+    assertEquals(capturedEvent.type(), EventService.EventGenerator.ERROR_EVENT);
+    assertEquals(capturedEvent.source(), SaveTransformationFunction.SOURCE);
+    assertEquals(capturedEvent.extensions().get("kogitoprocrefid"), workflowCallerId.toString());
+    assertNotNull(capturedEvent.data().error);
 
     verify(move2KubeServiceMock, times(1)).getTransformationOutput(anyString(), anyString(), anyString());
     verify(gitServiceMock, times(1)).cloneRepo(anyString(), anyString(), any());
@@ -314,6 +339,7 @@ public class SaveTransformationFunctionTest {
     verify(gitServiceMock, times(1)).createBranch(eq(git), anyString());
     verify(gitServiceMock, times(0)).commit(eq(git), anyString(), anyString());
     verify(gitServiceMock, times(0)).push(eq(git));
+    verify(eventService, times(1)).fireEvent(any());
   }
 
   @Test
@@ -324,6 +350,7 @@ public class SaveTransformationFunctionTest {
     gitRepoLocalFolder = Files.createTempDirectory(String.format("local-git-transform-TEST-%s", transformId));
     URL transformedZip = classLoader.getResource(TRANSFORMED_ZIP);
     Move2KubeServiceImpl.extractZipFile(new File(transformedZip.getFile()), transformOutputPath);
+    ArgumentCaptor<CloudEvent<EventService.EventGenerator.EventPOJO>> argument = ArgumentCaptor.forClass(CloudEvent.class);
 
     when(folderCreatorService.createGitRepositoryLocalFolder(eq("gitRepo"), anyString())).thenReturn(gitRepoLocalFolder);
     when(move2KubeServiceMock.getTransformationOutput(anyString(), anyString(), anyString())).thenReturn(transformOutputPath);
@@ -331,6 +358,7 @@ public class SaveTransformationFunctionTest {
     when(gitServiceMock.branchExists(any(), anyString())).thenReturn(false);
     doNothing().when(gitServiceMock).createBranch(eq(git), anyString());
     doThrow(new InvalidRemoteException("Error while committing changes")).when(gitServiceMock).commit(eq(git), anyString(), anyString());
+    doNothing().when(eventService).fireEvent(argument.capture());
 
     RestAssured.given().contentType("application/json")
         .header("ce-specversion", "1.0")
@@ -344,14 +372,14 @@ public class SaveTransformationFunctionTest {
             " \"workflowCallerId\": \"" + workflowCallerId + "\"," +
             " \"transformId\": \"" + transformId + "\"" +
             "}")
-        .post("/")
-        .then()
-        .statusCode(200)
-        .contentType(ContentType.JSON)
-        .header("ce-type", EventGenerator.ERROR_EVENT)
-        .header("ce-kogitoprocrefid", workflowCallerId.toString())
-        .header("ce-source", SaveTransformationFunction.SOURCE)
-        .body(not(containsString("\"error\":null")));
+        .post("/");
+
+    CloudEvent<EventService.EventGenerator.EventPOJO> capturedEvent = argument.getValue();
+    assertNotNull(capturedEvent);
+    assertEquals(capturedEvent.type(), EventService.EventGenerator.ERROR_EVENT);
+    assertEquals(capturedEvent.source(), SaveTransformationFunction.SOURCE);
+    assertEquals(capturedEvent.extensions().get("kogitoprocrefid"), workflowCallerId.toString());
+    assertNotNull(capturedEvent.data().error);
 
     verify(move2KubeServiceMock, times(1)).getTransformationOutput(anyString(), anyString(), anyString());
     verify(gitServiceMock, times(1)).cloneRepo(anyString(), anyString(), any());
@@ -359,6 +387,7 @@ public class SaveTransformationFunctionTest {
     verify(gitServiceMock, times(1)).createBranch(eq(git), anyString());
     verify(gitServiceMock, times(1)).commit(eq(git), anyString(), anyString());
     verify(gitServiceMock, times(0)).push(eq(git));
+    verify(eventService, times(1)).fireEvent(any());
 
     AssertFileMovedToGitLocalFolder(REFERENCE_OUTPUT_UNZIP_PATH.toPath());
   }
@@ -371,13 +400,15 @@ public class SaveTransformationFunctionTest {
     gitRepoLocalFolder = Files.createTempDirectory(String.format("local-git-transform-TEST-%s", transformId));
     URL transformedZip = classLoader.getResource(TRANSFORMED_ZIP);
     Move2KubeServiceImpl.extractZipFile(new File(transformedZip.getFile()), transformOutputPath);
-
+    ArgumentCaptor<CloudEvent<EventService.EventGenerator.EventPOJO>> argument = ArgumentCaptor.forClass(CloudEvent.class);
+    
     when(folderCreatorService.createGitRepositoryLocalFolder(eq("gitRepo"), anyString())).thenReturn(gitRepoLocalFolder);
     when(move2KubeServiceMock.getTransformationOutput(anyString(), anyString(), anyString())).thenReturn(transformOutputPath);
     when(gitServiceMock.cloneRepo(anyString(), anyString(), any())).thenReturn(git);
     doNothing().when(gitServiceMock).commit(eq(git), anyString(), anyString());
     doNothing().when(gitServiceMock).createBranch(eq(git), anyString());
     doThrow(new InvalidRemoteException("Error while pushing to remote")).when(gitServiceMock).push(eq(git));
+    doNothing().when(eventService).fireEvent(argument.capture());
 
     RestAssured.given().contentType("application/json")
         .header("ce-specversion", "1.0")
@@ -391,14 +422,15 @@ public class SaveTransformationFunctionTest {
             " \"workflowCallerId\": \"" + workflowCallerId + "\"," +
             " \"transformId\": \"" + transformId + "\"" +
             "}")
-        .post("/")
-        .then()
-        .statusCode(200)
-        .contentType(ContentType.JSON)
-        .header("ce-type", EventGenerator.ERROR_EVENT)
-        .header("ce-kogitoprocrefid", workflowCallerId.toString())
-        .header("ce-source", SaveTransformationFunction.SOURCE)
-        .body(not(containsString("\"error\":null")));
+        .post("/");
+
+    verify(eventService, times(1)).fireEvent(any());
+    CloudEvent<EventService.EventGenerator.EventPOJO> capturedEvent = argument.getValue();
+    assertNotNull(capturedEvent);
+    assertEquals(capturedEvent.type(), EventService.EventGenerator.ERROR_EVENT);
+    assertEquals(capturedEvent.source(), SaveTransformationFunction.SOURCE);
+    assertEquals(capturedEvent.extensions().get("kogitoprocrefid"), workflowCallerId.toString());
+    assertNotNull(capturedEvent.data().error);
 
     verify(move2KubeServiceMock, times(1)).getTransformationOutput(anyString(), anyString(), anyString());
     verify(gitServiceMock, times(1)).cloneRepo(anyString(), anyString(), any());
@@ -413,6 +445,9 @@ public class SaveTransformationFunctionTest {
   @Test
   public void testSaveTransformationMissingInput() throws GitAPIException, IOException, ApiException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
     UUID workflowCallerId = UUID.randomUUID();
+    ArgumentCaptor<CloudEvent<EventService.EventGenerator.EventPOJO>> argument = ArgumentCaptor.forClass(CloudEvent.class);
+    doNothing().when(eventService).fireEvent(argument.capture());
+
     RestAssured.given().contentType("application/json")
         .header("ce-specversion", "1.0")
         .header("ce-id", UUID.randomUUID().toString())
@@ -423,14 +458,15 @@ public class SaveTransformationFunctionTest {
             " \"projectId\": \"projectId\"," +
             " \"workflowCallerId\": \"" + workflowCallerId + "\"" +
             "}")
-        .post("/")
-        .then()
-        .statusCode(200)
-        .contentType(ContentType.JSON)
-        .header("ce-type", EventGenerator.ERROR_EVENT)
-        .header("ce-kogitoprocrefid", workflowCallerId.toString())
-        .header("ce-source", SaveTransformationFunction.SOURCE)
-        .body(not(containsString("\"error\":null")));
+        .post("/");
+
+    verify(eventService, times(1)).fireEvent(any());
+    CloudEvent<EventService.EventGenerator.EventPOJO> capturedEvent = argument.getValue();
+    assertNotNull(capturedEvent);
+    assertEquals(capturedEvent.type(), EventService.EventGenerator.ERROR_EVENT);
+    assertEquals(capturedEvent.source(), SaveTransformationFunction.SOURCE);
+    assertEquals(capturedEvent.extensions().get("kogitoprocrefid"), workflowCallerId.toString());
+    assertNotNull(capturedEvent.data().error);
 
     verify(move2KubeServiceMock, times(0)).getTransformationOutput(anyString(), anyString(), anyString());
     verify(gitServiceMock, times(0)).cloneRepo(anyString(), anyString(), any());
@@ -438,6 +474,7 @@ public class SaveTransformationFunctionTest {
     verify(gitServiceMock, times(0)).createBranch(eq(git), anyString());
     verify(gitServiceMock, times(0)).commit(eq(git), anyString(), anyString());
     verify(gitServiceMock, times(0)).push(eq(git));
+
   }
 
   private void AssertFileMovedToGitLocalFolder(Path localOutputRef) {
