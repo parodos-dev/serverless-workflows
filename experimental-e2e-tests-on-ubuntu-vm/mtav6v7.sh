@@ -53,4 +53,8 @@ kubectl get pods -o wide
 kubectl wait --for=condition=Ready=true pods -l "app=mta-analysis" --timeout=10m
 
 # Run the end to end test
-./e2e/mtav6v7.sh
+if [ "$WORKFLOW_ID" == "mtav6.2.2" ]; then
+    ./e2e/mtav6.2.2.sh
+else
+    ./e2e/mtav7.0.2.sh
+fi
