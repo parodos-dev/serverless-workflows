@@ -27,6 +27,9 @@ id=$(echo "$resp" | jq ".id")
 
 if [ -z "$id" ] || [ "$id" == "null" ]; then
     echo "workflow instance id is null... exiting "
+    echo "Debug Info Start"
+    kubectl logs "$(kubectl get pod -o name | grep mta-analysis)"
+    echo "Debug Info End"
     exit 1
 fi
 
