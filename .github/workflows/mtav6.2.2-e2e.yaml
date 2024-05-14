@@ -132,7 +132,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Run e2e script
         run: |
-          e2e/mtav6v7.sh
+          e2e/mtav6.2.2.sh
 
       - name: Export kind Logs
         if: always()

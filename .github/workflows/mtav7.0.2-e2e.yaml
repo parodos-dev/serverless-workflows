@@ -52,11 +52,11 @@ jobs:
 
           # Sonataflow operator
           kubectl create -f https://raw.githubusercontent.com/kiegroup/kogito-serverless-operator/main/operator.yaml
-          kubectl apply -f https://raw.githubusercontent.com/parodos-dev/serverless-workflows/9156ab53e490a31ca004690ddc2019b32c947d18/e2e/resources/sonata-flow-operator.yaml
+          kubectl apply -f https://raw.githubusercontent.com/rhkp/sonataflow-cluster-resources/main/sonata-flow-operator.yaml
           kubectl wait --for=jsonpath='{.status.phase}'=Running "$(kubectl get pod -o name -n sonataflow-operator-system | grep sonataflow-operator-controller-manager)" -n sonataflow-operator-system  --timeout=300s
 
           # Core services of Sonataflow
-          kubectl apply -f https://raw.githubusercontent.com/parodos-dev/serverless-workflows/9156ab53e490a31ca004690ddc2019b32c947d18/e2e/resources/sonata-flow-platform.yaml
+          kubectl apply -f https://raw.githubusercontent.com/rhkp/sonataflow-cluster-resources/main/sonata-flow-platform.yaml
           sleep 60s
           kubectl wait --for=jsonpath='{.status.phase}'=Running "$(kubectl get pod -o name -n sonataflow-infra | grep sonataflow-platform-jobs-service)" -n sonataflow-infra --timeout=300s
           kubectl wait --for=jsonpath='{.status.phase}'=Running "$(kubectl get pod -o name -n sonataflow-infra | grep sonataflow-platform-data-index-service)" -n sonataflow-infra --timeout=300s
@@ -144,7 +144,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Run e2e script
         run: |
-          e2e/mtav6v7.sh
+          e2e/mtav7.0.2.sh
 
       - name: Export kind Logs
         if: always()
