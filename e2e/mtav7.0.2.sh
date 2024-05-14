@@ -27,9 +27,17 @@ id=$(echo "$resp" | jq ".id")
 
 if [ -z "$id" ] || [ "$id" == "null" ]; then
     echo "workflow instance id is null... exiting "
-    echo "Debug Info Start"
+    echo "Debug Info Start - MTA 7.0.2 Workflow"
     kubectl logs "$(kubectl get pod -o name | grep mta-analysis)"
-    echo "Debug Info End"
+    echo "Debug Info End - MTA 7.0.2 Workflow"
+
+    echo "Debug Info Start - Jobs Service"
+    kubectl logs "$(kubectl get pod -o name -n sonataflow-infra | grep sonataflow-platform-jobs-service)" -n sonataflow-infra
+    echo "Debug Info End - Jobs Service"
+
+    echo "Debug Info Start - Data Index Service"
+    kubectl logs "$(kubectl get pod -o name -n sonataflow-infra | grep sonataflow-platform-data-index-service)" -n sonataflow-infra
+    echo "Debug Info End - Data Index Service"
     exit 1
 fi
 
