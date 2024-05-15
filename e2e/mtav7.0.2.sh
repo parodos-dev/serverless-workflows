@@ -35,9 +35,6 @@ if [ -z "$id" ] || [ "$id" == "null" ]; then
     kubectl logs "$(kubectl get pod -o name -n sonataflow-infra | grep sonataflow-platform-jobs-service)" -n sonataflow-infra
     echo "Debug Info End - Jobs Service"
 
-    echo "Debug Info Start - Data Index Service"
-    kubectl logs "$(kubectl get pod -o name -n sonataflow-infra | grep sonataflow-platform-data-index-service)" -n sonataflow-infra
-    echo "Debug Info End - Data Index Service"
     exit 1
 fi
 
