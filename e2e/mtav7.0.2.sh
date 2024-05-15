@@ -14,7 +14,8 @@ function cleanup() {
 trap 'cleanup' EXIT SIGTERM
 
 echo "Proxy MTA Analysis port ⏳"
-kubectl port-forward "$(kubectl get svc mta-analysis -o name)" 8080:80 &
+kubectl expose "$(kubectl get pod -o name | grep mta-analysis)" --type="NodePort" --port=8080 --name=mta-svc
+kubectl port-forward svc/mta-svc 8080:8080 &
 port_forward_pid="$!"
 sleep 3
 echo "Proxy MTA Analysis port ✅"
