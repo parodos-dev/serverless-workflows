@@ -9,7 +9,7 @@ kubectl create namespace sonataflow-infra
 # PostgreSQL installation
 kubectl create secret generic sonataflow-psql-postgresql --from-literal=postgres-username=postgres --from-literal=postgres-password=postgres -n sonataflow-infra
 helm repo add bitnami https://charts.bitnami.com/bitnami
-helm install sonataflow-psql bitnami/postgresql \
+helm install sonataflow-psql bitnami/postgresql --version 12.12.10 \
 -f https://raw.githubusercontent.com/rgolangh/orchestrator-helm-chart/main/postgresql/values.yaml \
 -n sonataflow-infra
 
