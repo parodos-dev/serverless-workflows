@@ -109,7 +109,8 @@ jobs:
 
       - name: Load mta workflow image to Kind
         run: |
-          kind load image-archive serverless-workflow-mtav7.0.2-${{ github.sha }}.tar
+          kind load image-archive serverless-workflow-mtav6.2.2-${{ github.sha }}.tar
+
 
       - name: Deploy MTA serverless workflow
         run: |

@@ -140,7 +140,7 @@ jobs:
 
       - name: Upload Kind Logs
         uses: actions/upload-artifact@v4
-        # Always run this, even if one of th previous steps failed.
+        # Always run this, even if one of the previous steps failed.
         if: always()
         with:
           name: kind-logs
