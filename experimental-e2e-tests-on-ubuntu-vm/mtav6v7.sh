@@ -21,7 +21,12 @@ make WORKFLOW_ID="$WORKFLOW_ID" REGISTRY_REPO="$REGISTRY_REPO" LOCAL_TEST=true f
 
 # Load workflow image
 docker save quay.io/rhkp/serverless-workflow-"$WORKFLOW_ID":latest -o serverless-workflow-"$WORKFLOW_ID".tar
-kind load image-archive serverless-workflow-"$WORKFLOW_ID".tar
+
+if [ "$CLUSTER_TYPE" == "minikube" ]; then
+    minikube image load serverless-workflow-"$WORKFLOW_ID".tar
+else
+    kind load image-archive serverless-workflow-"$WORKFLOW_ID".tar
+fi
 
 # Copy generated manifests
 rm -rf ./manifests
