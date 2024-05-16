@@ -29,6 +29,9 @@ sudo apt install make
 # yq
 sudo wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq &&  sudo  chmod +x /usr/bin/yq
 
+#jq
+sudo apt-get install jq -y # needed for Ubuntu 22.04LTS
+
 # kind
 # For AMD64 / x86_64
 [ "$(uname -m)" = x86_64 ] && curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.22.0/kind-linux-amd64
