@@ -5,13 +5,8 @@ set -e
 
 # Standup the cluster and install janus and konveyor operator
 ./cluster-up.sh
-if [ "$WORKFLOW_ID" == "mta-v6.x" ]; then
-    ./janus-idp.sh
-    ./konveyor-operator-0.2.1.sh
-else
-    ./sonata-flow.sh # Due to GitHub Actions resource constraints just use Sonataflow
-    ./konveyor-operator-0.3.2.sh
-fi
+./janus-idp.sh
+./konveyor-operator-0.2.1.sh
 
 cd ..
 
@@ -58,8 +53,4 @@ kubectl get pods -o wide
 kubectl wait --for=condition=Ready=true pods -l "app=mta-analysis-v6" --timeout=10m
 
 # Run the end to end test
-if [ "$WORKFLOW_ID" == "mta-v6.x" ]; then
-    ./e2e/mta-v6.x.sh
-else
-    ./e2e/mta-v7.x.sh
-fi
+./e2e/mta-v6.x.sh
