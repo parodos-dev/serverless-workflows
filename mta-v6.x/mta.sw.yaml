@@ -1,5 +1,5 @@
 specVersion: "0.8"
-id: mta-analysis
+id: mta-analysis-v6
 name: MTA Analysis
 description: Workflow to execute MTA Analysis
 annotations:
@@ -97,20 +97,24 @@ states:
         functionRef:
           refName: createTaskgroup
           arguments:
-            name: taskgroup.analyzer
-            addon: analyzer
+            name: taskgroup.windup
+            addon: windup
             data:
-              rules: 
+              output: /windup/report
+              rules:
                 labels:
-                  included:
-                    - konveyor.io/target=cloud-readiness
+                  - "konveyor.io/target=cloud-readiness"
+                rulesets:
+                  - id: 2
+                    name: Containerization
               tagger:
                 enabled: true
               mode:
                 binary: false
                 withDeps: false
+                diva: false
               scope:
-                withKnownLibs: false
+                withKnown: false
     transition: SubmitAnalysis
   - name: SubmitAnalysis
     type: operation
@@ -122,15 +126,14 @@ states:
           arguments:
             id: .taskgroup.id
             createUser: "admin"
-            updateUser: ''
-            name: "taskgroup.analyzer"
-            addon: analyzer
+            name: "taskgroup.windup"
+            addon: windup
             data: .taskgroup.data
             bucket:
               id: .application.bucket.id
             state: Created
             tasks:
-              - name: .application.name + ".1.analyzer"
+              - name: .application.name + ".1.windup"
                 application:
                   id: .application.id
                   name: .application.name

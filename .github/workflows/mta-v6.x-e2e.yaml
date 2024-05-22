@@ -1,4 +1,4 @@
-name: MTA v6.2.2 Workflow end to end tests 
+name: MTA v6.x Workflow end to end tests 
 
 on:
   workflow_dispatch:
@@ -6,11 +6,11 @@ on:
     branches:
       - main
     paths:
-      - 'mtav6.2.2/**'
+      - 'mta-v6.x/**'
       - 'pipeline/**'
-      - 'e2e/mtav6.2.2.sh'
-      - '!mtav6.2.2/*.svg'
-      - .github/workflows/mtav6.2.2-e2e.yaml
+      - '!e2e/mta-v6.x.sh'
+      - '!mta-v6.x/*.svg'
+      - .github/workflows/mta-v6.x-e2e.yaml
       - .github/workflows/main.yml
 
 jobs:
@@ -18,7 +18,7 @@ jobs:
     uses: ./.github/workflows/main.yml
     secrets: inherit
     with:
-      workflow_id: mtav6.2.2
+      workflow_id: mta-v6.x
       it_mode: true
   run-e2e:
     runs-on: ubuntu-latest
@@ -86,53 +86,53 @@ jobs:
       - name: Download sonataflow artifacts generated manifests
         uses: actions/download-artifact@v4
         with:
-          name: serverless-workflow-mtav6.2.2-manifests
+          name: serverless-workflow-mta-v6.x-manifests
           path: manifests
 
       - name: Download serverless workflows mta image
         uses: actions/download-artifact@v4
         with:
-          name: serverless-workflow-mtav6.2.2-${{ github.sha }}.tar
+          name: serverless-workflow-mta-v6.x-${{ github.sha }}.tar
 
       - name: Load mta workflow image to Kind
         run: |
-          kind load image-archive serverless-workflow-mtav6.2.2-${{ github.sha }}.tar
+          kind load image-archive serverless-workflow-mta-v6.x-${{ github.sha }}.tar
 
 
       - name: Deploy MTA serverless workflow
         run: |
           ###### workaround till https://issues.redhat.com/browse/FLPATH-892 is solved
-          # yq --inplace '.spec.podTemplate.container |= ( . +  {"imagePullPolicy": "IfNotPresent"} )' manifests/01-sonataflow_mta-analysis.yaml
+          # yq --inplace '.spec.podTemplate.container |= ( . +  {"imagePullPolicy": "IfNotPresent"} )' manifests/01-sonataflow_mta-analysis-v6.yaml
           ###### end workfaround
 
           # Set the endpoint to the tackle-ui service
-          yq --inplace '.spec.podTemplate.container.env |= ( . + [{"name": "QUARKUS_REST_CLIENT_MTA_JSON_URL", "value": "http://tackle-ui.my-konveyor-operator.svc:8080"}, {"name": "MTA_HUB_TOKEN", "value": "TEST_TOKEN_VALUE"}, {"name": "BACKSTAGE_NOTIFICATIONS_URL", "value": "http://janus-idp-workflows-backstage.default.svc.cluster.local:7007/api/notifications/"}] )' manifests/01-sonataflow_mta-analysis.yaml
+          yq --inplace '.spec.podTemplate.container.env |= ( . + [{"name": "QUARKUS_REST_CLIENT_MTA_JSON_URL", "value": "http://tackle-ui.my-konveyor-operator.svc:8080"}, {"name": "MTA_HUB_TOKEN", "value": "TEST_TOKEN_VALUE"}, {"name": "BACKSTAGE_NOTIFICATIONS_URL", "value": "http://janus-idp-workflows-backstage.default.svc.cluster.local:7007/api/notifications/"}] )' manifests/01-sonataflow_mta-analysis-v6.yaml
           
           # Disable persistence for e2e tests
-          yq e '.spec.persistence = {}' -i manifests/01-sonataflow_mta-analysis.yaml
-          sed -i '/quarkus\.flyway\.migrate-at-start=true/d' manifests/03-configmap_mta-analysis-props.yaml
+          yq e '.spec.persistence = {}' -i manifests/01-sonataflow_mta-analysis-v6.yaml
+          sed -i '/quarkus\.flyway\.migrate-at-start=true/d' manifests/03-configmap_mta-analysis-v6-props.yaml
 
-          echo "manifests/03-configmap_mta-analysis-props.yaml"
-          cat manifests/03-configmap_mta-analysis-props.yaml
+          echo "manifests/03-configmap_mta-analysis-v6-props.yaml"
+          cat manifests/03-configmap_mta-analysis-v6-props.yaml
           echo "---"
 
-          echo "manifests/01-sonataflow_mta-analysis.yaml"
-          cat manifests/01-sonataflow_mta-analysis.yaml
+          echo "manifests/01-sonataflow_mta-analysis-v6.yaml"
+          cat manifests/01-sonataflow_mta-analysis-v6.yaml
           echo "---"
 
           # deploy the manifests created by the ${{ steps.build-image.outputs.image }} image
           kubectl apply -f manifests/
           sleep 5
-          kubectl get deployment mta-analysis -o jsonpath={.spec.template.spec.containers[]}
+          kubectl get deployment mta-analysis-v6 -o jsonpath={.spec.template.spec.containers[]}
           # give the pod time to start
           sleep 15
           kubectl get pods -o wide
-          kubectl wait --for=condition=Ready=true pods -l "app=mta-analysis" --timeout=10m
+          kubectl wait --for=condition=Ready=true pods -l "app=mta-analysis-v6" --timeout=10m
 
       - uses: actions/checkout@v4
       - name: Run e2e script
         run: |
-          e2e/mtav6.2.2.sh
+          e2e/mta-v6.x.sh
 
       - name: Export kind Logs
         if: always()
