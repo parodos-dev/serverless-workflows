@@ -22,7 +22,7 @@ echo "Proxy MTA Analysis port ✅"
 
 echo "End to end tests start ⏳"
 
-resp=$(curl --location 'http://localhost:8080/mta-analysis' --header 'Accept: application/json, text/plain, */*' --header 'Content-Type: application/json' --data '{ "repositoryURL": "https://github.com/spring-projects/spring-petclinic", "exportToIssueManager": "false", "migrationStartDatetime" : "2024-07-01T00:00:00Z", "migrationEndDatetime" : "2024-07-31T00:00:00Z"}')
+resp=$(curl --location 'http://localhost:8080/mta-analysis-v7' --header 'Accept: application/json, text/plain, */*' --header 'Content-Type: application/json' --data '{ "repositoryURL": "https://github.com/spring-projects/spring-petclinic", "exportToIssueManager": "false", "migrationStartDatetime" : "2024-07-01T00:00:00Z", "migrationEndDatetime" : "2024-07-31T00:00:00Z"}')
 
 id=$(echo "$resp" | jq ".id")
 
