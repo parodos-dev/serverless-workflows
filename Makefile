@@ -12,6 +12,10 @@ ifndef APPLICATION_ID
 APPLICATION_ID = UNDEFINED
 endif
 
+ifndef LOCAL_TEST
+LOCAL_TEST = false
+endif
+
 ifeq ($(APPLICATION_ID), UNDEFINED)
 IS_WORKFLOW = true
 IS_APPLICATION = false
@@ -31,6 +35,9 @@ WORKDIR := $(shell mktemp -d)
 ifeq ($(shell uname),Darwin)
 	# Use a fixed folder to simplify limactl configuration (must be mounted with Write permissions)
 	WORKDIR := /tmp/serverless-workflows
+endif
+ifeq ($(LOCAL_TEST), true)
+	WORKDIR := ~/workdir
 endif
 SCRIPTS_DIR := scripts
 
@@ -93,6 +100,7 @@ MAVEN_ARGS_APPEND="-Dkogito.persistence.type=jdbc -Dquarkus.datasource.db-kind=p
 .PHONY: all
 
 all: build-image push-image gen-manifests push-manifests
+for-local-tests: build-image push-image gen-manifests
 
 # Target: prepare-workdir
 # Description: copies the local repo content in a temporary WORKDIR for file manipulation.

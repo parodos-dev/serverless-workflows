@@ -1,0 +1,161 @@
+name: MTA v7.x Workflow end to end tests 
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'mta-v7.x/**'
+      - 'pipeline/**'
+      - '!e2e/mta-v7.x.sh'
+      - '!mta-v7.x/*.svg'
+      - .github/workflows/mta-v7.x-e2e.yaml
+      - .github/workflows/main.yml
+
+jobs:
+  build:
+    uses: ./.github/workflows/main.yml
+    secrets: inherit
+    with:
+      workflow_id: mta-v7.x
+      it_mode: true
+  run-e2e:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Create k8s Kind Cluster
+        uses: helm/kind-action@v1.10.0
+        with:
+          cluster_name: kind
+
+      - name: Install Operators Support
+        run: |
+          kubectl apply -f https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/quickstart/crds.yaml
+          # give the apiserver time
+          sleep 5s 
+          kubectl apply -f https://raw.githubusercontent.com/operator-framework/operator-lifecycle-manager/master/deploy/upstream/quickstart/olm.yaml
+
+      - name: Install Konveyor 0.3 (MTA upstream equivalent to 7.0)
+        run: |
+          # install konveyor operator
+          # version 0.2 is MTA 6.2 and 0.3 is 7.x
+          kubectl create -f https://operatorhub.io/install/konveyor-0.3/konveyor-operator.yaml
+          # give the apiserver time
+          echo "sleeping 300 seconds to give time for the operator to pull images and start"
+          sleep 300s
+          kubectl get csv -A 
+          # TODO its a bit smelly that the csv name is coded here. 
+          kubectl wait --for=jsonpath='{.status.phase}=Succeeded' -n my-konveyor-operator csv/konveyor-operator.v0.3.2
+          kubectl get pods -A
+          kubectl wait --for=condition=Ready=true pods -l "name=tackle-operator" -n my-konveyor-operator --timeout=240s
+          kubectl get crds
+          kubectl create -f - << EOF
+          kind: Tackle
+          apiVersion: tackle.konveyor.io/v1alpha1
+          metadata:
+            name: tackle
+            namespace: my-konveyor-operator
+          spec:
+            feature_auth_required: false
+            hub_database_volume_size: 1Gi
+            hub_bucket_volume_size: 1Gi
+          EOF
+
+          kubectl get pods -n my-konveyor-operator
+          sleep 60s
+          kubectl get tackle -n my-konveyor-operator -o yaml
+          echo "wait for tackle ui to be ready"
+          kubectl get pods -n my-konveyor-operator
+          sleep 300s
+          kubectl wait --for=condition=Ready=true pods -l "app.kubernetes.io/name=tackle-ui" -n my-konveyor-operator --timeout=240s
+          # now MTA workflow can execute agains tackle-ui.my-konveyor-operator.svc:8080
+
+      - name: Deploy Sonataflow-operator
+        run: |
+          # Namespace for Sonataflow
+          kubectl create namespace sonataflow-infra
+
+          # PostgreSQL installation
+          kubectl create secret generic sonataflow-psql-postgresql --from-literal=postgres-username=postgres --from-literal=postgres-password=postgres -n sonataflow-infra
+          helm repo add bitnami https://charts.bitnami.com/bitnami
+          helm install sonataflow-psql bitnami/postgresql --version 12.12.10 \
+            -f https://raw.githubusercontent.com/rgolangh/orchestrator-helm-chart/main/postgresql/values.yaml \
+            -n sonataflow-infra
+          sleep 60s
+          kubectl wait --for=jsonpath='{.status.phase}'=Running "$(kubectl get pod -o name -n sonataflow-infra | grep sonataflow-psql-postgresql)" --timeout=300s -n sonataflow-infra
+
+          # Sonataflow operator
+          kubectl create -f https://raw.githubusercontent.com/kiegroup/kogito-serverless-operator/main/operator.yaml
+          kubectl apply -f https://raw.githubusercontent.com/rhkp/sonataflow-cluster-resources/main/sonata-flow-operator.yaml
+          kubectl wait --for=jsonpath='{.status.phase}'=Running "$(kubectl get pod -o name -n sonataflow-operator-system | grep sonataflow-operator-controller-manager)" -n sonataflow-operator-system  --timeout=300s
+
+          # Core services of Sonataflow
+          kubectl apply -f https://raw.githubusercontent.com/rhkp/sonataflow-cluster-resources/main/sonata-flow-platform.yaml
+          sleep 60s
+          kubectl wait --for=jsonpath='{.status.phase}'=Running "$(kubectl get pod -o name -n sonataflow-infra | grep sonataflow-platform-jobs-service)" -n sonataflow-infra --timeout=300s
+          kubectl wait --for=jsonpath='{.status.phase}'=Running "$(kubectl get pod -o name -n sonataflow-infra | grep sonataflow-platform-data-index-service)" -n sonataflow-infra --timeout=300s
+
+      - name: Download sonataflow artifacts generated manifests
+        uses: actions/download-artifact@v4
+        with:
+          name: serverless-workflow-mta-v7.x-manifests
+          path: manifests
+
+      - name: Download serverless workflows mta image
+        uses: actions/download-artifact@v4
+        with:
+          name: serverless-workflow-mta-v7.x-${{ github.sha }}.tar
+
+      - name: Load mta workflow image to Kind
+        run: |
+          kind load image-archive serverless-workflow-mta-v7.x-${{ github.sha }}.tar
+
+
+      - name: Deploy MTA serverless workflow
+        run: |
+          ###### workaround till https://issues.redhat.com/browse/FLPATH-892 is solved
+          # yq --inplace '.spec.podTemplate.container |= ( . +  {"imagePullPolicy": "IfNotPresent"} )' manifests/01-sonataflow_mta-analysis-v7.yaml
+          ###### end workfaround
+
+          # Set the endpoint to the tackle-ui service
+          yq --inplace '.spec.podTemplate.container.env |= ( . + [{"name": "QUARKUS_REST_CLIENT_MTA_JSON_URL", "value": "http://tackle-ui.my-konveyor-operator.svc:8080"}, {"name": "MTA_HUB_TOKEN", "value": "TEST_TOKEN_VALUE"}, {"name": "BACKSTAGE_NOTIFICATIONS_URL", "value": "http://janus-idp-workflows-backstage.default.svc.cluster.local:7007/api/notifications/"}] )' manifests/01-sonataflow_mta-analysis-v7.yaml
+          
+          # Disable persistence for e2e tests
+          yq e '.spec.persistence = {}' -i manifests/01-sonataflow_mta-analysis-v7.yaml
+          sed -i '/quarkus\.flyway\.migrate-at-start=true/d' manifests/03-configmap_mta-analysis-v7-props.yaml
+
+          echo "manifests/03-configmap_mta-analysis-v7-props.yaml"
+          cat manifests/03-configmap_mta-analysis-v7-props.yaml
+          echo "---"
+
+          echo "manifests/01-sonataflow_mta-analysis-v7.yaml"
+          cat manifests/01-sonataflow_mta-analysis-v7.yaml
+          echo "---"
+
+          # deploy the manifests created by the ${{ steps.build-image.outputs.image }} image
+          kubectl apply -f manifests/
+          sleep 5
+          kubectl get deployment mta-analysis-v7 -o jsonpath='{.spec.template.spec.containers[]}'
+          # give the pod time to start
+          sleep 15
+          kubectl get pods -o wide
+          kubectl wait --for=condition=Ready=true pods -l "app=mta-analysis-v7" --timeout=10m
+
+      - uses: actions/checkout@v4
+      - name: Run e2e script
+        run: |
+          e2e/mta-v7.x.sh
+
+      - name: Export kind Logs
+        if: always()
+        run: kind export logs ./kind_logs
+
+      - name: Upload Kind Logs
+        uses: actions/upload-artifact@v4
+        # Always run this, even if one of the previous steps failed.
+        if: always()
+        with:
+          name: kind-logs
+          path: ./kind_logs/
+

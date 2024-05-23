@@ -1,0 +1,30 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "repositoryURL": {
+      "type": "string",
+      "pattern": "^(git|http|https)://.+$"
+    },
+    "backstageUser": {
+      "type": "string"
+    },
+    "backstageGroup": {
+      "type": "string"
+    }, 
+    "exportToIssueManager": {
+      "type": "string"
+    },
+    "migrationStartDatetime": {
+      "type": "string"
+    },
+    "migrationEndDatetime": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "repositoryURL",
+    "exportToIssueManager"
+  ]
+}
+
