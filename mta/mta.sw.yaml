@@ -178,6 +178,8 @@ states:
     end: true
   - name: NotifyFailureBackstage
     type: operation
+    metadata:
+      errorMessage: '"MTA analysis for " + .application.repository.url + " failed. Check logs of task pod: " + .taskgroup.tasks[0].pod'
     actions:
       - condition: .backstageUser != null or .backstageGroup != null
         functionRef:
