@@ -164,6 +164,8 @@ states:
     transition: PrintExitErrorMessage
   - name: PrintExitErrorMessage
     type: parallel
+    metadata:
+      errorMessage: '"Move2kube (m2k) workflow: " + $WORKFLOW.instanceId + " has finalized with error. Exit message: " + .exitMessage + " -- Plan retries: " + (.planRetries|tostring)'
     branches:
       - name: printSystemOut
         actions:
