@@ -90,7 +90,7 @@ ENABLE_PERSISTENCE ?= false
 
 # extra extensions needed for persistence at build time.
 # The extentions listed below are included in the cache in image quay.io/kiegroup/kogito-swf-builder:9.99.1.CR1 or available from maven central repository
-QUARKUS_EXTENSIONS=org.kie.kogito:kogito-addons-quarkus-jobs-knative-eventing:9.99.1.redhat-00003,org.kie.kogito:kogito-addons-quarkus-persistence-jdbc:9.99.1.redhat-00003,org.kie.kogito:kogito-addons-persistence-jdbc:9.99.1.redhat-00003,io.quarkus:quarkus-jdbc-postgresql:3.2.9.Final,io.quarkus:quarkus-agroal:3.2.9.Final
+QUARKUS_EXTENSIONS=org.kie.kogito:kogito-addons-quarkus-jobs-knative-eventing:9.99.1.redhat-00003,org.kie.kogito:kogito-addons-quarkus-persistence-jdbc:9.99.1.redhat-00003,org.kie.kogito:kogito-addons-persistence-jdbc:9.99.1.redhat-00003,io.quarkus:quarkus-jdbc-postgresql:3.2.9.Final,io.quarkus:quarkus-agroal:3.2.9.Final,org.kie:kie-addons-quarkus-monitoring-prometheus:999-SNAPSHOT,org.kie:kie-addons-quarkus-monitoring-sonataflow:999-SNAPSHOT
 QUARKUS_DEV_EXTENSIONS=""
 #org.kie:kie-addons-quarkus-persistence-jdbc:999-20240317-SNAPSHOT,io.quarkus:quarkus-jdbc-postgresql:3.2.9.Final,io.quarkus:quarkus-agroal:3.2.9.Final
 
