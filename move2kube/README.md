@@ -63,4 +63,6 @@ backstage-backstage   backstage-backstage-rhdh-operator.apps.cluster-c68jb.dynam
 11. Then click on `nextStep` 
 12. Click on `run` to trigger the execution
 13. Once a new transformation has started and is waiting for your input, you will receive a notification with a link to the Q&A
+      * For more information about what to expect and how to answer the Q&A, please visit [the official move2kube documentation](https://move2kube.konveyor.io/tutorials/ui)
 14. Once you completed the Q&A, the process will continue and the output of the transformation will be saved in your git repository, you will receive a notification to inform you of the completion of the workflow.
+      * You can now clone the repository and checkout the output branch to deploy your manifests to your cluster! You can check [the move2kube documention](https://move2kube.konveyor.io/tutorials/cli#deploying-the-application-to-kubernetes-with-the-generated-artifacts) if you need guidance on how to deploy the generated artifacts.
