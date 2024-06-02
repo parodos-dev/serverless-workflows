@@ -1,0 +1,324 @@
+= Notifications Plugin - OpenAPI Specs
+team@openapitools.org
+1.0.0
+:toc: left
+:numbered:
+:toclevels: 4
+:source-highlighter: highlightjs
+:keywords: openapi, rest, Notifications Plugin - OpenAPI Specs
+:specDir: 
+:snippetDir: 
+:generator-template: v1 2019-12-20
+:info-url: https://openapi-generator.tech
+:app-name: Notifications Plugin - OpenAPI Specs
+
+[abstract]
+.Abstract
+Notifications Plugin - OpenAPI Specs
+
+
+// markup not found, no include::{specDir}intro.adoc[opts=optional]
+
+
+== Access
+
+
+* *Bearer* Authentication 
+
+
+
+
+
+== Endpoints
+
+
+[.Notifications]
+=== Notifications
+
+
+[.createNotification]
+==== createNotification
+
+`POST /`
+
+Create a notification
+
+===== Description
+
+Create a notification
+
+
+// markup not found, no include::{specDir}POST/spec.adoc[opts=optional]
+
+
+
+===== Parameters
+
+
+====== Body Parameter
+
+[cols="2,3,1,1,1"]
+|===
+|Name| Description| Required| Default| Pattern
+
+| CreateBody
+|  <<CreateBody>>
+| -
+| 
+| 
+
+|===
+
+
+
+
+
+===== Return Type
+
+array[<<Notification>>]
+
+
+===== Content Type
+
+* application/json
+
+===== Responses
+
+.HTTP Response Codes
+[cols="2,3,1"]
+|===
+| Code | Message | Datatype
+
+
+| 200
+| Successful operation
+| List[<<Notification>>] 
+
+|===
+
+===== Samples
+
+
+// markup not found, no include::{snippetDir}POST/http-request.adoc[opts=optional]
+
+
+// markup not found, no include::{snippetDir}POST/http-response.adoc[opts=optional]
+
+
+
+// file not found, no * wiremock data link :POST/POST.json[]
+
+
+ifdef::internal-generation[]
+===== Implementation
+
+// markup not found, no include::{specDir}POST/implementation.adoc[opts=optional]
+
+
+endif::internal-generation[]
+
+
+[#models]
+== Models
+
+
+[#CreateBody]
+=== _CreateBody_ 
+
+
+
+
+[.fields-CreateBody]
+[cols="2,1,1,2,4,1"]
+|===
+| Field Name| Required| Nullable | Type| Description | Format
+
+| recipients
+| 
+| 
+| <<CreateBody_recipients>>    
+| 
+|     
+
+| payload
+| 
+| 
+| <<NotificationPayload>>    
+| 
+|     
+
+|===
+
+
+
+[#CreateBodyRecipients]
+=== _CreateBodyRecipients_ 
+
+
+
+
+[.fields-CreateBodyRecipients]
+[cols="2,1,1,2,4,1"]
+|===
+| Field Name| Required| Nullable | Type| Description | Format
+
+| type
+| X
+| 
+|  <<String>>  
+| 
+|  _Enum:_ broadcast, entity,  
+
+| entityRef
+| 
+| 
+|   List   of <<string>>
+| 
+|     
+
+| excludeEntityRef
+| 
+| 
+|   List   of <<string>>
+| 
+|     
+
+|===
+
+
+
+[#Notification]
+=== _Notification_ 
+
+
+
+
+[.fields-Notification]
+[cols="2,1,1,2,4,1"]
+|===
+| Field Name| Required| Nullable | Type| Description | Format
+
+| id
+| X
+| 
+|   String  
+| 
+|     
+
+| user
+| X
+| X
+|   String  
+| 
+|     
+
+| created
+| X
+| 
+|   Date  
+| 
+| date-time    
+
+| saved
+| 
+| 
+|   Date  
+| 
+| date-time    
+
+| read
+| 
+| 
+|   Date  
+| 
+| date-time    
+
+| updated
+| 
+| 
+|   Date  
+| 
+| date-time    
+
+| origin
+| X
+| 
+|   String  
+| 
+|     
+
+| payload
+| X
+| 
+| <<NotificationPayload>>    
+| 
+|     
+
+|===
+
+
+
+[#NotificationPayload]
+=== _NotificationPayload_ 
+
+
+
+
+[.fields-NotificationPayload]
+[cols="2,1,1,2,4,1"]
+|===
+| Field Name| Required| Nullable | Type| Description | Format
+
+| title
+| X
+| 
+|   String  
+| 
+|     
+
+| description
+| 
+| 
+|   String  
+| 
+|     
+
+| link
+| 
+| 
+|   String  
+| 
+|     
+
+| severity
+| 
+| 
+|  <<String>>  
+| 
+|  _Enum:_ critical, high, normal, low,  
+
+| topic
+| 
+| 
+|   String  
+| 
+|     
+
+| scope
+| 
+| 
+|   String  
+| 
+|     
+
+| icon
+| 
+| 
+|   String  
+| 
+|     
+
+|===
+
+
+
