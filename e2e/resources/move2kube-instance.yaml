@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: move2kube-instance
-          image: quay.io/orchestrator/move2kube-ui:latest
+          image: quay.io/konveyor/move2kube-ui:v0.3.13
           securityContext:
             runAsUser: 0
             allowPrivilegeEscalation: true
