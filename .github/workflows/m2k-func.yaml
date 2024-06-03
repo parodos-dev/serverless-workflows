@@ -73,3 +73,38 @@ jobs:
 
     - name: Print image url
       run: echo "Image pushed to ${{ steps.push-to-quay.outputs.registry-paths }}"
+    
+    - name: Send PRs to config repo
+      if: ${{ ! inputs.it_mode }}
+      env:
+        GH_TOKEN: ${{ secrets.HELM_REPO_TOKEN }}
+      run: |
+          git config --global user.email "${{ github.event.head_commit.author.email || 'parodos@redhat.com' }}"
+          git config --global user.name ${{ github.event.head_commit.author.name || github.triggering_actor }}
+          gh repo clone $WF_CONFIG_REPO config-repo
+          cd config-repo
+          git switch -c ${{ inputs.workflow_id }}-autopr-$RANDOM
+
+          ./hack/bump_chart_version.sh ${{ inputs.workflow_id }} --bump-patch-version
+
+          yq --inplace '.kfunction.image="quay.io/orchestrator/serverless-workflow-m2k-kfunc:${{ github.sha }}"' charts/${{ inputs.workflow_id }}/values.yaml
+         
+          git add -A
+
+          # determine pr or commit url
+          if [ ${{ fromJSON(steps.get_pr_data.outputs.result)}} != "" ]; then
+            PR_OR_COMMIT_URL="${{ fromJSON(steps.get_pr_data.outputs.result).html_url }}"
+          else
+            PR_OR_COMMIT_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          fi
+
+          git commit -m "(${{ inputs.workflow_id }}) Automated PR for m2k-kfunc"
+          echo "Automated PR from $PR_OR_COMMIT_URL" | git commit --amend --file=-
+          git remote set-url origin https://${{ env.GH_TOKEN }}@github.com/$WF_CONFIG_REPO
+          git push origin HEAD
+          gh pr create -f --title "${{ inputs.workflow_id }}: Automatic m2k-kfunc image tag bump" \
+            --body "
+          Updating generated image tag for m2k-kfunc application
+ 
+          This PR was created automatically as a result of merging $PR_OR_COMMIT_URL
+          "
