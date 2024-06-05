@@ -29,7 +29,7 @@ mkdir ./manifests
 cp -r ~/workdir/"$WORKFLOW_ID"/manifests .
 
 # Set the endpoint to the tackle-ui service
-yq --inplace '.spec.podTemplate.container.env |= ( . + [{"name": "QUARKUS_REST_CLIENT_MTA_JSON_URL", "value": "http://tackle-ui.my-konveyor-operator.svc:8080"}, {"name": "MTA_HUB_TOKEN", "value": "TEST_TOKEN_VALUE"}, {"name": "BACKSTAGE_NOTIFICATIONS_URL", "value": "http://janus-idp-workflows-backstage.default.svc.cluster.local:7007/api/notifications/"}] )' manifests/01-sonataflow_mta-analysis-v7.yaml
+yq --inplace '.spec.podTemplate.container.env |= ( . + [{"name": "QUARKUS_REST_CLIENT_MTA_JSON_URL", "value": "http://tackle-ui.my-konveyor-operator.svc:8080"}, {"name": "BACKSTAGE_NOTIFICATIONS_URL", "value": "http://janus-idp-workflows-backstage.default.svc.cluster.local:7007/api/notifications/"}] )' manifests/01-sonataflow_mta-analysis-v7.yaml
 
 # Disable persistence for e2e tests
 yq e '.spec.persistence = {}' -i manifests/01-sonataflow_mta-analysis-v7.yaml
