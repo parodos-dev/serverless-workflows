@@ -1,9 +1,9 @@
-id: vm-updater
+id: modify-vm-resources
 version: "1.0"
 specVersion: "0.8"
-name: "VM updater"
-description: VM updater with CNV
-dataInputSchema: schemas/vm-updater__main-schema.json
+name: "Modify VM Resources"
+description: Modify VM Resources (Memory/CPU)
+dataInputSchema: schemas/modify-vm-resources__main-schema.json
 functions:
   - name: readNamespacedVirtualMachine
     operation: specs/kubevirt-openapi.yaml#readNamespacedVirtualMachine
@@ -72,7 +72,7 @@ states:
             title: '"JIRA ticket created for VM " + .inputs.vm_name'
             message: '"JIRA ticket created to request update for VM " + .inputs.vm_name + " in namespace " + .inputs.vm_namespace'
             origin: "SonataFlow"
-            topic: "VM updater workflow"
+            topic: "Modify VM Resources workflow"
             targetUsers:
               - "default/guest"
             actions:
@@ -124,7 +124,7 @@ states:
                 title: '"Authorization granted to update VM" + .inputs.vm_name + " in namespace " + .inputs.vm_namespace'
                 message: '"Authorization granted to update VM " + .inputs.vm_name + " in namespace " + .inputs.vm_namespace + ". Memory: " + .vm_new_memory + ". CPU cores: " + (.vm_new_cpu_cores|tostring) + ". CPU threads: " + (.vm_new_cpu_threads|tostring) + ". CPU sockets: " + (.vm_new_cpu_sockets|tostring) + ". Auto restart: " + (if .inputs.vm_auto_restart == true then "yes" else "no" end)'
                 origin: "SonataFlow"
-                topic: "VM updater workflow"
+                topic: "Modify VM Resources workflow"
                 targetUsers:
                   - "default/guest"
     transition: Update VM
@@ -227,7 +227,7 @@ states:
                 title:  '"VM" + .inputs.vm_name + " in namespace " + .inputs.vm_namespace + " updated and ready"'
                 message:  '"VM" + .inputs.vm_name + " in namespace " + .inputs.vm_namespace + " updated."' # " + .vm.status.currentCPUTopology + " -- " + .vm.status.memory'
                 origin: "SonataFlow"
-                topic: "VM updater workflow"
+                topic: "Modify VM Resources workflow"
                 actions:
                   - title: "Open console"
                     url: '$SECRET.cluster_console_url + "/k8s/ns/" + .inputs.vm_namespace + "/kubevirt.io~v1~VirtualMachine/" + .inputs.vm_name + "/console/standalone"'
@@ -253,7 +253,7 @@ states:
                 title:  '"VM" + .inputs.vm_name + " in namespace " + .inputs.vm_namespace + " not ready"'
                 message:  '"VM" + .inputs.vm_name + " in namespace " + .inputs.vm_namespace + " not ready after the update atfer checking" +.vmStatusRunningRetries+" times: " + .vm.status'
                 origin: "SonataFlow"
-                topic: "VM updater workflow"
+                topic: "Modify VM Resources workflow"
                 targetUsers:
                   - "default/guest"
     end: true
@@ -276,7 +276,7 @@ states:
                 title: '"Authorization denied to create VM" + .inputs.vm_name + " in namespace " + .inputs.vm_namespace'
                 message: '"Authorization denied to update VM " + .inputs.vm_name + " in namespace " + .inputs.vm_namespace + ". Memory: " + .vm_new_memory + ". CPU cores: " + (.vm_new_cpu_cores|tostring) + ". CPU threads: " + (.vm_new_cpu_threads|tostring) + ". CPU sockets: " + (.vm_new_cpu_sockets|tostring)'
                 origin: "SonataFlow"
-                topic: "VM updater workflow"
+                topic: "Modify VM Resources workflow"
                 targetUsers:
                   - "default/guest"
                 actions:

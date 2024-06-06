@@ -1,5 +1,5 @@
 {
-  "$id": "classpath:/schemas/vm-updater-schema.json",
+  "$id": "classpath:/schemas/modify-vm-resources-schema.json",
   "title": "Data input schema",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "type": "object",
@@ -13,17 +13,17 @@
           "description": "JIRA project key",
           "type": "string"
         },
-        "vm_name": {
-          "title": "VM name",
-          "description": "Name of the VM to create",
-          "type": "string",
-          "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
-        },
         "vm_namespace": {
           "title": "VM namespace",
           "description": "Namespace in which create the VM",
           "type": "string",
           "default": "default",
+          "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
+        },
+        "vm_name": {
+          "title": "VM name",
+          "description": "Name of the VM to create",
+          "type": "string",
           "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
         },
         "vm_new_memory": {

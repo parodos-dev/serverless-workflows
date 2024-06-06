@@ -18,4 +18,4 @@ The VM updater workflow is a workflow that demonstrates the following features o
 - `Auto restart VM` - Auto restart the VM to put into effect the changes
 
 ## Workflow diagram
-![VM Updater diagram](https://github.com/parodos-dev/serverless-workflow/blob/main/vm-updater/vm-updater.svg?raw=true)
+![VM Updater diagram](https://github.com/parodos-dev/serverless-workflow/blob/main/modify-vm-resources/modify-vm-resources.svg?raw=true)
