@@ -1,6 +1,6 @@
 # This workflow is under development and not (yet) fit for PROD purposes, only for DEMO
-# VM Creator workflow
-The VM creator workflow is a workflow that demonstrates the following features of the serverless workflow technology:
+# Request VM on CNV workflow
+The Request VM on CNV workflow is a workflow that demonstrates the following features of the serverless workflow technology:
 * Integration with external service, in this case, Jira Cloud and OCP cluster via their OpenAPI 
 * Conditional branching
 * Using the Notifications plugin to send notifications to the user
@@ -19,4 +19,4 @@ Then, the workflow is checking the status of the VM for a given amount of time. 
 - `VM namespace` [required] - The namespace in which create the VM
 
 ## Workflow diagram
-![VM Creator diagram](https://github.com/parodos-dev/serverless-workflow/blob/main/vm-creator/vm-creator.svg?raw=true)
+![Request VM on CNV diagram](https://github.com/parodos-dev/serverless-workflow/blob/main/vm-creator/vm-creator.svg?raw=true)

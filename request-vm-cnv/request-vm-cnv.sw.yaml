@@ -1,9 +1,9 @@
-id: vm-creator
+id: request-vm-cnv
 version: "1.0"
 specVersion: "0.8"
-name: "VM Creator"
-description: VM creator with CNV
-dataInputSchema: schemas/vm-creator__main-schema.json
+name: "Request VM on CNV"
+description: Request VM on CNV
+dataInputSchema: schemas/request-vm-cnv__main-schema.json
 functions:
   - name: readNamespacedVirtualMachine
     operation: specs/kubevirt-openapi.yaml#readNamespacedVirtualMachine
@@ -53,7 +53,7 @@ states:
             title: '"JIRA ticket created for VM " + .inputs.vm_name'
             message: '"JIRA ticket created to request authorization to create VM " + .inputs.vm_name + " in namespace "+.inputs.vm_namespace'
             origin: "SonataFlow"
-            topic: "VM creator workflow"
+            topic: "Request CM on CNV workflow"
             targetUsers:
               - "default/guest"
             actions:
@@ -105,7 +105,7 @@ states:
                 title: '"Authorization granted to create VM" + .inputs.vm_name + " in namespace "+.inputs.vm_namespace'
                 message:  '"Authorization granted to create VM" + .inputs.vm_name + " in namespace "+.inputs.vm_namespace + " using image "+ .inputs.vm_image +". A notification will be sent once the VM is ready."'
                 origin: "SonataFlow"
-                topic: "VM Creator workflow"
+                topic: "Request VM on CNV workflow"
                 targetUsers:
                   - "default/guest"
     transition: Create VM
@@ -237,7 +237,7 @@ states:
                 title:  '"VM" + .inputs.vm_name + " in namespace "+.inputs.vm_namespace + " ready"'
                 message:  '"VM" + .inputs.vm_name + " in namespace "+.inputs.vm_namespace + " using image "+ .inputs.vm_image +" ready and running."'
                 origin: "SonataFlow"
-                topic: "VM Creator workflow"
+                topic: "Request VM on CNV workflow"
                 actions:
                   - title: "Open console"
                     url: '$SECRET.cluster_console_url + "/k8s/ns/" + .inputs.vm_namespace + "/kubevirt.io~v1~VirtualMachine/" + .inputs.vm_name + "/console/standalone"'
@@ -263,7 +263,7 @@ states:
                 title:  '"VM" + .inputs.vm_name + " in namespace "+.inputs.vm_namespace + " not ready"'
                 message:  '"VM" + .inputs.vm_name + " in namespace "+.inputs.vm_namespace + " using image "+ .inputs.vm_image +" not ready after "+.vmStatusRunningRetries+" retries: " + .vm.status'
                 origin: "SonataFlow"
-                topic: "VM Creator workflow"
+                topic: "Request VM on CNV workflow"
                 targetUsers:
                   - "default/guest"
     end: true
@@ -286,7 +286,7 @@ states:
                 title: '"Authorization denied to create VM" + .inputs.vm_name + " in namespace "+.inputs.vm_namespace'
                 message:  '"Authorization denied to create VM" + .inputs.vm_name + " in namespace "+.inputs.vm_namespace + " using image "+ .inputs.vm_image '
                 origin: "SonataFlow"
-                topic: "VM Creator workflow"
+                topic: "Request VM on CNV workflow"
                 targetUsers:
                   - "default/guest"
                 actions:
