@@ -1,0 +1,230 @@
+id: create-ocp-project
+version: "1.0"
+specVersion: "0.8"
+name: "Create OpenShift Project"
+description: Creating an OpenShift Project
+dataInputSchema: schemas/create-ocp-project__main-schema.json
+functions:
+  - name: jiraCreateIssue
+    operation: specs/jira-openapi.yaml#createIssue
+  - name: jiraGetIssue
+    operation: specs/jira-openapi.yaml#getIssue
+  - name: jiraCloseIssue
+    operation: specs/jira-openapi.yaml#transitionIssue
+  - name: jiraGetIssueTransitions
+    operation: specs/jira-openapi.yaml#getIssueTransitions
+  - name: createNotification
+    operation: specs/notifications-openapi.yaml#createNotification
+  - name: createProjectOpenshiftIoV1Project
+    operation: specs/ocp-project-openapi.yaml#createProjectOpenshiftIoV1Project
+  - name: readProjectOpenshiftIoV1Project
+    operation: specs/ocp-project-openapi.yaml#readProjectOpenshiftIoV1Project
+  - name: print
+    type: custom
+    operation: sysout
+start: "[Audit]: workflow started"
+states:
+  - name: "[Audit]: workflow started"
+    type: operation
+    actions:
+      - name: callbackAction
+        functionRef:
+          refName: jiraCreateIssue
+          arguments:
+            fields:
+              description: '"Workflow executed to request creation project " + .inputs.projectName'
+              issuetype:
+                name: Task
+              labels:
+                - backstage-workflow
+                - '"workflowId=" + $WORKFLOW.instanceId'
+              project:
+                key: .inputs.auditProjectKey
+              summary: '"Workflow executed to request the creation of project " + .inputs.projectName'
+        actionDataFilter:
+          toStateData: .auditJiraCreateIssueResult
+    transition: Open issue on Jira for operations
+  - name: Open issue on Jira for operations
+    type: operation
+    actions:
+      - name: callbackAction
+        functionRef:
+          refName: jiraCreateIssue
+          arguments:
+            fields:
+              description: '"Please review request to create project " + .inputs.projectName'
+              issuetype:
+                name: Task
+              labels:
+                - backstage-workflow
+                - '"workflowId=" + $WORKFLOW.instanceId'
+              project:
+                key: .inputs.operationsProjectKey
+              summary: '"Request authorization to create project " + .inputs.projectName'
+        actionDataFilter:
+          toStateData: .operationsJiraCreateIssueResult
+    transition: "Notify Backstage: Jira ticket created"
+  - name: "Notify Backstage: Jira ticket created"
+    type: operation
+    actions:
+      - name: "Create notification: Jira ticket created"
+        functionRef:
+          refName: createNotification
+          arguments:
+            title: "Jira ticket created"
+            message: "Jira ticket created"
+            origin: "SonataFlow"
+            topic: "Create OCP Project workflow"
+            targetUsers:
+              - "default/guest" # replace with the approver user
+            actions:
+              - title: "View on Jira"
+                # There are more dynamic ways to get the Jira URL, but for simplicity, we are using a hardcoded URL
+                url: '$SECRET.jira_url + "/jira/servicedesk/projects/" + .inputs.operationsProjectKey + "/issues/" + .operationsJiraCreateIssueResult.key'
+    transition: Poll Operation Jira issue
+  - name: Poll Operation Jira issue
+    type: operation
+    actions:
+      - name: get issue
+        actionDataFilter:
+          toStateData: .operationsJiraGetIssueResult
+        functionRef:
+          refName: jiraGetIssue
+          arguments:
+            issueIdOrKey: .operationsJiraCreateIssueResult.id
+        sleep:
+          before: PT10S
+    transition: Check Operation issue done
+  - name: Check Operation issue done
+    type: switch
+    dataConditions:
+      - name: Resource request denied
+        condition: .operationsJiraGetIssueResult.fields.status.statusCategory.key == "done" and .operationsJiraGetIssueResult.fields.resolution.name != "Done"
+        transition: "[Audit]: Close issue on Jira - Project Creation Denied"
+      - name: Resource request authorized
+        condition: .operationsJiraGetIssueResult.fields.status.statusCategory.key == "done" and .operationsJiraGetIssueResult.fields.resolution.name == "Done"
+        transition: "Create Project"
+    defaultCondition:
+      transition:
+        nextState: Poll Operation Jira issue
+  - name: "Create Project"
+    type: operation
+    actions:
+      - name: "Create OCP Project"
+        functionRef:
+          refName: createProjectOpenshiftIoV1Project
+          arguments:
+            kind: Project
+            metadata:
+              labels:
+                kubernetes.io/metadata.name: .inputs.projectName
+              name: .inputs.projectName
+            spec:
+              finalizers:
+              - kubernetes
+
+    transition:
+      nextState: "Post operation: get project resource"
+  - name: "Post operation: get project resource"
+    type: operation
+    actions:
+      - name: "Get created project"
+        sleep:
+          before: PT10S
+        actionDataFilter:
+          toStateData: .project
+        functionRef:
+          refName: readProjectOpenshiftIoV1Project
+          arguments:
+            name: .inputs.projectName
+    transition:
+      nextState: "Post operation: check project resource created successfully"
+  - name: "Post operation: check project resource created successfully"
+    type: switch
+    dataConditions:
+      - name: Project Active
+        condition: .project.status.phase == "Active"
+        transition: Notify project active
+    defaultCondition:
+      transition:
+        nextState: Notify project not active
+  - name: Notify project active
+    type: operation
+    actions:
+      - name: "Create notification: project active"
+        functionRef:
+          refName: createNotification
+          arguments:
+            title:  '"Project " + .inputs.projectName + " active"'
+            message:  '"Project " + .inputs.projectName + " active"'
+            origin: "SonataFlow"
+            topic: "Create OCP Project"
+            targetUsers:
+              - "default/guest"
+    transition:
+      nextState: "[Audit]: Close issue on Jira"
+  - name: Notify project not active
+    type: operation
+    actions:
+      - name: "Create notification: project not active"
+        functionRef:
+          refName: createNotification
+          arguments:
+            title:  '"Project " + .inputs.projectName + " NOT active"'
+            message:  '"Project " + .inputs.projectName + " NOT active"'
+            origin: "SonataFlow"
+            topic: "Create OCP Project"
+            targetUsers:
+              - "default/guest"
+    transition:
+      nextState: "[Audit]: Close issue on Jira"
+  - name: "[Audit]: Close issue on Jira"
+    type: operation
+    actionMode: sequential
+    actions:
+      - name: get transition id
+        actionDataFilter:
+          toStateData: .jiraGetTransitionResult
+        functionRef:
+          refName: jiraGetIssueTransitions
+          arguments:
+            issueIdOrKey: .auditJiraCreateIssueResult.id
+      - name: Close issue on Jira due to Timeout
+        actionDataFilter:
+          toStateData: .jiraCloseIssueResult
+        functionRef:
+          refName: jiraCloseIssue
+          arguments:
+            issueIdOrKey: .auditJiraCreateIssueResult.id
+            transition:
+              id: .jiraGetTransitionResult.transitions[] | select(.to.name | contains("Done")) | .id
+            update:
+              comment:
+                - add:
+                    body: '"Project " + .inputs.projectName + " is " + .project.status.phase'
+    end: true
+  - name: "[Audit]: Close issue on Jira - Project Creation Denied"
+    type: operation
+    actionMode: sequential
+    actions:
+      - name: get transition id
+        actionDataFilter:
+          toStateData: .jiraGetTransitionResult
+        functionRef:
+          refName: jiraGetIssueTransitions
+          arguments:
+            issueIdOrKey: .auditJiraCreateIssueResult.id
+      - name: Close issue on Jira due to Timeout
+        actionDataFilter:
+          toStateData: .jiraCloseIssueResult
+        functionRef:
+          refName: jiraCloseIssue
+          arguments:
+            issueIdOrKey: .auditJiraCreateIssueResult.id
+            transition:
+              id: .jiraGetTransitionResult.transitions[] | select(.to.name | contains("Done")) | .id
+            update:
+              comment:
+                - add:
+                    body: '"Creation of project " + .inputs.projectName + " denied"'
+    end: true
