@@ -655,7 +655,7 @@
         ]
       }
     },
-    "/tickets/{id}": {
+    "/hub/tickets/{id}": {
       "get": {
         "operationId": "getTicket",
         "tags": [

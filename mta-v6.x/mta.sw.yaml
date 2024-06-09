@@ -48,6 +48,8 @@ functions:
     operation: specs/mta.json#createTicket
   - name: getTickets
     operation: specs/mta.json#getTickets
+  - name: getTicket
+    operation: specs/mta.json#getTicket
   - name: createNotification
     operation: specs/notifications.json#createNotification
   - name: logInfo
@@ -165,7 +167,7 @@ states:
   - name: checkReportDone
     type: switch
     dataConditions:
-      - condition: (.taskgroup.state == "Ready" and .taskgroup.tasks[0].state == "Running")
+      - condition: (.taskgroup.state == "Ready" and (.taskgroup.tasks[0].state == "Running" or .taskgroup.tasks[0].state == "Pending"))
         transition: pollResults
       - condition: (.taskgroup.state == "Ready" and .exportToIssueManager == "true" and .taskgroup.tasks[0].state == "Succeeded")
         transition: GetTrackers
@@ -340,6 +342,15 @@ states:
             application:
               id: .application.id
               name: .application.name
+        actionDataFilter:
+          toStateData: ".createdJiraTicket"
+        sleep:
+          after: PT30S
+      - name: "GetMigrationWaveJiraTicket"
+        functionRef:
+          refName: getTicket
+          arguments:
+            id: .createdJiraTicket.id
         actionDataFilter:
           toStateData: ".migrationWaveJiraTicket"
     transition: NotifyCompletion          
