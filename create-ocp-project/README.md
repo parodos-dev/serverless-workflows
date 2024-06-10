@@ -17,6 +17,7 @@ This workflow can be extended to introduce more capabilities, such as creating K
 ## Input
 - `Audit Jira Project Key` [required] - the Jira Project Key to which the workflow is configured to work and has permission to create and update and issue of type Task.
 - `Operations Jira Project Key` [required] - the Jira Project Key to which the workflow is configured to work and has permission to create and update and issue of type Task.
+- `OCP project to create` [required] - the OCP project to be created on the OCP cluster.
 
 ## Workflow diagram
 ![Create OpenShift Project diagram](https://github.com/parodos-dev/serverless-workflow-examples/blob/main/create-ocp-project/create-ocp-project.svg?raw=true)
