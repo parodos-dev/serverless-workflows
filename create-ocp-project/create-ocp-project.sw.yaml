@@ -13,8 +13,6 @@ functions:
     operation: specs/jira-openapi.yaml#transitionIssue
   - name: jiraGetIssueTransitions
     operation: specs/jira-openapi.yaml#getIssueTransitions
-  - name: createNotification
-    operation: specs/notifications-openapi.yaml#createNotification
   - name: createProjectOpenshiftIoV1Project
     operation: specs/ocp-project-openapi.yaml#createProjectOpenshiftIoV1Project
   - name: readProjectOpenshiftIoV1Project
@@ -63,24 +61,6 @@ states:
               summary: '"Request authorization to create project " + .inputs.projectName'
         actionDataFilter:
           toStateData: .operationsJiraCreateIssueResult
-    transition: "Notify Backstage: Jira ticket created"
-  - name: "Notify Backstage: Jira ticket created"
-    type: operation
-    actions:
-      - name: "Create notification: Jira ticket created"
-        functionRef:
-          refName: createNotification
-          arguments:
-            title: "Jira ticket created"
-            message: "Jira ticket created"
-            origin: "SonataFlow"
-            topic: "Create OCP Project workflow"
-            targetUsers:
-              - "default/guest" # replace with the approver user
-            actions:
-              - title: "View on Jira"
-                # There are more dynamic ways to get the Jira URL, but for simplicity, we are using a hardcoded URL
-                url: '$SECRET.jira_url + "/jira/servicedesk/projects/" + .inputs.operationsProjectKey + "/issues/" + .operationsJiraCreateIssueResult.key'
     transition: Poll Operation Jira issue
   - name: Poll Operation Jira issue
     type: operation
@@ -121,8 +101,7 @@ states:
               name: .inputs.projectName
             spec:
               finalizers:
-              - kubernetes
-
+                - kubernetes
     transition:
       nextState: "Post operation: get project resource"
   - name: "Post operation: get project resource"
@@ -144,40 +123,10 @@ states:
     dataConditions:
       - name: Project Active
         condition: .project.status.phase == "Active"
-        transition: Notify project active
+        transition: "[Audit]: Close issue on Jira"
     defaultCondition:
       transition:
-        nextState: Notify project not active
-  - name: Notify project active
-    type: operation
-    actions:
-      - name: "Create notification: project active"
-        functionRef:
-          refName: createNotification
-          arguments:
-            title:  '"Project " + .inputs.projectName + " active"'
-            message:  '"Project " + .inputs.projectName + " active"'
-            origin: "SonataFlow"
-            topic: "Create OCP Project"
-            targetUsers:
-              - "default/guest"
-    transition:
-      nextState: "[Audit]: Close issue on Jira"
-  - name: Notify project not active
-    type: operation
-    actions:
-      - name: "Create notification: project not active"
-        functionRef:
-          refName: createNotification
-          arguments:
-            title:  '"Project " + .inputs.projectName + " NOT active"'
-            message:  '"Project " + .inputs.projectName + " NOT active"'
-            origin: "SonataFlow"
-            topic: "Create OCP Project"
-            targetUsers:
-              - "default/guest"
-    transition:
-      nextState: "[Audit]: Close issue on Jira"
+        nextState: "[Audit]: Close issue on Jira"
   - name: "[Audit]: Close issue on Jira"
     type: operation
     actionMode: sequential
