@@ -14,14 +14,14 @@
           "type": "string"
         },
         "vm_namespace": {
-          "title": "VM namespace",
+          "title": "VM Namespace",
           "description": "Namespace in which create the VM",
           "type": "string",
           "default": "default",
           "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
         },
         "vm_name": {
-          "title": "VM name",
+          "title": "VM Name",
           "description": "Name of the VM to create",
           "type": "string",
           "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
@@ -33,22 +33,22 @@
           "examples": ["2Gi"]
         },
         "vm_new_cpu_cores": {
-          "title": "CPU cores",
+          "title": "CPU Cores",
           "description": "The new amount of CPU cores available to the VM",
           "type": "integer"
         },
         "vm_new_cpu_threads": {
-          "title": "CPU thread",
+          "title": "CPU Threads",
           "description": "The new amount of CPU threads available to the VM",
           "type": "integer"
         },
         "vm_new_cpu_sockets": {
-          "title": "CPU sockets",
+          "title": "CPU Sockets",
           "description": "The new amount of CPU sockets available to the VM",
           "type": "integer"
         },
         "vm_auto_restart": {
-          "title": "Auto restart VM",
+          "title": "Auto-Restart VM",
           "description": "Auto restart the VM to put into effect the changes",
           "type": "boolean",
           "default": false
