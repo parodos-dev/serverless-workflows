@@ -1,0 +1,286 @@
+id: modify-vm-resources
+version: "1.0"
+specVersion: "0.8"
+name: "Modify VM Resources"
+description: Modify VM Resources (Memory/CPU)
+dataInputSchema: schemas/modify-vm-resources__main-schema.json
+functions:
+  - name: readNamespacedVirtualMachine
+    operation: specs/kubevirt-openapi.yaml#readNamespacedVirtualMachine
+  - name: patchNamespacedVirtualMachine
+    operation: specs/kubevirt-openapi.yaml#patchNamespacedVirtualMachine
+  - name: jiraCreateIssue
+    operation: specs/jira-openapi.json#createIssue
+  - name: jiraGetIssue
+    operation: specs/jira-openapi.json#getIssue
+  - name: createNotification
+    operation: specs/notifications-openapi.yaml#createNotification
+  - name: print
+    type: custom
+    operation: sysout
+  - name: increaseVMStatusRunningRetries
+    type: expression
+    operation: ".vmStatusRunningRetries=.vmStatusRunningRetries + 1"
+start: Get VM
+states:
+  - name: Get VM
+    type: operation
+    actions:
+      - name: get VM
+        actionDataFilter:
+          toStateData: .vm
+        functionRef:
+          refName: readNamespacedVirtualMachine
+          arguments:
+            namespace: .inputs.vm_namespace
+            name: .inputs.vm_name
+    transition: Fill empty values
+  - name: Fill empty values
+    type: inject
+    data:
+      {}
+    stateDataFilter:
+      output: '( . + {vm_new_memory: (if (.inputs.vm_new_memory == null or .inputs.vm_new_memory == "") then .vm.spec.template.spec.domain.memory.guest else .inputs.vm_new_memory end), vm_new_cpu_cores: (if .inputs.vm_new_cpu_cores == null then .vm.spec.template.spec.domain.cpu.cores else .inputs.vm_new_cpu_cores end), vm_new_cpu_sockets: (if .inputs.vm_new_cpu_sockets == null then .vm.spec.template.spec.domain.cpu.sockets else .inputs.vm_new_cpu_sockets end), vm_new_cpu_threads: if .inputs.vm_new_cpu_threads == null then .vm.spec.template.spec.domain.cpu.threads else .inputs.vm_new_cpu_threads end})'
+    transition: Open issue on JIRA
+  - name: Open issue on JIRA
+    type: operation
+    actions:
+      - name: callbackAction
+        functionRef:
+          refName: jiraCreateIssue
+          arguments:
+            fields:
+              description: '"Authorization request to update VM " + .inputs.vm_name + " in namespace " + .inputs.vm_namespace + ".\nMemory: " + .vm_new_memory + "\nCPU cores: " + (.vm_new_cpu_cores|tostring) + "\nCPU threads: " + (.vm_new_cpu_threads|tostring) + "\nCPU sockets: " + (.vm_new_cpu_sockets|tostring) + "\nAuto restart VM: " + (if .inputs.vm_auto_restart == true then "yes" else "no" end)'
+              issuetype:
+                name: Task
+              labels:
+                - backstage-workflow
+                - '"workflowId=" + $WORKFLOW.instanceId'
+              project:
+                key: .inputs.projectKey
+              summary: '"Authorization request to update VM " + .inputs.vm_name + " in namespace " + .inputs.vm_namespace'
+        actionDataFilter:
+          toStateData: .jiraCreateIssueResult
+    transition: "Notify Backstage: JIRA ticket created"
+  - name: "Notify Backstage: JIRA ticket created"
+    type: operation
+    actions:
+      - name: "Create notification: JIRA ticket created"
+        functionRef:
+          refName: createNotification
+          arguments:
+            title: '"JIRA ticket created for VM " + .inputs.vm_name'
+            message: '"JIRA ticket created to request update for VM " + .inputs.vm_name + " in namespace " + .inputs.vm_namespace'
+            origin: "SonataFlow"
+            topic: "Modify VM Resources workflow"
+            targetUsers:
+              - "default/guest"
+            actions:
+              - title: "View on JIRA"
+                # There are more dynamic ways to get the JIRA URL, but for simplicity, we are using a hardcoded URL
+                url: '$SECRET.jira_url + "/jira/servicedesk/projects/" + .inputs.projectKey + "/issues/" + .jiraCreateIssueResult.key'
+    transition: Poll issue
+  - name: Poll issue
+    type: operation
+    actions:
+      - name: get issue
+        actionDataFilter:
+          toStateData: .jiraGetIssueResult
+        functionRef:
+          refName: jiraGetIssue
+          arguments:
+            issueIdOrKey: .jiraCreateIssueResult.id
+        sleep:
+          before: PT10S
+    transition: Check issue done
+  - name: Check issue done
+    type: switch
+    dataConditions:
+      - name: VM update denied
+        condition: .jiraGetIssueResult.fields.status.statusCategory.key == "done" and .jiraGetIssueResult.fields.resolution.name != "Done"
+        transition: Notify VM update denied
+      - name: VM update authorized
+        condition: .jiraGetIssueResult.fields.status.statusCategory.key == "done" and .jiraGetIssueResult.fields.resolution.name == "Done"
+        transition: Notify VM update authorized
+    defaultCondition:
+      transition:
+        nextState: Poll issue
+  - name: Notify VM update authorized
+    type: parallel
+    branches:
+      - name: printSystemOut
+        actions:
+          - name: printSystemOut
+            functionRef:
+              refName: print
+              arguments:
+                message: '${"VM update authorized, see Jira issue: " + $SECRET.jira_url + "/jira/servicedesk/projects/" + .inputs.projectKey + "/issues/" + .jiraCreateIssueResult.key + " ==> " + .inputs.vm_name}'
+      - name: "Create notification: VM update authorized"
+        actions:
+          - name: "Create notification: VM update authorized"
+            functionRef:
+              refName: createNotification
+              arguments:
+                title: '"Authorization granted to update VM" + .inputs.vm_name + " in namespace " + .inputs.vm_namespace'
+                message: '"Authorization granted to update VM " + .inputs.vm_name + " in namespace " + .inputs.vm_namespace + ". Memory: " + .vm_new_memory + ". CPU cores: " + (.vm_new_cpu_cores|tostring) + ". CPU threads: " + (.vm_new_cpu_threads|tostring) + ". CPU sockets: " + (.vm_new_cpu_sockets|tostring) + ". Auto restart: " + (if .inputs.vm_auto_restart == true then "yes" else "no" end)'
+                origin: "SonataFlow"
+                topic: "Modify VM Resources workflow"
+                targetUsers:
+                  - "default/guest"
+    transition: Update VM
+  - name: Update VM
+    type: operation
+    actions:
+      - functionRef:
+          refName: patchNamespacedVirtualMachine
+          arguments:
+            namespace: .inputs.vm_namespace
+            name: .inputs.vm_name
+            spec:
+              spec:
+                running: (.inputs.vm_auto_restart|not)
+                template:
+                  spec:
+                    domain:
+                      cpu:
+                        cores: .vm_new_cpu_cores
+                        sockets: .vm_new_cpu_sockets
+                        threads: .vm_new_cpu_threads   
+                      memory:
+                        guest: .vm_new_memory
+
+    transition: Check auto restart
+  - name: Check auto restart
+    type: switch
+    dataConditions:
+      - name: VM autorestart enabled
+        condition: .inputs.vm_auto_restart == true
+        transition: Restart VM
+    defaultCondition:
+      transition:
+        nextState: InitVMStatusRunningRetry
+  - name: Restart VM
+    type: operation
+    actions:
+      - functionRef:
+          refName: patchNamespacedVirtualMachine
+          arguments:
+            namespace: .inputs.vm_namespace
+            name: .inputs.vm_name
+            spec:
+              spec:
+                running: true
+    transition: InitVMStatusRunningRetry
+  - name: InitVMStatusRunningRetry
+    type: inject
+    data:
+      vmStatusRunningRetries: 0
+    transition: Poll VM
+  - name: Poll VM
+    type: operation
+    actions:
+      - name: get VM
+        actionDataFilter:
+          toStateData: .vm
+        functionRef:
+          refName: readNamespacedVirtualMachine
+          arguments:
+            namespace: .inputs.vm_namespace
+            name: .inputs.vm_name
+        sleep:
+          before: PT10S
+    transition: IncreaseVMStatusRunningRetriesRetry
+  - name: IncreaseVMStatusRunningRetriesRetry
+    type: operation
+    actions:
+      - functionRef:
+          refName: increaseVMStatusRunningRetries
+    transition: Check VM status
+  - name: Check VM status
+    type: switch
+    dataConditions:
+      - name: VM running
+        condition: .vm.status.ready == true
+        transition: Notify VM running
+      - name: VM not running
+        condition: (.vmStatusRunningRetries > ($SECRET.vm_check_running_max_retries | tonumber))
+        transition: Notify VM not running
+    defaultCondition:
+      transition:
+        nextState: Poll VM
+  - name: Notify VM running
+    type: parallel
+    branches:
+      - name: printSystemOut
+        actions:
+          - name: printSystemOut
+            functionRef:
+              refName: print
+              arguments:
+                message: 'VM running: .vm'
+      - name: "Create notification: VM running"
+        actions:
+          - name: "Create notification: VM update running"
+            functionRef:
+              refName: createNotification
+              arguments:
+                title:  '"VM" + .inputs.vm_name + " in namespace " + .inputs.vm_namespace + " updated and ready"'
+                message:  '"VM" + .inputs.vm_name + " in namespace " + .inputs.vm_namespace + " updated."' # " + .vm.status.currentCPUTopology + " -- " + .vm.status.memory'
+                origin: "SonataFlow"
+                topic: "Modify VM Resources workflow"
+                actions:
+                  - title: "Open console"
+                    url: '$SECRET.cluster_console_url + "/k8s/ns/" + .inputs.vm_namespace + "/kubevirt.io~v1~VirtualMachine/" + .inputs.vm_name + "/console/standalone"'
+                targetUsers:
+                  - "default/guest"
+    end: true
+  - name: Notify VM not running
+    type: parallel
+    branches:
+      - name: printSystemOut
+        actions:
+          - name: printSystemOut
+            functionRef:
+              refName: print
+              arguments:
+                message: 'VM not running: .vm'
+      - name: "Create notification: VM not running"
+        actions:
+          - name: "Create notification: VM update not running"
+            functionRef:
+              refName: createNotification
+              arguments:
+                title:  '"VM" + .inputs.vm_name + " in namespace " + .inputs.vm_namespace + " not ready"'
+                message:  '"VM" + .inputs.vm_name + " in namespace " + .inputs.vm_namespace + " not ready after the update atfer checking" +.vmStatusRunningRetries+" times: " + .vm.status'
+                origin: "SonataFlow"
+                topic: "Modify VM Resources workflow"
+                targetUsers:
+                  - "default/guest"
+    end: true
+  - name: Notify VM update denied
+    type: parallel
+    branches:
+      - name: printSystemOut
+        actions:
+          - name: printSystemOut
+            functionRef:
+              refName: print
+              arguments:
+                message: '${"VM update denied, see Jira issue: " + $SECRET.jira_url + "/jira/servicedesk/projects/" + .inputs.projectKey + "/issues/" + .jiraCreateIssueResult.key + " ==> " + .inputs.vm_name}'
+      - name: "Create notification: VM update denied"
+        actions:
+          - name: "Create notification: VM update denied"
+            functionRef:
+              refName: createNotification
+              arguments:
+                title: '"Authorization denied to create VM" + .inputs.vm_name + " in namespace " + .inputs.vm_namespace'
+                message: '"Authorization denied to update VM " + .inputs.vm_name + " in namespace " + .inputs.vm_namespace + ". Memory: " + .vm_new_memory + ". CPU cores: " + (.vm_new_cpu_cores|tostring) + ". CPU threads: " + (.vm_new_cpu_threads|tostring) + ". CPU sockets: " + (.vm_new_cpu_sockets|tostring)'
+                origin: "SonataFlow"
+                topic: "Modify VM Resources workflow"
+                targetUsers:
+                  - "default/guest"
+                actions:
+                  - title: "View on JIRA"
+                    url: '$SECRET.jira_url + "/jira/servicedesk/projects/" + .inputs.projectKey + "/issues/" + .jiraCreateIssueResult.key'
+      
+    end: true

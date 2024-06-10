@@ -1,0 +1,65 @@
+{
+  "$id": "classpath:/schemas/modify-vm-resources-schema.json",
+  "title": "Data input schema",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "inputs": {
+      "title": "Inputs",
+      "type": "object",
+      "properties": {
+        "projectKey": {
+          "title": "Project Key",
+          "description": "JIRA project key",
+          "type": "string"
+        },
+        "vm_namespace": {
+          "title": "VM namespace",
+          "description": "Namespace in which create the VM",
+          "type": "string",
+          "default": "default",
+          "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
+        },
+        "vm_name": {
+          "title": "VM name",
+          "description": "Name of the VM to create",
+          "type": "string",
+          "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
+        },
+        "vm_new_memory": {
+          "title": "Memory",
+          "description": "The new guest memory of the VM",
+          "type": "string",
+          "examples": ["2Gi"]
+        },
+        "vm_new_cpu_cores": {
+          "title": "CPU cores",
+          "description": "The new amount of CPU cores available to the VM",
+          "type": "integer"
+        },
+        "vm_new_cpu_threads": {
+          "title": "CPU thread",
+          "description": "The new amount of CPU threads available to the VM",
+          "type": "integer"
+        },
+        "vm_new_cpu_sockets": {
+          "title": "CPU sockets",
+          "description": "The new amount of CPU sockets available to the VM",
+          "type": "integer"
+        },
+        "vm_auto_restart": {
+          "title": "Auto restart VM",
+          "description": "Auto restart the VM to put into effect the changes",
+          "type": "boolean",
+          "default": false
+        }
+
+      },
+      "required": [
+        "projectKey",
+        "vm_name",
+        "vm_namespace"
+      ]
+    }
+  }
+}
