@@ -18,7 +18,8 @@ on:
 env:
   WORKDIR: move2kube/m2k-func
   MVN_OPTS: ""
-    
+  WF_CONFIG_REPO: parodos-dev/serverless-workflows-config
+  
 jobs:
   build-and-push-m2k-func:
     runs-on: ubuntu-latest
@@ -85,7 +86,7 @@ jobs:
               repo: context.repo.repo,
             })
           ).data[0];
-          
+
     - name: Send PRs to config repo
       if: ${{ ! inputs.it_mode }}
       env:
