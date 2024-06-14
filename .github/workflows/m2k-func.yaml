@@ -98,7 +98,7 @@ jobs:
           cd config-repo
           git switch -c m2k-kfunc-autopr-$RANDOM
 
-          ./hack/bump_chart_version.sh m2k-kfunc --bump-patch-version
+          ./hack/bump_chart_version.sh move2kube --bump-patch-version
 
           yq --inplace '.kfunction.image="quay.io/orchestrator/serverless-workflow-m2k-kfunc:${{ github.sha }}"' charts/move2kube/values.yaml
          
