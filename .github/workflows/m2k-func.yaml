@@ -74,6 +74,18 @@ jobs:
     - name: Print image url
       run: echo "Image pushed to ${{ steps.push-to-quay.outputs.registry-paths }}"
     
+    - uses: actions/github-script@v7
+      id: get_pr_data
+      with:
+        script: |
+          return (
+            await github.rest.repos.listPullRequestsAssociatedWithCommit({
+              commit_sha: context.sha,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            })
+          ).data[0];
+          
     - name: Send PRs to config repo
       if: ${{ ! inputs.it_mode }}
       env:
