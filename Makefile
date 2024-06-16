@@ -118,7 +118,7 @@ prepare-workdir:
 # Depends on: prepare-workdir target.
 # Usage: make build-image
 ifeq ($(IS_WORKFLOW),true)
-build-image: BUILD_ARGS=--build-arg WF_RESOURCES=$(WORKFLOW_ID) --build-arg=QUARKUS_EXTENSIONS=$(QUARKUS_EXTENSIONS) --build-arg=MAVEN_ARGS_APPEND=$(MAVEN_ARGS_APPEND)
+build-image: BUILD_ARGS=--build-arg-file=$(WORKFLOW_ID)/argfile.conf --build-arg=BUILDER_IMAGE= --build-arg WF_RESOURCES=$(WORKFLOW_ID) --build-arg=QUARKUS_EXTENSIONS=$(QUARKUS_EXTENSIONS) --build-arg=MAVEN_ARGS_APPEND=$(MAVEN_ARGS_APPEND)
 endif
 build-image: EXTRA_ARGS=--ulimit nofile=4096:4096
 build-image: prepare-workdir

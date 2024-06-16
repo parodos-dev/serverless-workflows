@@ -1,6 +1,9 @@
 # FROM registry.redhat.io/openshift-serverless-1-tech-preview/logic-swf-builder-rhel8@sha256:d19b3ecaeac10e6aa03530008d25c8171254d561dc5519b9efd18dd4f0de5675 AS builder
 # Using the builder image below to address bugs https://issues.redhat.com/browse/FLPATH-1141 and https://issues.redhat.com/browse/FLPATH-1127
-FROM quay.io/kiegroup/kogito-swf-builder:9.99.1.CR1 AS builder
+
+ARG BUILDER_IMAGE
+
+FROM ${BUILDER_IMAGE:-kogito-swf-builder:9.99.1.CR1} AS builder
 
 # Temp hack to provide persistence artifacts - with quay.io/kiegroup/kogito-swf-builder:9.99.1.CR1 those dependencies are included in the base image.
 #ENV MAVEN_REPO_URL=https://maven.repository.redhat.com/earlyaccess/all
@@ -33,6 +36,10 @@ RUN /home/kogito/launch/build-app.sh ./resources
 #=============================
 FROM registry.access.redhat.com/ubi8/openjdk-17:1.20-2
 
+ARG FLOW_NAME
+ARG FLOW_SUMMARY
+ARG FLOW_DESCRIPTION
+
 ENV LANG='en_US.UTF-8' LANGUAGE='en_US:en'
 
 # We make four distinct layers so if there are application changes the library layers can be re-used
@@ -47,3 +54,10 @@ USER 185
 ENV AB_JOLOKIA_OFF=""
 ENV JAVA_OPTS="-Dquarkus.http.host=0.0.0.0 -Djava.util.logging.manager=org.jboss.logmanager.LogManager"
 ENV JAVA_APP_JAR="/deployments/quarkus-run.jar"
+
+LABEL name="${FLOW_NAME}"
+LABEL summary="${FLOW_SUMMARY}"
+LABEL description="${FLOW_DESCRIPTION}"
+LABEL io.k8s.description="${FLOW_DESCRIPTION}"
+LABEL io.k8s.display-name="${FLOW_NAME}"
+LABEL io.openshift.tags=""
