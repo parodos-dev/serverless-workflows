@@ -1,3 +1,12 @@
+apiVersion: v1
+data:
+  config: |
+    Host *
+      StrictHostKeyChecking no
+kind: ConfigMap
+metadata:
+  name: m2k-ssh-config
+---
 apiVersion: serving.knative.dev/v1
 kind: Service
 metadata:
@@ -46,6 +55,10 @@ spec:
               readOnly: true
               mountPath: /home/jboss/.ssh/id_rsa.pub
               subPath: id_rsa.pub
+            - mountPath: /home/jboss/.ssh/config
+              name: m2k-ssh-config
+              readOnly: true
+              subPath: config
           readinessProbe:
             successThreshold: 1
             tcpSocket:
@@ -60,3 +73,6 @@ spec:
             secretName: sshkeys
         - name: pre-install
           emptyDir: {}
+        - name: m2k-ssh-config
+          configMap:
+            name: m2k-ssh-config

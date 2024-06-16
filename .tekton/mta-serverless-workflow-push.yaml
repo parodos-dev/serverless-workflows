@@ -18,7 +18,7 @@ metadata:
 spec:
   params:
   - name: dockerfile
-    value: pipeline/workflow-builder.Dockerfile
+    value: pipeline/workflow-builder.konflux.Dockerfile
   - name: git-url
     value: '{{source_url}}'
   - name: output-image
@@ -27,6 +27,8 @@ spec:
     value: mta
   - name: revision
     value: '{{revision}}'
+  - name: build-args-file
+    value: mta/argfile.conf
   pipelineSpec:
     finally:
     - name: show-sbom

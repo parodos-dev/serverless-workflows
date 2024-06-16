@@ -1,0 +1,12 @@
+# ARG WF_RESOURCES=move2kube
+
+#include "pipeline/workflow-builder.konflux.Dockerfile.in"
+
+LABEL name="move2kube serverless workflow"
+LABEL summary="move2kube serverless workflow that takes a github project and proposes manifests and build files for containerization"
+LABEL description="A workflow that takes a github project and proposses a pull request with manifests and build files for containerization using move2kube tool."
+LABEL io.k8s.description="A workflow that takes a github project and proposses a pull request with manifests and build files for containerization using move2kube tool."
+LABEL io.k8s.display-name="move2kube serverless workflow"
+LABEL io.openshift.tags=""
+    
+
