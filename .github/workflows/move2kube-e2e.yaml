@@ -24,7 +24,7 @@ jobs:
     uses: ./.github/workflows/m2k-func.yaml
     secrets: inherit
     with:
-      push_pr: false
+      it_mode: true
 
   run-m2k-e2e:
     runs-on: ubuntu-latest
@@ -98,10 +98,6 @@ jobs:
             --type merge \
             -p '{"data":{"kubernetes.podspec-init-containers": "enabled", "kubernetes.podspec-securitycontext": "enabled"}}'
           
-          ###### workaround till https://issues.redhat.com/browse/FLPATH-892 is solved
-          # yq  --inplace '.spec.podTemplate.container |= ( . +  {"imagePullPolicy": "IfNotPresent"} )' manifests/01-sonataflow_m2k.yaml
-          ###### end workaround
-          
           yq  --inplace '.spec.podTemplate.container |= ( . +  {"env": [{"name": "K_SINK", "value": "http://broker-ingress.knative-eventing.svc.cluster.local/sonataflow-infra/default"}]} )' manifests/01-sonataflow_m2k.yaml
 
           # Disable persistence for e2e tests
@@ -128,11 +124,8 @@ jobs:
 
       - name: Deploy Knative function
         run: |
-          ###### workaround till https://issues.redhat.com/browse/FLPATH-892 is solved
-          yq  --inplace '.spec.template.spec.containers[0] |= ( . +  {"imagePullPolicy": "IfNotPresent"} )' e2e/resources/knative-service.yaml
-          ###### end workaround
+          kubectl apply -f e2e/resources/move2kube-configmaps.yaml
           yq  --inplace '.spec.template.spec.containers[0] |= ( . +  {"image": "kind.local/orchestrator/serverless-workflow-m2k-kfunc:${{ github.sha }}"} )' e2e/resources/knative-service.yaml
-          # deploy the manifests created by the  ${{ steps.build-image.outputs.image }}"                                                                    
           kubectl apply -f e2e/resources/knative-service.yaml
           kubectl apply -f e2e/resources/knative-resources.yaml
           kubectl wait ksvc m2k-save-transformation-func --for=condition=Ready=true --timeout=5m

@@ -1,9 +1,13 @@
 package dev.parodos.service;
 
-import com.jcraft.jsch.JSch;
-import com.jcraft.jsch.JSchException;
-import com.jcraft.jsch.Session;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Collections;
+
 import jakarta.enterprise.context.ApplicationScoped;
+
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.CommitCommand;
 import org.eclipse.jgit.api.Git;
@@ -14,15 +18,10 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.InvalidRemoteException;
 import org.eclipse.jgit.transport.SshTransport;
 import org.eclipse.jgit.transport.Transport;
-import org.eclipse.jgit.transport.ssh.jsch.JschConfigSessionFactory;
-import org.eclipse.jgit.transport.ssh.jsch.OpenSshConfig;
-import org.eclipse.jgit.util.FS;
+import org.eclipse.jgit.transport.sshd.SshdSessionFactoryBuilder;
 import org.eclipse.microprofile.config.ConfigProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.nio.file.Path;
 
 @ApplicationScoped
 public class GitServiceImpl implements GitService {
@@ -97,27 +96,18 @@ public class GitServiceImpl implements GitService {
       throw new IOException("SSH key file at '%s' does not exists".formatted(sshKeyPath.toString()));
     }
 
-    var sshSessionFactory = new JschConfigSessionFactory() {
-      @Override
-      protected void configure(OpenSshConfig.Host host, Session session) {
-        session.setConfig("StrictHostKeyChecking", "no");
-        session.setConfig("PreferredAuthentications", "publickey");
-      }
+    var sshSessionFactory = new SshdSessionFactoryBuilder()
+            .setDefaultIdentities(f -> Collections.singletonList(sshKeyPath))
+            .setPreferredAuthentications("publickey")
+            .setSshDirectory(sshKeyPath.getParent().toFile())
+            .setHomeDirectory(sshKeyPath.getParent().toFile())
+            .build(null);
 
-      @Override
-      protected JSch createDefaultJSch(FS fs) throws JSchException {
-        JSch defaultJSch = super.createDefaultJSch(fs);
-        defaultJSch.removeAllIdentity();
-        defaultJSch.addIdentity(sshKeyPath.toString());
-        return defaultJSch;
-      }
-    };
     return new TransportConfigCallback() {
       @Override
       public void configure(Transport transport) {
         SshTransport sshTransport = (SshTransport) transport;
         sshTransport.setSshSessionFactory(sshSessionFactory);
-
       }
     };
   }
