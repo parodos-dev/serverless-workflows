@@ -24,13 +24,15 @@ spec:
   - name: git-url
     value: '{{source_url}}'
   - name: image-expires-after
-    value: 5d
+    value: 1d
   - name: output-image
     value: quay.io/redhat-user-workloads/orchestrator-releng-tenant/serverless-workflows/mta-serverless-workflow:on-pr-{{revision}}
   - name: path-context
     value: mta
   - name: revision
     value: '{{revision}}'
+  - name: build-args-file
+    value: mta/argfile.conf
   pipelineSpec:
     finally:
     - name: show-sbom

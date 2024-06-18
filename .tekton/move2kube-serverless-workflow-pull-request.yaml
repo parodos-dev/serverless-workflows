@@ -24,13 +24,15 @@ spec:
   - name: git-url
     value: '{{source_url}}'
   - name: image-expires-after
-    value: 5d
+    value: 2d
   - name: output-image
     value: quay.io/redhat-user-workloads/orchestrator-releng-tenant/serverless-workflows/move2kube-serverless-workflow:on-pr-{{revision}}
   - name: path-context
     value: move2kube
   - name: revision
     value: '{{revision}}'
+  - name: build-args-file
+    value: move2kube/argfile.conf
   pipelineSpec:
     finally:
     - name: show-sbom
