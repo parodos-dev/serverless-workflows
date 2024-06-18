@@ -1,0 +1,18 @@
+name: MTV Plan assessment workflow container image and manifest push
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["main"]
+    paths:
+      - "mtv-plan/**"
+      - "pipeline/**"
+      - .github/workflows/mtv-plan.yml
+      - .github/workflows/main.yml
+
+jobs:
+  call-main-workflow:
+    uses: ./.github/workflows/main.yml
+    with:
+      workflow_id: mtv-plan
+    secrets: inherit
