@@ -1,0 +1,47 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "migrationName": {
+      "type": "string"
+    },
+    "migrationNamespace": {
+      "type": "string"
+    },
+    "sourceProvider": {
+      "type": "string"
+    },
+    "destinationProvider": {
+      "type": "string"
+    },
+    "storageMap": {
+      "type": "string"
+    },
+    "networkMap": {
+      "type": "string"
+    },
+    "vms": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "migrationName",
+    "migrationNamespace",
+    "sourceProvider",
+    "destinationProvider",
+    "storageMap",
+    "networkMap",
+    "vms"
+  ]
+}
