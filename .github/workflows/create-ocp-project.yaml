@@ -1,0 +1,19 @@
+name: Create OCP project workflow container image and manifest push
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'create-ocp-project/**'
+      - 'pipeline/**'
+      - .github/workflows/create-ocp-project.yaml
+      - .github/workflows/main.yml
+
+jobs:
+  call-main-workflow:
+    uses: ./.github/workflows/main.yml
+    with:
+      workflow_id: create-ocp-project
+    secrets: inherit
+
