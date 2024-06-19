@@ -1,0 +1,19 @@
+name: Request VM creation using CNV workflow container image and manifest push
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'request-vm-cnv/**'
+      - 'pipeline/**'
+      - .github/workflows/request-vm-cnv.yaml
+      - .github/workflows/main.yml
+
+jobs:
+  call-main-workflow:
+    uses: ./.github/workflows/main.yml
+    with:
+      workflow_id: request-vm-cnv
+    secrets: inherit
+

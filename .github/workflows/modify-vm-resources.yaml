@@ -1,0 +1,19 @@
+name: Modify VM resource workflow container image and manifest push
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'modify-vm-resources/**'
+      - 'pipeline/**'
+      - .github/workflows/modify-vm-resources.yaml
+      - .github/workflows/main.yml
+
+jobs:
+  call-main-workflow:
+    uses: ./.github/workflows/main.yml
+    with:
+      workflow_id: modify-vm-resources
+    secrets: inherit
+
