@@ -39,10 +39,10 @@ jobs:
         containerfiles: |
           pipeline/workflow-builder.Dockerfile
         build-args: |
-          WF_RESOURCES=${{ inputs.workflow_id }}/
-          FLOW_NAME=${{ inputs.workflow_id }}/
-          FLOW_SUMMARY=${{ inputs.workflow_id }}/
-          FLOW_DESCRIPTION=${{ inputs.workflow_id }}/
+          WF_RESOURCES=${{ inputs.workflow_id }}
+          FLOW_NAME=${{ inputs.workflow_id }}
+          FLOW_SUMMARY=${{ inputs.workflow_id }}
+          FLOW_DESCRIPTION=${{ inputs.workflow_id }}
           MAVEN_ARGS_APPEND=-Dkogito.persistence.type=jdbc -Dquarkus.datasource.db-kind=postgresql -Dkogito.persistence.proto.marshaller=false
           QUARKUS_EXTENSIONS=org.kie.kogito:kogito-addons-quarkus-jobs-knative-eventing:9.99.1.redhat-00003,org.kie.kogito:kogito-addons-quarkus-persistence-jdbc:9.99.1.redhat-00003,org.kie.kogito:kogito-addons-persistence-jdbc:9.99.1.redhat-00003,io.quarkus:quarkus-jdbc-postgresql:3.2.9.Final,io.quarkus:quarkus-agroal:3.2.9.Final,org.kie:kie-addons-quarkus-monitoring-prometheus:999-SNAPSHOT,org.kie:kie-addons-quarkus-monitoring-sonataflow:999-SNAPSHOT
 
@@ -57,10 +57,10 @@ jobs:
         containerfiles: |
           pipeline/workflow-builder-dev.Dockerfile
         build-args: |
-          WF_RESOURCES=${{ inputs.workflow_id }}/
-          FLOW_NAME=${{ inputs.workflow_id }}/
-          FLOW_SUMMARY=${{ inputs.workflow_id }}/
-          FLOW_DESCRIPTION=${{ inputs.workflow_id }}/
+          WF_RESOURCES=${{ inputs.workflow_id }}
+          FLOW_NAME=${{ inputs.workflow_id }}
+          FLOW_SUMMARY=${{ inputs.workflow_id }}
+          FLOW_DESCRIPTION=${{ inputs.workflow_id }}
           MAVEN_ARGS_APPEND=
           QUARKUS_EXTENSIONS=
 
