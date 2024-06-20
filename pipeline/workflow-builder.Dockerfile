@@ -3,7 +3,7 @@
 
 ARG BUILDER_IMAGE
 
-FROM ${BUILDER_IMAGE:-kogito-swf-builder:9.99.1.CR1} AS builder
+FROM ${BUILDER_IMAGE:-quay.io/kiegroup/kogito-swf-builder:9.99.1.CR1} AS builder
 
 # Temp hack to provide persistence artifacts - with quay.io/kiegroup/kogito-swf-builder:9.99.1.CR1 those dependencies are included in the base image.
 #ENV MAVEN_REPO_URL=https://maven.repository.redhat.com/earlyaccess/all
