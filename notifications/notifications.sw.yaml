@@ -1,0 +1,31 @@
+id: notifications
+version: "1.0"
+specVersion: "0.8"
+name: "Test notifications"
+description: Test notifications
+dataInputSchema: schemas/notifications-input.json
+extensions:
+  - extensionid: workflow-uri-definitions
+    definitions:
+      notifications: "https://raw.githubusercontent.com/parodos-dev/serverless-workflows/main/shared/specs/notifications-openapi.yaml"
+functions:
+  - name: createNotification
+    operation: notifications#createNotification
+start: Notify Backstage
+states:
+  - name: "Notify Backstage"
+    type: operation
+    actions:
+      - name: "Create notification"
+        functionRef:
+          refName: createNotification
+          arguments:
+            recipients:
+              type: "broadcast"
+            payload:
+              title: "Test notification"
+              description: '"A notification for workflow ID " + $WORKFLOW.instanceId'
+              scope: "SonataFlow"
+              topic: "test-notifications"
+              link: "https://raw.githubusercontent.com/parodos-dev/serverless-workflows/main/shared/specs/notifications-openapi.yaml"
+    end: true
