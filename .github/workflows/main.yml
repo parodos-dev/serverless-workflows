@@ -104,7 +104,7 @@ jobs:
 
     - name: Setup kn-workflow
       run: |
-          KN_CLI_URL="https://mirror.openshift.com/pub/openshift-v4/clients/serverless/latest/kn-linux-amd64.tar.gz"
+          KN_CLI_URL="https://mirror.openshift.com/pub/openshift-v4/clients/serverless/1.1.2/kn-linux-amd64.tar.gz"
           curl -L "$KN_CLI_URL" | tar -xz && chmod +x kn-linux-amd64 && mv kn-linux-amd64 kn
 
     - name: Use kn-workflow to generate manifests
