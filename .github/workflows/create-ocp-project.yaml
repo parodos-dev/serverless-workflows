@@ -3,7 +3,9 @@ name: Create OCP project workflow container image and manifest push
 on:
   workflow_dispatch:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
+      - staging
     paths:
       - 'create-ocp-project/**'
       - 'pipeline/**'

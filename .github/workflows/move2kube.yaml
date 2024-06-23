@@ -3,7 +3,9 @@ name: Move2kube workflow container image and manifest push
 on:
   workflow_dispatch:
   push:
-    branches: [ "main" ]
+    branches: 
+      - main
+      - staging
     paths:
       - 'move2kube/**'
       - 'pipeline/**'

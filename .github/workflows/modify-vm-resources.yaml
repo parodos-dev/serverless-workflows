@@ -3,7 +3,9 @@ name: Modify VM resource workflow container image and manifest push
 on:
   workflow_dispatch:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
+      - staging
     paths:
       - 'modify-vm-resources/**'
       - 'pipeline/**'

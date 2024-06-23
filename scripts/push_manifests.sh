@@ -16,7 +16,7 @@ echo "Cloning ${DEPLOYMENT_REPO}"
 git clone https://github.com/"${DEPLOYMENT_REPO}" helm-repo
 cd helm-repo || exit
 
-git switch -c autopr-${RANDOM} origin/"${DEPLOYMENT_BRANCH}"
+git switch -c autopr-${RANDOM} origin/"${DEPLOYMENT_BRANCH}" origin/staging
 # We assume the kustomize project already exists, this is not part of the PR
 cp ../"${WORKFLOW_ID}"/manifests/* kustomize/"${WORKFLOW_ID}"/base
 # Applying image kustomization

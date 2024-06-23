@@ -5,6 +5,7 @@ on:
   pull_request:
     branches:
       - main
+      - staging
     paths:
       - 'mta-v7.x/**'
       - 'pipeline/**'
