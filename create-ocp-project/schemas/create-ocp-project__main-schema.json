@@ -1,38 +1,41 @@
-{
-  "$id": "classpath:/schemas/create-ocp-project-schema.json",
-  "title": "Data input schema",
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "type": "object",
-  "properties": {
-    "inputs": {
-      "title": "Inputs",
-      "type": "object",
-      "properties": {
-        "operationsProjectKey": {
-          "title": "Operations Project Key",
-          "description": "JIRA project key for operations",
-          "type": "string",
-          "default": "OP"
-        },
-        "auditProjectKey": {
-          "title": "Audit Project Key",
-          "description": "JIRA project key for auditing",
-          "type": "string",
-          "default": "AUD"
-        },
-        "projectName": {
-          "title": "Project Name",
-          "description": "OCP project to create",
-          "type": "string",
-          "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
-        }        
+  {
+    "$id": "classpath:/schemas/create-ocp-project-schema.json",
+    "title": "Workflow input data",
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "properties": {
+      "operationsProjectKey": {
+        "title": "Operations Project Key",
+        "description": "JIRA project key for operations",
+        "type": "string",
+        "default": "OP"
       },
-      "required": [
-        "operationsProjectKey",
-        "auditProjectKey",
-        "projectName"
-      ]
-    }
+      "auditProjectKey": {
+        "title": "Audit Project Key",
+        "description": "JIRA project key for auditing",
+        "type": "string",
+        "default": "AUD"
+      },
+      "projectName": {
+        "title": "Project Name",
+        "description": "OCP project to create",
+        "type": "string",
+        "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
+      },
+      "recipients": {
+        "title": "Recipients",
+        "type": "array",
+        "description": "A list of recipients for the notification in the format of 'user:<namespace>/<username>' or 'group:<namespace>/<groupname>', i.e. 'user:default/jsmith'",
+        "items": {
+          "title": "Recipient",
+          "type": "string",
+          "pattern": "^(user|group):[a-z0-9]([-a-z0-9]*[a-z0-9])?/([a-z0-9]([-a-z0-9]*[a-z0-9])?)$"
+        }
+      }
+    },
+    "required": [
+      "operationsProjectKey",
+      "auditProjectKey",
+      "projectName"
+    ]
   }
-  
-}
