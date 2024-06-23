@@ -28,10 +28,28 @@ if [ "$ENABLE_PERSISTENCE" = false ]; then
   exit
 fi
 
-SONATAFLOW_CR=manifests/01-sonataflow_${WORKFLOW_ID}.yaml
+# Find the workflow file with .sw.yaml suffix since kn-cli uses the ID to generate resource names
+workflow_file=$(printf '%s\n' ./*.sw.yaml 2>/dev/null | head -n 1)
+
+# Check if the workflow_file was found
+if [ -z "$workflow_file" ]; then
+  echo "No workflow file with .sw.yaml suffix found."
+  exit 1
+fi
+
+# Extract the 'id' property from the YAML file and convert to lowercase
+workflow_id=$(grep '^id:' "$workflow_file" | awk '{print $2}' | tr '[:upper:]' '[:lower:]')
+
+# Check if the 'id' property was found
+if [ -z "$workflow_id" ]; then
+  echo "No 'id' property found in the workflow file."
+  exit 1
+fi
+
+SONATAFLOW_CR=manifests/01-sonataflow_${workflow_id}.yaml
 yq --inplace eval '.metadata.annotations["sonataflow.org/profile"] = "prod"' "${SONATAFLOW_CR}"
 
-yq --inplace ".spec.podTemplate.container.image=\"quay.io/orchestrator/serverless-workflow-${WORKFLOW_ID}:latest\"" "${SONATAFLOW_CR}"
+yq --inplace ".spec.podTemplate.container.image=\"quay.io/orchestrator/serverless-workflow-${workflow_id}:latest\"" "${SONATAFLOW_CR}"
 
 yq --inplace ".spec |= (
   . + {
