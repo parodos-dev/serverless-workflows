@@ -3,7 +3,9 @@ name: Request VM creation using CNV workflow container image and manifest push
 on:
   workflow_dispatch:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
+      - staging
     paths:
       - 'request-vm-cnv/**'
       - 'pipeline/**'

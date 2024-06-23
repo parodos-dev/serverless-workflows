@@ -9,7 +9,9 @@ on:
         default: true
   workflow_dispatch:
   push:
-    branches: [ "main" ]
+    branches: 
+      - main
+      - staging
     paths:
       - 'move2kube/m2k-func/**'
       - 'pipeline/**'
@@ -96,7 +98,7 @@ jobs:
           git config --global user.name ${{ github.event.head_commit.author.name || github.triggering_actor }}
           gh repo clone $WF_CONFIG_REPO config-repo
           cd config-repo
-          git switch -c m2k-kfunc-autopr-$RANDOM
+          git switch -c m2k-kfunc-autopr-$RANDOM origin/staging
 
           ./hack/bump_chart_version.sh move2kube --bump-patch-version
 
@@ -115,7 +117,7 @@ jobs:
           echo "Automated PR from $PR_OR_COMMIT_URL" | git commit --amend --file=-
           git remote set-url origin https://${{ env.GH_TOKEN }}@github.com/$WF_CONFIG_REPO
           git push origin HEAD
-          gh pr create -f --title "m2k-kfunc: Automatic m2k-kfunc image tag bump" \
+          gh pr create --base staging -f --title "m2k-kfunc: Automatic m2k-kfunc image tag bump" \
             --body "
           Updating generated image tag for m2k-kfunc application
  

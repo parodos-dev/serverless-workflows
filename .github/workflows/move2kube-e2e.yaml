@@ -5,6 +5,7 @@ on:
   pull_request_target:
     branches:
       - main
+      - staging
     paths:
       - 'move2kube/**'
       - 'pipeline/**'

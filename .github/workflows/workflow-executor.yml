@@ -88,4 +88,4 @@ jobs:
         PR_BODY+="\n\nThis PR was created automatically as a result of merging ${PR_OR_COMMIT_URL}"
 
         # Create the PR using the constructed body
-        gh pr create -f --title "${{ inputs.workflow_id }}: Automatic manifests generation" --body "${PR_BODY}"
+        gh pr create --base staging -f --title "${{ inputs.workflow_id }}: Automatic manifests generation" --body "${PR_BODY}"

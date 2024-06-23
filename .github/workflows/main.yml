@@ -165,7 +165,7 @@ jobs:
           git config --global user.name ${{ github.event.head_commit.author.name || github.triggering_actor }}
           gh repo clone $WF_CONFIG_REPO config-repo
           cd config-repo
-          git switch -c ${{ inputs.workflow_id }}-autopr-$RANDOM
+          git switch -c ${{ inputs.workflow_id }}-autopr-$RANDOM origin/staging
 
           ./hack/bump_chart_version.sh ${{ inputs.workflow_id }} --bump-patch-version
 
@@ -184,7 +184,7 @@ jobs:
           echo "Automated PR from $PR_OR_COMMIT_URL" | git commit --amend --file=-
           git remote set-url origin https://${{ env.GH_TOKEN }}@github.com/$WF_CONFIG_REPO
           git push origin HEAD
-          gh pr create -f --title "${{ inputs.workflow_id }}: Automatic manifests generation" \
+          gh pr create --base staging -f --title "${{ inputs.workflow_id }}: Automatic manifests generation" \
             --body "
           Updating generated manifests for ${{ inputs.workflow_id }} workflow
  
