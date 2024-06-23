@@ -10,7 +10,7 @@ start: StartPlanning
 extensions:
   - extensionid: workflow-uri-definitions
     definitions:
-      notifications: "https://raw.githubusercontent.com/janus-idp/backstage-plugins/%40janus-idp/plugin-notifications-backend%401.0.3/plugins/notifications-backend/src/openapi.yaml"
+      notifications: ../shared/specs/notifications-openapi.yaml
 events:
   - name: errorEvent
     source: ''
@@ -115,13 +115,14 @@ states:
         functionRef:
           refName: createNotification
           arguments:
-            title: " \"Transformation \" + .transformationId + \" waiting for Q&A\" "
-            message: '"Please go to your move2kube instance and answer the questions in order to continue the Move2Kube workflow"'
-            origin: "Move2Kube Workflow"
-            topic: "Move2Kube Workflow"
-            actions:
-              - title: "Move2Kube waiting Q&A"
-                url: "$SECRET.move2kube_url + \"/workspaces/\"+ .workspaceId + \"/projects/\" + .projectId + \"/outputs/\"+ .transformId "
+            recipients:
+              type: 'broadcast'
+            payload:
+              title: " \"Transformation \" + .transformationId + \" waiting for Q&A\" "
+              description: '"Please go to your move2kube instance and answer the questions in order to continue the Move2Kube workflow"'
+              scope: "Move2Kube Workflow"
+              topic: "Move2Kube Workflow"
+              link: "$SECRET.move2kube_url + \"/workspaces/\"+ .workspaceId + \"/projects/\" + .projectId + \"/outputs/\"+ .transformId "
     transition:
       nextState: WaitForSaveTransformationCompletionEvent
       produceEvents:
@@ -170,10 +171,13 @@ states:
           functionRef:
             refName: createNotification
             arguments:
-              title: '"Move2Kube workflow " + $WORKFLOW.instanceId + " failed"'
-              message: '"Move2Kube workflow  " + $WORKFLOW.instanceId + " on workspace " + .workspaceId + " and project " + .projectId + " failed with exit message: "+ .exitMessage + " -- Plan retries: "  + (.planRetries|tostring) + " -- Error: "  + .error'
-              origin: "Move2Kube Workflow"
-              topic: "Move2Kube Workflow"
+              recipients:
+                type: 'broadcast'
+              payload:
+                title: '"Move2Kube workflow " + $WORKFLOW.instanceId + " failed"'
+                description: '"Move2Kube workflow  " + $WORKFLOW.instanceId + " on workspace " + .workspaceId + " and project " + .projectId + " failed with exit message: "+ .exitMessage + " -- Plan retries: "  + (.planRetries|tostring) + " -- Error: "  + .error'
+                scope: "Move2Kube Workflow"
+                topic: "Move2Kube Workflow"
     end: true
   - name: PrintExitSuccessMessage
     type: parallel
@@ -192,8 +196,11 @@ states:
            functionRef:
              refName: createNotification
              arguments:
-               title: '"Move2Kube workflow " + $WORKFLOW.instanceId + " success"'
-               message: '"Move2Kube workflow  " + $WORKFLOW.instanceId + " on workspace " + .workspaceId + " and project " + .projectId + " was successful; the output is available in the branch " + .targetBranch + " of your git repository "+ .repositoryURL'
-               origin: "Move2Kube Workflow"
-               topic: "Move2Kube Workflow"
+               recipients:
+                 type: 'broadcast'
+               payload:
+                 title: '"Move2Kube workflow " + $WORKFLOW.instanceId + " succeeded"'
+                 description: '"Move2Kube workflow  " + $WORKFLOW.instanceId + " on workspace " + .workspaceId + " and project " + .projectId + " was successful; the output is available in the branch " + .targetBranch + " of your git repository "+ .repositoryURL'
+                 scope: "Move2Kube Workflow"
+                 topic: "Move2Kube Workflow"
     end: true

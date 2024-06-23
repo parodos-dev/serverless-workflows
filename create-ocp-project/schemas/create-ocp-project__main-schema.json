@@ -1,38 +1,37 @@
 {
   "$id": "classpath:/schemas/create-ocp-project-schema.json",
-  "title": "Data input schema",
+  "title": "Workflow input data",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "type": "object",
   "properties": {
-    "inputs": {
-      "title": "Inputs",
-      "type": "object",
-      "properties": {
-        "operationsProjectKey": {
-          "title": "Operations Project Key",
-          "description": "JIRA project key for operations",
-          "type": "string",
-          "default": "OP"
-        },
-        "auditProjectKey": {
-          "title": "Audit Project Key",
-          "description": "JIRA project key for auditing",
-          "type": "string",
-          "default": "AUD"
-        },
-        "projectName": {
-          "title": "Project Name",
-          "description": "OCP project to create",
-          "type": "string",
-          "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
-        }        
-      },
-      "required": [
-        "operationsProjectKey",
-        "auditProjectKey",
-        "projectName"
-      ]
+    "operationsProjectKey": {
+      "title": "Operations Project Key",
+      "description": "JIRA project key for operations",
+      "type": "string",
+      "default": "OP"
+    },
+    "auditProjectKey": {
+      "title": "Audit Project Key",
+      "description": "JIRA project key for auditing",
+      "type": "string",
+      "default": "AUD"
+    },
+    "projectName": {
+      "title": "Project Name",
+      "description": "OCP project to create",
+      "type": "string",
+      "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
+    },
+    "backstageUser": {
+      "type": "string"
+    },
+    "backstageGroup": {
+      "type": "string"
     }
-  }
-  
+  },
+  "required": [
+    "operationsProjectKey",
+    "auditProjectKey",
+    "projectName"
+  ]
 }

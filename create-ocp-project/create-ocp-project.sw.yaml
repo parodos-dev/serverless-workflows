@@ -4,6 +4,10 @@ specVersion: "0.8"
 name: "Create OpenShift Project"
 description: Creating an OpenShift Project
 dataInputSchema: schemas/create-ocp-project__main-schema.json
+extensions:
+  - extensionid: workflow-uri-definitions
+    definitions:
+      notifications: "https://raw.githubusercontent.com/parodos-dev/serverless-workflows/main/shared/specs/notifications-openapi.yaml"
 functions:
   - name: jiraCreateIssue
     operation: specs/jira-openapi.yaml#createIssue
@@ -14,7 +18,7 @@ functions:
   - name: jiraGetIssueTransitions
     operation: specs/jira-openapi.yaml#getIssueTransitions
   - name: createNotification
-    operation: specs/notifications-openapi.yaml#createNotification
+    operation: notifications#createNotification
   - name: createProjectOpenshiftIoV1Project
     operation: specs/ocp-project-openapi.yaml#createProjectOpenshiftIoV1Project
   - name: readProjectOpenshiftIoV1Project
@@ -32,15 +36,15 @@ states:
           refName: jiraCreateIssue
           arguments:
             fields:
-              description: '"Workflow executed to request creation project " + .inputs.projectName'
+              description: '"Workflow executed to request creation project " + .projectName'
               issuetype:
                 name: Task
               labels:
                 - backstage-workflow
                 - '"workflowId=" + $WORKFLOW.instanceId'
               project:
-                key: .inputs.auditProjectKey
-              summary: '"Workflow executed to request the creation of project " + .inputs.projectName'
+                key: .auditProjectKey
+              summary: '"Workflow executed to request the creation of project " + .projectName'
         actionDataFilter:
           toStateData: .auditJiraCreateIssueResult
     transition: Open issue on Jira for operations
@@ -52,15 +56,15 @@ states:
           refName: jiraCreateIssue
           arguments:
             fields:
-              description: '"Please review request to create project " + .inputs.projectName'
+              description: '"Please review request to create project " + .projectName'
               issuetype:
                 name: Task
               labels:
                 - backstage-workflow
                 - '"workflowId=" + $WORKFLOW.instanceId'
               project:
-                key: .inputs.operationsProjectKey
-              summary: '"Request authorization to create project " + .inputs.projectName'
+                key: .operationsProjectKey
+              summary: '"Request authorization to create project " + .projectName'
         actionDataFilter:
           toStateData: .operationsJiraCreateIssueResult
     transition: "Notify Backstage: Jira ticket created"
@@ -68,19 +72,21 @@ states:
     type: operation
     actions:
       - name: "Create notification: Jira ticket created"
+        condition: .backstageUser != null or .backstageGroup != null
         functionRef:
           refName: createNotification
           arguments:
-            title: "Jira ticket created"
-            message: "Jira ticket created"
-            origin: "SonataFlow"
-            topic: "Create OCP Project workflow"
-            targetUsers:
-              - "default/guest" # replace with the approver user
-            actions:
-              - title: "View on Jira"
-                # There are more dynamic ways to get the Jira URL, but for simplicity, we are using a hardcoded URL
-                url: '$SECRET.jira_url + "/jira/servicedesk/projects/" + .inputs.operationsProjectKey + "/issues/" + .operationsJiraCreateIssueResult.key'
+            recipients:
+              type: "entity"
+              entityRef:
+                - "${ .backstageUser != null ? 'user:default/' + .backstageUser : '' }"
+                - "${ .backstageGroup != null ? 'group:default/' + .backstageGroup : '' }"
+            payload:
+              title: "Jira ticket created"
+              description: "Jira ticket created"
+              scope: "SonataFlow"
+              topic: "Create OCP Project workflow"
+              link: '$SECRET.jira_url + "/jira/servicedesk/projects/" + .operationsProjectKey + "/issues/" + .operationsJiraCreateIssueResult.key'
     transition: Poll Operation Jira issue
   - name: Poll Operation Jira issue
     type: operation
@@ -117,11 +123,11 @@ states:
             kind: Project
             metadata:
               labels:
-                kubernetes.io/metadata.name: .inputs.projectName
-              name: .inputs.projectName
+                kubernetes.io/metadata.name: .projectName
+              name: .projectName
             spec:
               finalizers:
-              - kubernetes
+                - kubernetes
 
     transition:
       nextState: "Post operation: get project resource"
@@ -136,7 +142,7 @@ states:
         functionRef:
           refName: readProjectOpenshiftIoV1Project
           arguments:
-            name: .inputs.projectName
+            name: .projectName
     transition:
       nextState: "Post operation: check project resource created successfully"
   - name: "Post operation: check project resource created successfully"
@@ -152,30 +158,40 @@ states:
     type: operation
     actions:
       - name: "Create notification: project active"
+        condition: .backstageUser != null or .backstageGroup != null
         functionRef:
           refName: createNotification
           arguments:
-            title:  '"Project " + .inputs.projectName + " active"'
-            message:  '"Project " + .inputs.projectName + " active"'
-            origin: "SonataFlow"
-            topic: "Create OCP Project"
-            targetUsers:
-              - "default/guest"
+            recipients:
+              type: "entity"
+              entityRef:
+                - "${ .backstageUser != null ? 'user:default/' + .backstageUser : '' }"
+                - "${ .backstageGroup != null ? 'group:default/' + .backstageGroup : '' }"
+            payload:
+              title: '"Project " + .projectName + " active"'
+              description: '"Project " + .projectName + " active"'
+              scope: "SonataFlow"
+              topic: "Create OCP Project workflow"
     transition:
       nextState: "[Audit]: Close issue on Jira"
   - name: Notify project not active
     type: operation
     actions:
       - name: "Create notification: project not active"
+        condition: .backstageUser != null or .backstageGroup != null
         functionRef:
           refName: createNotification
           arguments:
-            title:  '"Project " + .inputs.projectName + " NOT active"'
-            message:  '"Project " + .inputs.projectName + " NOT active"'
-            origin: "SonataFlow"
-            topic: "Create OCP Project"
-            targetUsers:
-              - "default/guest"
+            recipients:
+              type: "entity"
+              entityRef:
+                - if .backstageUser != null then [user:default/.backstageUser] else ""
+                - if .backstageGroup != null then [group:default/.backstageGroup] else ""
+            payload:
+              title: '"Project " + .projectName + " inactive"'
+              description: '"Project " + .projectName + " inactive"'
+              scope: "SonataFlow"
+              topic: "Create OCP Project workflow"
     transition:
       nextState: "[Audit]: Close issue on Jira"
   - name: "[Audit]: Close issue on Jira"
@@ -201,7 +217,7 @@ states:
             update:
               comment:
                 - add:
-                    body: '"Project " + .inputs.projectName + " is " + .project.status.phase'
+                    body: '"Project " + .projectName + " is " + .project.status.phase'
     end: true
   - name: "[Audit]: Close issue on Jira - Project Creation Denied"
     type: operation
@@ -226,5 +242,5 @@ states:
             update:
               comment:
                 - add:
-                    body: '"Creation of project " + .inputs.projectName + " denied"'
+                    body: '"Creation of project " + .projectName + " denied"'
     end: true

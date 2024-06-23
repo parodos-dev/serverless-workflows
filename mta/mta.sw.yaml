@@ -15,7 +15,7 @@ dataInputSchema:
 extensions:
   - extensionid: workflow-uri-definitions
     definitions:
-      notifications: "https://raw.githubusercontent.com/janus-idp/backstage-plugins/%40janus-idp/plugin-notifications-backend%401.0.3/plugins/notifications-backend/src/openapi.yaml"
+      notifications: "https://raw.githubusercontent.com/parodos-dev/serverless-workflows/main/shared/specs/notifications-openapi.yaml"
 functions:
   - name: filterApplication
     type: expression
@@ -94,10 +94,10 @@ states:
                 rulesets:
                   - id: 2
                     name: Containerization
-                path: ''
+                path: ""
               scope:
                 withKnown: false
-              sources: [ ]
+              sources: []
               targets:
                 - cloud-readiness
     transition: SubmitAnalysis
@@ -148,7 +148,6 @@ states:
         transition: NotifyFailureBackstage
     defaultCondition:
       transition: poll
-    transition: NotifyBackstage
   - name: NotifyBackstage
     type: operation
     actions:
@@ -156,22 +155,26 @@ states:
         functionRef:
           refName: createNotification
           arguments:
-            title: "MTA analysis completed"
-            message: '"MTA analysis is completed and the report for " + .application.repository.url + " is ready."'
-            origin: "MTA Analysis Workflow"
-            topic: "MTA Analysis Workflow"
-            targetUsers: if .backstageUser != null then [.backstageUser] else [] end
-            targetGroups: if .backstageGroup != null then [.backstageGroup] else [] end
-            actions:
-              - title: "View report"
-                url: "$SECRET.mta.url + \"/hub/applications/\" + (.application.id|tostring) + \"/bucket/\" + .data.output"
+            recipients:
+              type: "entity"
+              entityRef:
+                - .backstageGroup + "/" + .backstageUser
+            payload:
+              title: "MTA analysis completed"
+              description: '"MTA analysis is completed and the report for " + .application.repository.url + " is ready."'
+              scope: "MTA Analysis Workflow"
+              topic: "MTA Analysis Workflow"
+              link: '$SECRET.mta.url + "/hub/applications/" + (.application.id|tostring) + "/bucket/" + .data.output'
+
     transition: report
   - name: report
     type: operation
+    actions: []
     stateDataFilter:
       output: '{result: (.taskgroup.tasks[0]| "report will be ready here -> " + $SECRET.mta.url + "/hub/applications/" + (.application.id|tostring) + "/bucket" + .data.output), repositoryURL: .repositoryURL}'
     transition: GetWorkflowOptions
   - name: GetWorkflowOptions
+    actions: []
     type: operation
     stateDataFilter:
       output: '{workflowOptions: {migrationOptions: [{id: "m2k", name: "Move2Kube workflow"}]}, repositoryURL: .repositoryURL}'
@@ -183,11 +186,13 @@ states:
         functionRef:
           refName: createNotification
           arguments:
-            title: "MTA analysis failed"
-            message: '"MTA analysis for " + .application.repository.url + " failed. Check logs of task pod: " + .taskgroup.tasks[0].pod'
-            origin: "MTA Analysis Workflow"
-            topic: "MTA Analysis Workflow"
-            targetUsers: if .backstageUser != null then [.backstageUser] else [] end
-            targetGroups: if .backstageGroup != null then [.backstageGroup] else [] end
+            recipients:
+              type: "entity"
+              entityRef:
+                - .backstageGroup + "/" + .backstageUser
+            payload:
+              title: "MTA analysis failed"
+              description: '"MTA analysis for " + .application.repository.url + " failed. Check logs of task pod: " + .taskgroup.tasks[0].pod'
+              scope: "MTA Analysis Workflow"
+              topic: "MTA Analysis Workflow"
     end: true
-
