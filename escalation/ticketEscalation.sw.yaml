@@ -11,7 +11,7 @@ start: CreateTicket
 extensions:
   - extensionid: workflow-uri-definitions
     definitions:
-      notifications: ../shared/specs/notifications-openapi.yaml
+      notifications: "https://raw.githubusercontent.com/parodos-dev/serverless-workflows/main/shared/specs/notifications-openapi.yaml"
 dataInputSchema:
   failOnValidationErrors: true
   schema: schemas/ticket-escalation-schema.json
@@ -88,7 +88,7 @@ states:
           refName: createNotification
           arguments:
             recipients:
-              type: 'broadcast'
+              type: "broadcast"
             payload:
               title: '"ATTN: Escalation for ticket - " + .createResponse.ticketId'
               description: '"Please manage escalation ticket " + .createResponse.ticketId '
