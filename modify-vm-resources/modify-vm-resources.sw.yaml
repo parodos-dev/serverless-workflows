@@ -21,6 +21,10 @@ functions:
   - name: increaseVMStatusRunningRetries
     type: expression
     operation: ".vmStatusRunningRetries=.vmStatusRunningRetries + 1"
+  - name: fillEmptyValues
+    type: expression
+    operation: '{vm_new_memory: (if (.inputs.vm_new_memory == null or .inputs.vm_new_memory == "") then .vm.spec.template.spec.domain.memory.guest else .inputs.vm_new_memory end), vm_new_cpu_cores: (if .inputs.vm_new_cpu_cores == null then .vm.spec.template.spec.domain.cpu.cores else .inputs.vm_new_cpu_cores end), vm_new_cpu_sockets: (if .inputs.vm_new_cpu_sockets == null then .vm.spec.template.spec.domain.cpu.sockets else .inputs.vm_new_cpu_sockets end), vm_new_cpu_threads: if .inputs.vm_new_cpu_threads == null then .vm.spec.template.spec.domain.cpu.threads else .inputs.vm_new_cpu_threads end}'
+
 start: Get VM
 states:
   - name: Get VM
@@ -36,11 +40,10 @@ states:
             name: .inputs.vm_name
     transition: Fill empty values
   - name: Fill empty values
-    type: inject
-    data: 
-      empty: ""
-    stateDataFilter:
-      output: '( . + {vm_new_memory: (if (.inputs.vm_new_memory == null or .inputs.vm_new_memory == "") then .vm.spec.template.spec.domain.memory.guest else .inputs.vm_new_memory end), vm_new_cpu_cores: (if .inputs.vm_new_cpu_cores == null then .vm.spec.template.spec.domain.cpu.cores else .inputs.vm_new_cpu_cores end), vm_new_cpu_sockets: (if .inputs.vm_new_cpu_sockets == null then .vm.spec.template.spec.domain.cpu.sockets else .inputs.vm_new_cpu_sockets end), vm_new_cpu_threads: if .inputs.vm_new_cpu_threads == null then .vm.spec.template.spec.domain.cpu.threads else .inputs.vm_new_cpu_threads end})'
+    type: operation
+    actions:
+      - name: Fill empty values
+        functionRef: fillEmptyValues
     transition: Open issue on JIRA
   - name: Open issue on JIRA
     type: operation
