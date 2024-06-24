@@ -27,6 +27,8 @@ spec:
     value: move2kube
   - name: revision
     value: '{{revision}}'
+  - name: build-source-image
+    value: "true"
   - name: build-args-file
     value: move2kube/argfile.conf
   pipelineSpec:
