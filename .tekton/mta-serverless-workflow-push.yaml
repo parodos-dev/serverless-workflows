@@ -27,6 +27,8 @@ spec:
     value: mta
   - name: revision
     value: '{{revision}}'
+  - name: build-source-image
+    value: "true"
   - name: build-args-file
     value: mta/argfile.conf
   pipelineSpec:
