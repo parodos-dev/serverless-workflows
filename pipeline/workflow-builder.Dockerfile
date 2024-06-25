@@ -34,7 +34,8 @@ RUN /home/kogito/launch/build-app.sh ./resources
 #=============================
 # Runtime Run
 #=============================
-FROM registry.access.redhat.com/ubi8/openjdk-17:1.20-2
+FROM registry.access.redhat.com/ubi9/openjdk-17:1.20-2
+
 
 ARG FLOW_NAME
 ARG FLOW_SUMMARY
