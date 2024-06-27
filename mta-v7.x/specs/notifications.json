@@ -11,11 +11,6 @@
         "description": "notifications plugin"
       }
     ],
-    "servers": [
-      {
-        "url": "http://localhost:7007/api/notifications"
-      }
-    ],
     "paths": {
       "/notifications": {
         "post": {

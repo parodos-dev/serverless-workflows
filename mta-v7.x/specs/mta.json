@@ -42,7 +42,7 @@
           {
             "bearerAuth": []
           }
-        ]  
+        ]
       },
       "post": {
         "operationId": "createMigrationwave",
@@ -117,7 +117,7 @@
           {
             "bearerAuth": []
           }
-        ]  
+        ]
       }
     },
     "/hub/taskgroups/{id}/submit": {
@@ -191,7 +191,7 @@
           {
             "bearerAuth": []
           }
-        ]            
+        ]
       }
     },
     "/hub/trackers/{id}": {
@@ -298,7 +298,6 @@
         ],
         "x-codegen-request-body-name": "application"
       }
-      
     },
     "/hub/applications/{id}": {
       "get": {
@@ -410,7 +409,39 @@
         ]
       }
     },
-
+    "/hub/applications/{id}/analysis": {
+      "get": {
+        "tags": [
+          "analyses"
+        ],
+        "operationId": "getApplicationAnalysis",
+        "summary": "Get the latest analysis.",
+        "description": "Get the latest analysis for an application.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Application ID",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "$ref": "#/components/schemas/api.Analysis"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/hub/taskgroups": {
       "get": {
         "operationId": "getTaskgroups",
@@ -513,7 +544,7 @@
           {
             "bearerAuth": []
           }
-        ]  
+        ]
       },
       "put": {
         "operationId": "updateTaskGroups",
@@ -878,7 +909,6 @@
       }
     }
   },
-
   "components": {
     "schemas": {
       "api.Addon": {
@@ -2848,7 +2878,7 @@
           }
         }
       }
-    }, 
+    },
     "securitySchemes": {
       "bearerAuth": {
         "type": "http",
