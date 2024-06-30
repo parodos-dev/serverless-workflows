@@ -1,0 +1,10 @@
+[allowlist]
+  description = "Global Allowlist"
+
+  # Ignore based on any subset of the file path
+  paths = [
+                
+    # Ignore some long path
+    '''move2kube\/m2k-func\/src\/test\/resources\/m2k-test-ssh-id_ed25519$''',
+  ]
+        
