@@ -1,0 +1,80 @@
+specVersion: "0.8"
+id: mtv-migration
+version: '1.0'
+name: MTV migration workflow
+description: workflow executes a plan by creating a migration and waiting for it to be successful or failed
+annotations:
+  - "workflow-type/infrastructure"
+dataInputSchema: schemas/mtv-input.json
+start: CreateMigration
+functions:
+  - name: createMigration
+    type: rest
+    operation: 'specs/mtv.yaml#createMigration'
+  - name: getMigration
+    type: rest
+    operation: 'specs/mtv.yaml#getMigration'
+  - name: getMigrationError
+    type: expression
+    operation: .getStatusResult.status.conditions | map(select(.category == "Error" or .category == "Critical" or .type == "Failed"))[0].message
+states:
+  - name: CreateMigration
+    type: operation
+    actions:
+      - functionRef:
+          refName: createMigration
+          arguments:
+            namespace: .migrationNamespace
+            apiVersion: "forklift.konveyor.io/v1beta1"
+            kind: Migration
+            metadata:
+              name: .migrationName
+              namespace: .migrationNamespace
+            spec:
+              plan:
+                name: .migrationName
+                namespace: .migrationNamespace
+    transition: GetMigration
+  - name: GetMigration
+    type: operation
+    actions:
+      - name: getMigration
+        actionDataFilter:
+          toStateData: .getStatusResult
+        functionRef:
+          refName: getMigration
+          arguments:
+            namespace: .migrationNamespace
+            migration: .migrationName
+        sleep:
+          before: PT10S
+    transition: CheckMigrationStatus
+  - name: CheckMigrationStatus
+    type: switch
+    dataConditions:
+      - name: MigrationFailure
+        condition: .getStatusResult.status.conditions | map(select(.category == "Error" or .category == "Critical" or .type == "Failed")) | length > 0
+        transition: MigrationFailure
+      - name: MigrationSuccessful
+        condition: .getStatusResult.status.conditions | map(select(.type == "Succeeded")) | length > 0
+        transition: MigrationSuccessful
+    defaultCondition:
+      transition:
+        nextState: GetMigration
+  - name: MigrationFailure
+    type: operation
+    actions:
+      - name: setMigrationErrorMessage
+        actionDataFilter:
+          toStateData: .migrationErrorMessage
+        functionRef:
+          refName: getMigrationError
+    stateDataFilter:
+      output: '{migrationError: .migrationErrorMessage}'
+    end: true
+  - name: MigrationSuccessful
+    type: operation
+    actions: []
+    stateDataFilter:
+      output: '{migrationSuccessful: "migration successful"}'
+    end: true

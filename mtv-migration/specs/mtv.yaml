@@ -1,0 +1,242 @@
+  openapi: 3.0.0
+  info:
+    title: MTV Kubernetes API
+    version: v1beta1
+  paths:
+    /apis/forklift.konveyor.io/v1beta1/namespaces/{namespace}/migrations/{migration}:
+      get:
+        tags:
+          - forklift_konveyor_io_v1beta1
+        description: get a resource of type Migration in namespace
+        operationId: getMigration
+        parameters:
+          - in: path
+            name: namespace
+            required: true
+            schema:
+              type: string
+          - in: path
+            name: migration
+            required: true
+            schema:
+              type: string
+        responses:
+          "200":
+            description: OK
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/forklift.konveyor.io.v1.beta1.Migration'
+          "401":
+            description: Unauthorized
+        security:
+          - BearerToken: []
+    /apis/forklift.konveyor.io/v1beta1/namespaces/{namespace}/plans/{plan}:
+      get:
+        tags:
+          - forklift_konveyor_io_v1beta1
+        description: get a resource of type Plan in namespace
+        operationId: getPlan
+        parameters:
+          - in: path
+            name: namespace
+            required: true
+            schema:
+              type: string
+          - in: path
+            name: plan
+            required: true
+            schema:
+              type: string
+        responses:
+          "200":
+            description: OK
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/forklift.konveyor.io.v1.beta1.Plan'
+          "401":
+            description: Unauthorized
+        security:
+          - BearerToken: []
+    /apis/forklift.konveyor.io/v1beta1/namespaces/{namespace}/plans:
+      post:
+        tags:
+          - forklift_konveyor_io_v1beta1
+        description: create a resource of type Plan in namespace
+        operationId: createPlan
+        parameters:
+          - in: path
+            name: namespace
+            required: true
+            schema:
+              type: string
+        requestBody:
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/forklift.konveyor.io.v1.beta1.Plan'
+        responses:
+          "200":
+            description: OK
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/forklift.konveyor.io.v1.beta1.Plan'
+          "201":
+            description: Created
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/forklift.konveyor.io.v1.beta1.Plan'
+          "202":
+            description: Accepted
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/forklift.konveyor.io.v1.beta1.Plan'
+          "401":
+            description: Unauthorized
+        security:
+          - BearerToken: []
+    /apis/forklift.konveyor.io/v1beta1/namespaces/{namespace}/migrations:
+      post:
+        tags:
+          - forklift_konveyor_io_v1beta1
+        description: create a resource of type Migration in namespace
+        operationId: createMigration
+        parameters:
+          - in: path
+            name: namespace
+            required: true
+            schema:
+              type: string
+        requestBody:
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/forklift.konveyor.io.v1.beta1.Migration'
+        responses:
+          "200":
+            description: OK
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/forklift.konveyor.io.v1.beta1.Migration'
+          "201":
+            description: Created
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/forklift.konveyor.io.v1.beta1.Migration'
+          "202":
+            description: Accepted
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/forklift.konveyor.io.v1.beta1.Migration'
+          "401":
+            description: Unauthorized
+        security:
+          - BearerToken: []
+  components:
+    schemas:
+      K8sResource:
+        type: object
+        properties:
+          name:
+            type: string
+          namespace:
+            type: string
+      K8sConditions:
+        type: array
+        items:
+          type: object
+          properties:
+            status:
+              type: string
+            type:
+              type: string
+            category:
+              type: string
+            message:
+              type: string
+      forklift.konveyor.io.v1beta1.Vm:
+        type: object
+        properties:
+          id:
+            type: string
+          name:
+            type: string
+      forklift.konveyor.io.v1beta1.Vms:
+        type: array
+        items:
+          $ref: '#/components/schemas/forklift.konveyor.io.v1beta1.Vm'
+      forklift.konveyor.io.v1beta1.Map:
+        type: object
+        properties:
+          network:
+            $ref: '#/components/schemas/K8sResource'
+          storage:
+            $ref: '#/components/schemas/K8sResource'
+      forklift.konveyor.io.v1beta1.Provider:
+        type: object
+        properties:
+          destination:
+            $ref: '#/components/schemas/K8sResource'
+          source:
+            $ref: '#/components/schemas/K8sResource'
+      forklift.konveyor.io.v1.beta1.Plan:
+        type: object
+        properties:
+          apiVersion:
+            type: string
+          kind:
+            type: string
+          metadata:
+            $ref: '#/components/schemas/K8sResource'
+          spec:
+            type: object
+            properties:
+              map:
+                $ref: '#/components/schemas/forklift.konveyor.io.v1beta1.Map'
+              provider:
+                $ref: '#/components/schemas/forklift.konveyor.io.v1beta1.Provider'
+              targetNamespace:
+                type: string
+              vms:
+                $ref: '#/components/schemas/forklift.konveyor.io.v1beta1.Vms'
+          status:
+            type: object
+            properties:
+              conditions:
+                $ref: '#/components/schemas/K8sConditions'
+      forklift.konveyor.io.v1.beta1.Migration:
+        type: object
+        properties:
+          apiVersion:
+            type: string
+          kind:
+            type: string
+          metadata:
+            $ref: '#/components/schemas/K8sResource'
+          spec:
+            type: object
+            properties:
+              plan:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  namespace:
+                    type: string
+          status:
+            type: object
+            properties:
+              conditions:
+                $ref: '#/components/schemas/K8sConditions'
+    securitySchemes:
+      BearerToken:
+        type: http
+        scheme: bearer
+        description: Bearer Token authentication
