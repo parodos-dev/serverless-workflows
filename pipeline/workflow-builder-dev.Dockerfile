@@ -1,4 +1,4 @@
-FROM quay.io/kiegroup/kogito-swf-builder-nightly:main-2024-04-08 AS builder
+FROM quay.io/kiegroup/kogito-swf-builder-nightly:latest AS builder
 
 # Temp hack to provide persistence artifacts
 # ENV MAVEN_REPO_URL=https://maven.repository.redhat.com/earlyaccess/all

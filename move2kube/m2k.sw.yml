@@ -155,6 +155,8 @@ states:
     transition: PrintExitErrorMessage
   - name: PrintExitErrorMessage
     type: parallel
+    metadata:
+      errorMessage: '"Move2Kube workflow failed with exit message: "+ .exitMessage + " -- Plan retries: "  + (.planRetries|tostring) + " -- Error: "  + .error'
     branches:
     - name: printSystemOut
       actions:
