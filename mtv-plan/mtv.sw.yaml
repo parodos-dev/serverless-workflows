@@ -1,0 +1,93 @@
+specVersion: "0.8"
+id: mtv-plan
+version: '1.0'
+name: MTV plan assessment workflow
+description: assessment creates a plan and waits for it to be ready or failed
+annotations:
+  - "workflow-type/assessment"
+dataInputSchema: schemas/mtv-input.json
+start: CreatePlan
+functions:
+  - name: createPlan
+    type: rest
+    operation: 'specs/mtv.yaml#createPlan'
+  - name: getPlan
+    type: rest
+    operation: 'specs/mtv.yaml#getPlan'
+  - name: getPlanError
+    type: expression
+    operation: .getStatusResult.status.conditions | map(select(.category == "Error" or .category == "Critical"))[0].message
+states:
+  - name: CreatePlan
+    type: operation
+    actions:
+      - functionRef:
+          refName: createPlan
+          arguments:
+            namespace: .migrationNamespace
+            apiVersion: "forklift.konveyor.io/v1beta1"
+            kind: Plan
+            metadata:
+              name: .migrationName
+              namespace: .migrationNamespace
+            spec:
+              map:
+                network:
+                  name: .networkMap
+                  namespace: .migrationNamespace
+                storage:
+                  name: .storageMap
+                  namespace: .migrationNamespace
+              provider:
+                destination:
+                  name: .destinationProvider
+                  namespace: .migrationNamespace
+                source:
+                  name: .sourceProvider
+                  namespace: .migrationNamespace
+              targetNamespace: .migrationNamespace
+              vms: .vms
+    transition: GetPlan
+  - name: GetPlan
+    type: operation
+    actions:
+      - name: getPlan
+        actionDataFilter:
+          toStateData: .getStatusResult
+        functionRef:
+          refName: getPlan
+          arguments:
+            namespace: .migrationNamespace
+            plan: .migrationName
+        sleep:
+          before: PT10S
+    transition: CheckPlanStatus
+  - name: CheckPlanStatus
+    type: switch
+    dataConditions:
+      - name: PlanFailure
+        condition: .getStatusResult.status.conditions | map(select(.category == "Error" or .category == "Critical")) | length > 0
+        transition: PlanFailure
+      - name: PlanReady
+        condition: .getStatusResult.status.conditions | map(select(.type == "Ready")) | length > 0
+        transition: PlanReady
+    defaultCondition:
+      transition:
+        nextState: GetPlan
+  - name: PlanFailure
+    type: operation
+    actions:
+      - name: setPlanErrorMessage
+        actionDataFilter:
+          toStateData: .planErrorMessage
+        functionRef:
+          refName: getPlanError
+    stateDataFilter:
+      output: '{assessmentResult: {passed: false, message: .planErrorMessage}}'
+    end: true
+  - name: PlanReady
+    type: operation
+    actions: []
+    stateDataFilter:
+      output: '{workflowOptions: {migrationOptions: [{id: "mtv-migration", name: "MTV migration workflow"}]}, assessmentResult: {passed: true, message: "plan is ready for migration"}}'
+    end: true
