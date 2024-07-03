@@ -4,41 +4,47 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "type": "object",
   "properties": {
-    "inputs": {
-      "title": "Inputs",
-      "type": "object",
-      "properties": {
-        "projectKey": {
-          "title": "Project Key",
-          "description": "JIRA project key",
-          "type": "string"
-        },
-        "vm_namespace": {
-          "title": "VM Namespace",
-          "description": "Namespace in which create the VM",
-          "type": "string",
-          "default": "default",
-          "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
-        },
-        "vm_name": {
-          "title": "VM Name",
-          "description": "Name of the VM to create",
-          "type": "string",
-          "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
-        },
-        "vm_image": {
-          "title": "VM Image",
-          "description": "Image to use to create the VM",
-          "type": "string",
-          "enum": ["centos-stream8","centos-stream9","centos7","fedora","rhel7","rhel8","rhel9"]
-        }
+    "projectKey": {
+      "title": "Project Key",
+      "description": "JIRA project key",
+      "type": "string"
+    },
+    "vm_namespace": {
+      "title": "VM Namespace",
+      "description": "Namespace in which create the VM",
+      "type": "string",
+      "default": "default",
+      "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
+    },
+    "vm_name": {
+      "title": "VM Name",
+      "description": "Name of the VM to create",
+      "type": "string",
+      "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$"
+    },
+    "vm_image": {
+      "title": "VM Image",
+      "description": "Image to use to create the VM",
+      "type": "string",
+      "enum": ["centos-stream8","centos-stream9","centos7","fedora","rhel7","rhel8","rhel9"]
+    },
+    "recipients": {
+      "title": "Recipients",
+      "type": "array",
+      "description": "A list of recipients for the notification in the format of 'user:<namespace>/<username>' or 'group:<namespace>/<groupname>', i.e. 'user:default/jsmith'",
+      "items": {
+        "title": "Recipient",
+        "type": "string",
+        "pattern": "^(user|group):[a-z0-9]([-a-z0-9]*[a-z0-9])?/([a-z0-9]([-a-z0-9]*[a-z0-9])?)$"
       },
-      "required": [
-        "projectKey",
-        "vm_name",
-        "vm_image",
-        "vm_namespace"
-      ]
+      "minItems": 1
     }
-  }
+  },
+  "required": [
+    "projectKey",
+    "vm_name",
+    "vm_image",
+    "vm_namespace",
+    "recipients"
+  ]
 }
