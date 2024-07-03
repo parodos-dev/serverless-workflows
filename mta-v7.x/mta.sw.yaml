@@ -12,6 +12,10 @@ start: GetApplication
 dataInputSchema:
   schema: schemas/mta-input.json
   failOnValidationErrors: false
+extensions:
+  - extensionid: workflow-uri-definitions
+    definitions:
+      notifications: "https://raw.githubusercontent.com/parodos-dev/serverless-workflows/main/shared/specs/notifications-openapi.yaml"
 functions:
   - name: filterApplication
     type: expression
@@ -51,7 +55,7 @@ functions:
   - name: getTicket
     operation: specs/mta.json#getTicket
   - name: createNotification
-    operation: specs/notifications.json#createNotification
+    operation: notifications#createNotification
   - name: logInfo
     type: custom
     operation: "sysout:INFO"
@@ -102,7 +106,7 @@ states:
             name: taskgroup.analyzer
             addon: analyzer
             data:
-              rules: 
+              rules:
                 labels:
                   included:
                     - konveyor.io/target=cloud-readiness
@@ -124,7 +128,7 @@ states:
           arguments:
             id: .taskgroup.id
             createUser: "admin"
-            updateUser: ''
+            updateUser: ""
             name: "taskgroup.analyzer"
             addon: analyzer
             data: .taskgroup.data
@@ -145,10 +149,10 @@ states:
         functionRef:
           refName: "logInfo"
           arguments:
-            message: "\"Sleeping before checking the analysis result \""
+            message: '"Sleeping before checking the analysis result "'
         sleep:
           after: PT30S
-      - name: "getTaskgroup" 
+      - name: "getTaskgroup"
         functionRef:
           refName: getTaskgroup
           arguments:
@@ -207,7 +211,7 @@ states:
       - condition: (.tracker != null)
         transition: GetTrackerProjects
     defaultCondition:
-      transition: NotifyFailureBackstage        
+      transition: NotifyFailureBackstage
   - name: GetTrackerProjects
     type: operation
     actions:
@@ -225,7 +229,7 @@ states:
       - condition: (.trackerProjects != null)
         transition: GetTrackerProject
     defaultCondition:
-      transition: NotifyFailureBackstage        
+      transition: NotifyFailureBackstage
   - name: GetTrackerProject
     type: operation
     actions:
@@ -244,7 +248,7 @@ states:
       - condition: (.trackerProject != null)
         transition: GetTrackerProjectIssueTypes
     defaultCondition:
-      transition: NotifyFailureBackstage        
+      transition: NotifyFailureBackstage
   - name: GetTrackerProjectIssueTypes
     type: operation
     actions:
@@ -263,7 +267,7 @@ states:
       - condition: (.trackerProjectIssueTypes != null)
         transition: GetMigrationWaves
     defaultCondition:
-      transition: NotifyFailureBackstage        
+      transition: NotifyFailureBackstage
   - name: GetMigrationWaves
     type: operation
     actions:
@@ -293,11 +297,11 @@ states:
             startDate: (.migrationStartDatetime)
             endDate: (.migrationEndDatetime)
             applications:
-            - id: .application.id
-              name: .application.name
+              - id: .application.id
+                name: .application.name
         actionDataFilter:
           toStateData: ".createdMigrationWave"
-    transition: GetJiraTickets      
+    transition: GetJiraTickets
   - name: GetJiraTickets
     type: operation
     actionMode: sequential
@@ -331,7 +335,7 @@ states:
         functionRef:
           refName: createTicket
           arguments:
-            tracker: 
+            tracker:
               id: .tracker.id
               name: .tracker.name
             parent: .trackerProject.id
@@ -350,7 +354,7 @@ states:
             id: .createdJiraTicket.id
         actionDataFilter:
           toStateData: ".migrationWaveJiraTicket"
-    transition: NotifyCompletion          
+    transition: NotifyCompletion
   - name: NotifyCompletion
     type: operation
     actions:
@@ -358,15 +362,15 @@ states:
         functionRef:
           refName: createNotification
           arguments:
-            title: "MTA analysis completed"
-            message: '"MTA analysis is completed and the report for " + .application.repository.url + " is ready."'
-            origin: "MTA Analysis Workflow"
-            topic: "MTA Analysis Workflow"
-            targetUsers: if .backstageUser != null then [.backstageUser] else [] end
-            targetGroups: if .backstageGroup != null then [.backstageGroup] else [] end
-            actions:
-              - title: "View report"
-                url: "$SECRET.mta.url + \"/applications/\" + (.application.id|tostring)"
+            recipients:
+              type: "entity"
+              entityRef: .recipients
+            payload:
+              title: "MTA analysis completed"
+              description: '"MTA analysis is completed and the report for " + .application.repository.url + " is ready."'
+              scope: "MTA Analysis Workflow"
+              topic: "MTA Analysis Workflow"
+              link: '$SECRET.mta.url + "/hub/applications/" + (.application.id|tostring) + "/bucket/" + .data.output'
     transition: report
   - name: report
     type: operation
@@ -380,10 +384,12 @@ states:
         functionRef:
           refName: createNotification
           arguments:
-            title: "MTA analysis failed"
-            message: '"MTA analysis for " + .application.repository.url + " failed. Check logs of task pod: " + .taskgroup.tasks[0].pod'
-            origin: "MTA Analysis Workflow"
-            topic: "MTA Analysis Workflow"
-            targetUsers: if .backstageUser != null then [.backstageUser] else [] end
-            targetGroups: if .backstageGroup != null then [.backstageGroup] else [] end
+            recipients:
+              type: "entity"
+              entityRef: .recipients
+            payload:
+              title: "MTA analysis failed"
+              description: '"MTA analysis for " + .application.repository.url + " failed. Check logs of task pod: " + .taskgroup.tasks[0].pod'
+              scope: "MTA Analysis Workflow"
+              topic: "MTA Analysis Workflow"
     end: true
