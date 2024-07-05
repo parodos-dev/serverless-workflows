@@ -121,6 +121,7 @@ jobs:
             -p '{"data": {"application.properties" :"move2kube_url=http://move2kube-instance-svc.default.svc.cluster.local:8080\nquarkus.rest-client.move2kube_yaml.url=http://move2kube-instance-svc.default.svc.cluster.local:8080\nquarkus.rest-client.notifications.url=http://janus-idp-workflows-backstage.default.svc.cluster.local:7007/api/notifications/"}}'
           kubectl delete pod -l "app=m2k"
           kubectl get pods -o wide
+          kubectl wait --for=condition=Ready=true pods -l "app=m2k" --timeout=1m
 
       - name: Deploy Knative function
         run: |
