@@ -49,11 +49,11 @@ WORKSPACE_ID=$(curl -X POST "${MOVE2KUBE_URL}/api/v1/workspaces" -H 'Content-Typ
 PROJECT_ID=$(curl -X POST "${MOVE2KUBE_URL}/api/v1/workspaces/${WORKSPACE_ID}/projects" -H 'Content-Type: application/json' --data '{"name": "e2e Project",  "description": "e2e tests"}' | jq -r .id)
 
 echo "Wait until M2K workflow is available in backstage..."
-M2K_STATUS=curl -XGET -s -o /dev/null -w "%{http_code}" ${BACKSTAGE_URL}/api/orchestrator/workflows/m2k
+M2K_STATUS=$(curl -XGET -s -o /dev/null -w "%{http_code}" ${BACKSTAGE_URL}/api/orchestrator/workflows/m2k)
 until [ $M2K_STATUS -eq 200 ]
 do
 sleep 5
-M2K_STATUS=curl -XGET -s -o /dev/null -w "%{http_code}" ${BACKSTAGE_URL}/api/orchestrator/workflows/m2k
+M2K_STATUS=$(curl -XGET -s -o /dev/null -w "%{http_code}" ${BACKSTAGE_URL}/api/orchestrator/workflows/m2k)
 done
 
 echo "M2K is available in backstage, sending execution request"
