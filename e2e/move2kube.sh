@@ -50,7 +50,7 @@ PROJECT_ID=$(curl -X POST "${MOVE2KUBE_URL}/api/v1/workspaces/${WORKSPACE_ID}/pr
 
 echo "Wait until M2K workflow is available in backstage..."
 M2K_STATUS=$(curl -XGET -s -o /dev/null -w "%{http_code}" ${BACKSTAGE_URL}/api/orchestrator/workflows/m2k)
-until [ $M2K_STATUS -eq 200 ]
+until [ "$M2K_STATUS" -eq 200 ]
 do
 sleep 5
 M2K_STATUS=$(curl -XGET -s -o /dev/null -w "%{http_code}" ${BACKSTAGE_URL}/api/orchestrator/workflows/m2k)
