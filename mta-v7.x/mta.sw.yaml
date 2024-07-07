@@ -18,6 +18,8 @@ functions:
     operation: "{application: .applications|map(select(.repository.url == .repositoryURL))[0]}"
   - name: getApplication
     operation: specs/mta.json#getApplications
+  - name: getApplicationAnalysis
+    operation: specs/mta.json#getApplicationAnalysis
   - name: createApplication
     operation: specs/mta.json#createApplication
   - name: createTaskgroup
@@ -55,6 +57,13 @@ functions:
   - name: logInfo
     type: custom
     operation: "sysout:INFO"
+  - name: countMandatoriesIncidents
+    type: expression
+    operation: .applicationAnalysis | [select (.issues[].category=="mandatory")][0] | [.issues[]?.incidents //[]] | .[-1][-1].id
+  - name: countNonMandatoriesIncidents
+    type: expression
+    operation: .applicationAnalysis | [select (.issues[].category!="mandatory")][0] | [.issues[]?.incidents //[]] | .[-1][-1].id
+  
 states:
   - name: GetApplication
     type: operation
@@ -164,14 +173,65 @@ states:
   - name: checkReportDone
     type: switch
     dataConditions:
-      - condition: (.taskgroup.state == "Ready" and (.taskgroup.tasks[0].state == "Running" or .taskgroup.tasks[0].state == "Pending"))
+      - condition: (.taskgroup.state == "Ready" and (.taskgroup.tasks[0].state == "Running" or (.taskgroup.tasks[0].state == "Pending" or .taskgroup.tasks[0].state == "Postponed")))
         transition: pollResults
-      - condition: (.taskgroup.state == "Ready" and .exportToIssueManager == "true" and .taskgroup.tasks[0].state == "Succeeded")
-        transition: GetTrackers
-      - condition: (.taskgroup.state == "Ready" and .exportToIssueManager == "false" and .taskgroup.tasks[0].state == "Succeeded")
-        transition: NotifyCompletion
+        name: taskNotCompleted
       - condition: (.taskgroup.state == "Ready" and .taskgroup.tasks[0].state == "Failed")
         transition: NotifyFailureBackstage
+        name: taskFailed
+    defaultCondition:
+      transition: GetApplicationAnalysis
+  - name: GetApplicationAnalysis
+    type: operation
+    actionMode: sequential
+    actions:
+      - name: getApp
+        functionRef: 
+          refName: getApplicationAnalysis
+          arguments:
+            id: .application.id
+        actionDataFilter:
+          toStateData: ".applicationAnalysis"
+    transition: CountMandatoriesIncidents
+  - name: CountMandatoriesIncidents
+    type: operation
+    actionMode: sequential
+    actions:
+      - name: countApplicationMandatoryIncident
+        actionDataFilter:
+          toStateData: .application.mandatoriesIncidents
+        functionRef:
+          refName: countMandatoriesIncidents
+      - name: "logMandatoriesIncidents"
+        functionRef:
+          refName: "logInfo"
+          arguments:
+            message: "\"Mandatory incidents: \\(.application.mandatoriesIncidents|tostring)\""
+    transition: CountNonMandatoriesIncidents
+  - name: CountNonMandatoriesIncidents
+    type: operation
+    actionMode: sequential
+    actions:
+      - name: countApplicationNotMandatoryIncident
+        actionDataFilter:
+          toStateData: .application.nonMandatoriesIncidents
+        functionRef:
+          refName: countNonMandatoriesIncidents
+      - name: "logNonMandatoriesIncidents"
+        functionRef:
+          refName: "logInfo"
+          arguments:
+            message: "\"Non-mandatory incidents: \\(.application.nonMandatoriesIncidents|tostring)\""
+    transition: CheckMandatoriesIncidents
+  - name: CheckMandatoriesIncidents
+    type: switch
+    dataConditions:
+      - condition: .application.mandatoriesIncidents > 0
+        transition: NotifyMandatoriesIncidentsInApplication
+        name: hasMandatoriesIncidents
+      - condition: (.application.mandatoriesIncidents == 0 and .exportToIssueManager == "true")
+        transition: GetTrackers
+        name: NotifyTracker
     defaultCondition:
       transition: NotifyCompletion
   - name: GetTrackers
@@ -359,7 +419,7 @@ states:
           refName: createNotification
           arguments:
             title: "MTA analysis completed"
-            message: '"MTA analysis is completed and the report for " + .application.repository.url + " is ready."'
+            message: '"MTA analysis is completed with " + (.application.nonMandatoriesIncidents|tostring) + " non-mandatory incidents and the report for " + .application.repository.url + " is ready."'
             origin: "MTA Analysis Workflow"
             topic: "MTA Analysis Workflow"
             targetUsers: if .backstageUser != null then [.backstageUser] else [] end
@@ -386,4 +446,21 @@ states:
             topic: "MTA Analysis Workflow"
             targetUsers: if .backstageUser != null then [.backstageUser] else [] end
             targetGroups: if .backstageGroup != null then [.backstageGroup] else [] end
+    end: true
+  - name: NotifyMandatoriesIncidentsInApplication
+    type: operation
+    actions:
+      - condition: .backstageUser != null or .backstageGroup != null
+        functionRef:
+          refName: createNotification
+          arguments:
+            title: "MTA analysis ended with incidents in mandatories issues"
+            message: '"MTA analysis for " + .application.repository.url + " completed with " + (.application.mandatoriesIncidents|tostring) +" incidents in mandatories issues. Check the analysis report."'
+            origin: "MTA Analysis Workflow"
+            topic: "MTA Analysis Workflow"
+            targetUsers: if .backstageUser != null then [.backstageUser] else [] end
+            targetGroups: if .backstageGroup != null then [.backstageGroup] else [] end
+            actions:
+              - title: "View analysis report"
+                url: "$SECRET.mta.url + \"/applications/\" + (.application.id|tostring)+ \"/analysis\""
     end: true
