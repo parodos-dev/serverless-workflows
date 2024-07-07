@@ -42,8 +42,6 @@ GIT_ORG="gfarache31/m2k-test"
 GIT_REPO="bitbucket.org/${GIT_ORG}"
 GIT_SOURCE_BRANCH="master"
 GIT_TARGET_BRANCH="e2e-test-$(date +%s)"
-NOTIFICATIONS_DISABLED=true
-echo "Notifications disabled: ${NOTIFICATIONS_DISABLED}"
 echo "Creating workspace and project in move2kube instance"
 WORKSPACE_ID=$(curl -X POST "${MOVE2KUBE_URL}/api/v1/workspaces" -H 'Content-Type: application/json' --data '{"name": "e2e Workspace",  "description": "e2e tests"}' | jq -r .id)
 PROJECT_ID=$(curl -X POST "${MOVE2KUBE_URL}/api/v1/workspaces/${WORKSPACE_ID}/projects" -H 'Content-Type: application/json' --data '{"name": "e2e Project",  "description": "e2e tests"}' | jq -r .id)
@@ -57,7 +55,7 @@ M2K_STATUS=$(curl -XGET -s -o /dev/null -w "%{http_code}" ${BACKSTAGE_URL}/api/o
 done
 
 echo "M2K is available in backstage, sending execution request"
-out=$(curl -XPOST -H "Content-Type: application/json"  ${BACKSTAGE_URL}/api/orchestrator/workflows/m2k/execute -d "{\"repositoryURL\": \"ssh://${GIT_REPO}\", \"sourceBranch\": \"${GIT_SOURCE_BRANCH}\", \"targetBranch\": \"${GIT_TARGET_BRANCH}\", \"workspaceId\": \"${WORKSPACE_ID}\", \"projectId\": \"${PROJECT_ID}\", \"notificationsDisabled\":${NOTIFICATIONS_DISABLED}}")
+out=$(curl -XPOST -H "Content-Type: application/json"  ${BACKSTAGE_URL}/api/orchestrator/workflows/m2k/execute -d "{\"repositoryURL\": \"ssh://${GIT_REPO}\", \"sourceBranch\": \"${GIT_SOURCE_BRANCH}\", \"targetBranch\": \"${GIT_TARGET_BRANCH}\", \"workspaceId\": \"${WORKSPACE_ID}\", \"projectId\": \"${PROJECT_ID}\"}")
 id=$(echo "$out" | jq -e .id)
 
 if [ -z "$id" ] || [ "$id" == "null" ]; then
@@ -88,16 +86,15 @@ then
   exit 1
 fi
 
-if [[ "${NOTIFICATIONS_DISABLED}" == "false" ]]; then
-  echo "Checking if Q&A waiting notification with move2kube URL received"
-  NOTIFICATION=$(curl "${BACKSTAGE_NOTIFICATION_URL}/notifications?messageScope=all&orderBy=created&orderByDirec=desc" | jq ".[0]")
-  URL_IN_NOTIFICATION=$(printf "%s" "${NOTIFICATION}" | jq ".actions[0].url | select(contains(\"${MOVE2KUBE_URL}/api/v1/workspaces/${WORKSPACE_ID}/projects/${PROJECT_ID}/outputs\"))")
-  if [ -z "${URL_IN_NOTIFICATION}" ]
-  then
-       printf "Notification has no action with matching URL: %s\n\nexiting " "${NOTIFICATION}"
-       exit 1
-  fi
+echo "Checking if Q&A waiting notification with move2kube URL received"
+NOTIFICATION=$(curl "${BACKSTAGE_NOTIFICATION_URL}/notifications?messageScope=all&orderBy=created&orderByDirec=desc" | jq ".[0]")
+URL_IN_NOTIFICATION=$(printf "%s" "${NOTIFICATION}" | jq ".actions[0].url | select(contains(\"${MOVE2KUBE_URL}/api/v1/workspaces/${WORKSPACE_ID}/projects/${PROJECT_ID}/outputs\"))")
+if [ -z "${URL_IN_NOTIFICATION}" ]
+then
+      printf "Notification has no action with matching URL: %s\n\nexiting " "${NOTIFICATION}"
+      exit 1
 fi
+
 echo "Checking if Knative function running"
 nb_pods=$(kubectl get pods -l app=m2k-save-transformation-func-v1 -no-headers | wc -l)
 retries=20
@@ -145,15 +142,13 @@ else
   echo "Branch ${GIT_TARGET_BRANCH} successfully created on repo ${GIT_REPO}! "
 fi
 
-if [[ "${NOTIFICATIONS_DISABLED}" == "false" ]]; then
-  echo "Checking if completion notification received"
-  NOTIFICATION=$(curl "${BACKSTAGE_NOTIFICATION_URL}/notifications?messageScope=all&orderBy=created&orderByDirec=desc" | jq ".[0]")
-  SUCCESS_NOTIFICATION=$(printf "%s" "${NOTIFICATION}" | jq ".message | select(contains(\"success\"))")
-  if [ -z "${SUCCESS_NOTIFICATION}" ]
-  then
-       printf "Notification has no action with matching URL: %s\n\nexiting " "${NOTIFICATION}"
-       exit 1
-  fi
+echo "Checking if completion notification received"
+NOTIFICATION=$(curl "${BACKSTAGE_NOTIFICATION_URL}/notifications?messageScope=all&orderBy=created&orderByDirec=desc" | jq ".[0]")
+SUCCESS_NOTIFICATION=$(printf "%s" "${NOTIFICATION}" | jq ".message | select(contains(\"success\"))")
+if [ -z "${SUCCESS_NOTIFICATION}" ]
+then
+      printf "Notification has no action with matching URL: %s\n\nexiting " "${NOTIFICATION}"
+      exit 1
 fi
 
 echo "End to end tests passed ✅"

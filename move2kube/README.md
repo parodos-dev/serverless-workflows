@@ -59,10 +59,9 @@ backstage-backstage   backstage-backstage-rhdh-operator.apps.cluster-c68jb.dynam
    * ie: `a46b802d-511c-4097-a5cb-76c892b48d71`
 9. In the `projectId` field, put the ID of the move2kube instance project under the previous workspace to use for the transformation. Use the ID of the project created at the 1st step.
    * ie: `9c7f8914-0b63-4985-8696-d46c17ba4ebe`
-10. If you want to disable notifications, check `notificationsDisabled`.
-11. Then click on `nextStep` 
-12. Click on `run` to trigger the execution
-13. Once a new transformation has started and is waiting for your input, you will receive a notification with a link to the Q&A
+10. Then click on `nextStep` 
+11. Click on `run` to trigger the execution
+12. Once a new transformation has started and is waiting for your input, you will receive a notification with a link to the Q&A
       * For more information about what to expect and how to answer the Q&A, please visit [the official move2kube documentation](https://move2kube.konveyor.io/tutorials/ui)
-14. Once you completed the Q&A, the process will continue and the output of the transformation will be saved in your git repository, you will receive a notification to inform you of the completion of the workflow.
+13. Once you completed the Q&A, the process will continue and the output of the transformation will be saved in your git repository, you will receive a notification to inform you of the completion of the workflow.
       * You can now clone the repository and checkout the output branch to deploy your manifests to your cluster! You can check [the move2kube documention](https://move2kube.konveyor.io/tutorials/cli#deploying-the-application-to-kubernetes-with-the-generated-artifacts) if you need guidance on how to deploy the generated artifacts.

@@ -28,10 +28,15 @@
           "description": "the ID of the Move2Kube project",
           "type": "string"
       },
-      "notificationsDisabled": {
-          "description": "If set to true, notification will NOT be sent to backstage",
-          "type": "boolean",
-          "default": false
+      "recipients": {
+        "title": "Recipients",
+        "type": "array",
+        "description": "A list of recipients for the notification in the format of 'user:<namespace>/<username>' or 'group:<namespace>/<groupname>', i.e. 'user:default/jsmith'",
+        "items": {
+          "title": "Recipient",
+          "type": "string",
+          "pattern": "^(user|group):[a-z0-9]([-a-z0-9]*[a-z0-9])?/([a-z0-9]([-a-z0-9]*[a-z0-9])?)$"
+        }
       }
   },
   "required": [
