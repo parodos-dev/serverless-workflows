@@ -89,7 +89,14 @@ public class Move2KubeServiceImpl implements Move2KubeService {
   public static void extractZipFile(File zipFile, Path extractPath) throws IOException {
     try (ZipFile zip = new ZipFile(zipFile)) {
       for (ZipArchiveEntry entry : Collections.list(zip.getEntries())) {
-        File entryFile = new File(extractPath.toString() + "/" + entry.getName());
+        // normalizing the path to resolve any potentiall ../../ or leading /
+        var entryPath = extractPath.resolve(entry.getName()).normalize();
+        if (!entryPath.startsWith(extractPath)) {
+          // this could be a zip slip attack by trying entries name with ../.. trying to
+          // escape the target dir
+          throw new IOException("Entry path name resolved an invalid path " + entryPath.toString());
+        }
+        File entryFile = entryPath.toFile();
         if (entry.isDirectory()) {
           entryFile.mkdirs();
           continue;

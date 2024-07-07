@@ -24,6 +24,8 @@ spec:
             - name: SSH_AUTH_SOCK
               value: /tmp/unix-socket
           volumeMounts:
+            - name: m2k-data
+              mountPath: /tmp
             - name: ssh-priv-key
               readOnly: true
               mountPath: "/root/.ssh/id_rsa"
@@ -36,7 +38,19 @@ spec:
             postStart:
               exec:
                 command: [ "/bin/sh", "-c", "ssh-agent -a /tmp/unix-socket && ssh-add /root/.ssh/id_rsa && ssh git@github.com -o StrictHostKeyChecking=accept-new || true && ssh git@gitlab.com -o StrictHostKeyChecking=accept-new|| true && ssh git@bitbucket.org -o StrictHostKeyChecking=accept-new|| true" ]
+      initContainers:
+        -   name: log-shipper
+            image: docker.io/alpine:latest
+            restartPolicy: Always
+            command: ['sh', '-c', 'until test -f /tmp/plan*/m2kcli.log; do echo waiting for m2k cli log;sleep 1;done; tail -F /tmp/plan-*/m2kcli.log']
+            volumeMounts:
+              - name: m2k-data
+                mountPath: /tmp
+
+
       volumes:
+        - name: m2k-data
+          emptyDir: {}
         - name: ssh-priv-key
           secret:
             secretName: sshkeys
