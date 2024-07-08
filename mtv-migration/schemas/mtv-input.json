@@ -7,10 +7,19 @@
     },
     "migrationNamespace": {
       "type": "string"
+    },
+    "recipients": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^(user|group):[a-z0-9]([-a-z0-9]*[a-z0-9])?/([a-z0-9]([-a-z0-9]*[a-z0-9])?)$"
+      },
+      "minItems": 1
     }
   },
   "required": [
     "migrationName",
-    "migrationNamespace"
+    "migrationNamespace",
+    "recipients"
   ]
 }
