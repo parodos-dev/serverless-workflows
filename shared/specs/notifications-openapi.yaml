@@ -7,8 +7,12 @@ info:
 tags:
   - name: notifications
     description: notifications plugin
+servers:
+  - url: /
+security:
+  - BearerToken: []
 paths:
-  /:
+  /api/notifications:
     post:
       tags:
         - "notifications"
@@ -19,16 +23,16 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateBody'
+              $ref: "#/components/schemas/CreateBody"
       responses:
-        '200':
+        "200":
           description: Successful operation
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Notifications'
+                $ref: "#/components/schemas/Notifications"
       security:
-        - bearertoken: []
+        - BearerToken: []
 components:
   schemas:
     NotificationPayload:
@@ -42,10 +46,10 @@ components:
         severity:
           type: string
           enum:
-            - 'critical'
-            - 'high'
-            - 'normal'
-            - 'low'
+            - "critical"
+            - "high"
+            - "normal"
+            - "low"
         topic:
           type: string
         scope:
@@ -61,8 +65,8 @@ components:
             type:
               type: string
               enum:
-                - 'broadcast'
-                - 'entity'
+                - "broadcast"
+                - "entity"
             entityRef:
               type: array
               items:
@@ -73,7 +77,7 @@ components:
                 type: string
           required: ["type"]
         payload:
-          $ref: '#/components/schemas/NotificationPayload'
+          $ref: "#/components/schemas/NotificationPayload"
     Notification:
       properties:
         id:
@@ -96,14 +100,14 @@ components:
         origin:
           type: string
         payload:
-          $ref: '#/components/schemas/NotificationPayload'
+          $ref: "#/components/schemas/NotificationPayload"
       required: [id, user, created, origin, payload]
     Notifications:
       type: array
       items:
-        $ref: '#/components/schemas/Notification'
+        $ref: "#/components/schemas/Notification"
   securitySchemes:
-    bearertoken:
+    BearerToken:
       type: http
       scheme: bearer
-      description: Bearer Token authentication   
+      description: Bearer Token authentication
