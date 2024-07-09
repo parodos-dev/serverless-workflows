@@ -780,6 +780,13 @@ paths:
           example: git+https://github.com/konveyor/move2kube
           schema:
             "$ref": "#/components/schemas/RemoteSource"
+        - name: dump-cli-logs
+          in: query
+          description: Boolean to dump CLI logs to stdout.
+          required: false
+          example: 'true'
+          schema:
+            type: boolean
       responses:
         '202':
           description: Accepted.
@@ -935,6 +942,13 @@ paths:
         - name: skip-qa
           in: query
           description: Boolean to skip interactive QA.
+          required: false
+          example: 'true'
+          schema:
+            type: boolean
+        - name: dump-cli-logs
+          in: query
+          description: Boolean to dump CLI logs to stdout.
           required: false
           example: 'true'
           schema:

@@ -49,6 +49,7 @@ states:
             workspace-id: ".workspaceId"
             project-id: ".projectId"
             remote-source: "\"git+\" + (.repositoryURL|sub(\"http(s)://?\";\"ssh://\")) + \"@\" + .sourceBranch"
+            dump-cli-logs: true
     transition: InitGetPlanningRetry
   - name: InitGetPlanningRetry
     type: inject
@@ -94,6 +95,7 @@ states:
             workspace-id: ".workspaceId"
             project-id: ".projectId"
             plan: .plan
+            dump-cli-logs: true
         actionDataFilter:
           results: .id
           toStateData: .transformId
