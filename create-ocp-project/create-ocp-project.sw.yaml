@@ -72,7 +72,6 @@ states:
     type: operation
     actions:
       - name: "Create notification: Jira ticket created"
-        condition: (.recipients | length > 0)
         functionRef:
           refName: createNotification
           arguments:
@@ -155,7 +154,6 @@ states:
     type: operation
     actions:
       - name: "Create notification: project active"
-        condition: (.recipients | length > 0)
         functionRef:
           refName: createNotification
           arguments:
@@ -173,7 +171,6 @@ states:
     type: operation
     actions:
       - name: "Create notification: project not active"
-        condition: (.recipients | length > 0)
         functionRef:
           refName: createNotification
           arguments:

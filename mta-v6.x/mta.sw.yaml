@@ -361,8 +361,7 @@ states:
   - name: NotifyCompletion
     type: operation
     actions:
-      - condition: (.recipients | length > 0)
-        functionRef:
+      - functionRef:
           refName: createNotification
           arguments:
             recipients:
@@ -383,8 +382,7 @@ states:
   - name: NotifyFailureBackstage
     type: operation
     actions:
-      - condition: (.recipients | length > 0)
-        functionRef:
+      - functionRef:
           refName: createNotification
           arguments:
             recipients:

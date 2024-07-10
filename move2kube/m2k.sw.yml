@@ -111,7 +111,6 @@ states:
     type: operation
     actions:
       - name: createNotification
-        condition: (.recipients | length > 0)
         functionRef:
           refName: createNotification
           arguments:
@@ -168,7 +167,6 @@ states:
       - name: createNotification
         actions:
           - name: createNotification
-            condition: (.recipients | length > 0)
             functionRef:
               refName: createNotification
               arguments:
@@ -194,7 +192,6 @@ states:
       - name: createNotification
         actions:
           - name: createNotification
-            condition: (.recipients | length > 0)
             functionRef:
               refName: createNotification
               arguments:

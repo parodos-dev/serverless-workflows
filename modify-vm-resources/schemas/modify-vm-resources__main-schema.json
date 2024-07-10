@@ -57,12 +57,14 @@
         "title": "Recipient",
         "type": "string",
         "pattern": "^(user|group):[a-z0-9]([-a-z0-9]*[a-z0-9])?/([a-z0-9]([-a-z0-9]*[a-z0-9])?)$"
-      }
+      },
+      "minItems": 1
     }
   },
   "required": [
     "projectKey",
     "vm_name",
-    "vm_namespace"
+    "vm_namespace",
+    "recipients"
   ]
 }

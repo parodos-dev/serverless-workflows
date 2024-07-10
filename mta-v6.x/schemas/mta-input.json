@@ -14,7 +14,8 @@
         "title": "Recipient",
         "type": "string",
         "pattern": "^(user|group):[a-z0-9]([-a-z0-9]*[a-z0-9])?/([a-z0-9]([-a-z0-9]*[a-z0-9])?)$"
-      }
+      },
+      "minItems": 1
     },
     "exportToIssueManager": {
       "type": "string"
@@ -28,7 +29,8 @@
   },
   "required": [
     "repositoryURL",
-    "exportToIssueManager"
+    "exportToIssueManager",
+    "recipients"
   ]
 }
 

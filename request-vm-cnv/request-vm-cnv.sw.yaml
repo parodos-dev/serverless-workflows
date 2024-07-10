@@ -51,7 +51,6 @@ states:
     type: operation
     actions:
       - name: "Create notification: JIRA ticket created"
-        condition: (.recipients | length > 0)
         functionRef:
           refName: createNotification
           arguments:
@@ -104,7 +103,6 @@ states:
       - name: "Create notification: VM creation authorized"
         actions:
           - name: "Create notification: VM creation authorized"
-            condition: (.recipients | length > 0)
             functionRef:
               refName: createNotification
               arguments:
@@ -239,7 +237,6 @@ states:
       - name: "Create notification: VM running"
         actions:
           - name: "Create notification: VM creation running"
-            condition: (.recipients | length > 0)
             functionRef:
               refName: createNotification
               arguments:
@@ -266,7 +263,6 @@ states:
       - name: "Create notification: VM not running"
         actions:
           - name: "Create notification: VM not running"
-            condition: (.recipients | length > 0)
             functionRef:
               refName: createNotification
               arguments:
@@ -292,7 +288,6 @@ states:
       - name: "Create notification: VM creation denied"
         actions:
           - name: "Create notification: VM creation denied"
-            condition: (.recipients | length > 0)
             functionRef:
               refName: createNotification
               arguments:

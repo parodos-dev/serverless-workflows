@@ -10,7 +10,7 @@ the cloud-readiness compatibility of their code.
 
 # Inputs
 - `repositoryUrl` [mandatory] - the git repo url to examine
-- `recipients` [optional] - A list of recipients for the notification in the format of `user:<namespace>/<username>` or `group:<namespace>/<groupname>`, i.e. `user:default/jsmith`.
+- `recipients` [mandatory] - A list of recipients for the notification in the format of `user:<namespace>/<username>` or `group:<namespace>/<groupname>`, i.e. `user:default/jsmith`.
 
 # Output
 1. On completion the workflow returns an [options structure][2] in the exit state of the workflow (also named variables in SonataFlow)

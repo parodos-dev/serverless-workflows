@@ -36,7 +36,8 @@
           "title": "Recipient",
           "type": "string",
           "pattern": "^(user|group):[a-z0-9]([-a-z0-9]*[a-z0-9])?/([a-z0-9]([-a-z0-9]*[a-z0-9])?)$"
-        }
+        },
+        "minItems": 1
       }
   },
   "required": [
@@ -44,6 +45,7 @@
       "sourceBranch",
       "targetBranch",
       "workspaceId",
-      "projectId"
+      "projectId",
+      "recipients"
   ]
 }
