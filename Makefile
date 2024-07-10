@@ -184,3 +184,8 @@ push-manifests: prepare-workdir
 	cd $(WORKDIR)
 	@$(CONTAINER_ENGINE) run --rm -v $(WORKDIR):/workdir -w /workdir \
 		$(LINUX_IMAGE) /bin/bash -c "${SCRIPTS_DIR}/push_manifests.sh '$(GIT_USER_NAME)' $(GIT_USER_EMAIL) $(GIT_TOKEN) $(PR_OR_COMMIT_URL) $(DEPLOYMENT_REPO) $(DEPLOYMENT_BRANCH) $(WORKFLOW_ID) $(APPLICATION_ID) $(IMAGE_NAME) $(IMAGE_TAG)"
+
+install-orchestrator-helm:
+	helm repo add orchestrator https://parodos-dev.github.io/orchestrator-helm-chart/
+	helm install orchestrator orchestrator/orchestrator-k8s
+

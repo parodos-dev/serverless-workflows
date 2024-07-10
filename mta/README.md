@@ -1,4 +1,4 @@
-# MTA - migration analysis workflow
+# MTA - Migration Analysis Workflow
 
 # Synopsis
 This workflow is an assessment workflow type, that invokes an application analysis workflow using [MTA][1]
