@@ -17,7 +17,7 @@ Then, the workflow is checking the status of the VM for a given amount of time. 
 - `VM name` [required] - The name of the VM to create
 - `VM image` [required] - The image to use when creating the VM
 - `VM namespace` [required] - The namespace in which create the VM
-- `Recipients` [mandatory] - A list of recipients for the notification in the format of `user:<namespace>/<username>` or `group:<namespace>/<groupname>`, i.e. `user:default/jsmith`.
+- `Recipients` [optional] - A list of recipients for the notification in the format of `user:<namespace>/<username>` or `group:<namespace>/<groupname>`, i.e. `user:default/jsmith`.
 
 ## Workflow diagram
 ![Request VM on CNV diagram](https://github.com/parodos-dev/serverless-workflow/blob/main/vm-creator/vm-creator.svg?raw=true)
