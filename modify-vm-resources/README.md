@@ -16,6 +16,7 @@ The VM updater workflow is a workflow that demonstrates the following features o
 - `CPU threads` - The new amount of CPU threads available to the VM
 - `CPU sockets` - The new amount of CPU sockets available to the VM
 - `Auto restart VM` - Auto restart the VM to put into effect the changes
+- `Recipients` [mandatory] - A list of recipients for the notification in the format of `user:<namespace>/<username>` or `group:<namespace>/<groupname>`, i.e. `user:default/jsmith`.
 
 ## Workflow diagram
 ![VM Updater diagram](https://github.com/parodos-dev/serverless-workflow/blob/main/modify-vm-resources/modify-vm-resources.svg?raw=true)

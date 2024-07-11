@@ -4,6 +4,10 @@ specVersion: "0.8"
 name: "Request VM on CNV"
 description: Request VM on CNV
 dataInputSchema: schemas/request-vm-cnv__main-schema.json
+extensions:
+  - extensionid: workflow-uri-definitions
+    definitions:
+      notifications: "https://raw.githubusercontent.com/parodos-dev/serverless-workflows/main/shared/specs/notifications-openapi.yaml"
 functions:
   - name: readNamespacedVirtualMachine
     operation: specs/kubevirt-openapi.yaml#readNamespacedVirtualMachine
@@ -14,7 +18,7 @@ functions:
   - name: jiraGetIssue
     operation: specs/jira-openapi.json#getIssue
   - name: createNotification
-    operation: specs/notifications-openapi.yaml#createNotification
+    operation: notifications#createNotification
   - name: print
     type: custom
     operation: sysout
@@ -31,15 +35,15 @@ states:
           refName: jiraCreateIssue
           arguments:
             fields:
-              description: '"Authorization request to create VM " + .inputs.vm_name + " in namespace "+.inputs.vm_namespace + " using image "+ .inputs.vm_image'
+              description: '"Authorization request to create VM " + .vm_name + " in namespace "+.vm_namespace + " using image "+ .vm_image'
               issuetype:
                 name: Task
               labels:
                 - backstage-workflow
                 - '"workflowId=" + $WORKFLOW.instanceId'
               project:
-                key: .inputs.projectKey
-              summary: '"Authorization request to create VM " + .inputs.vm_name + " in namespace "+.inputs.vm_namespace'
+                key: .projectKey
+              summary: '"Authorization request to create VM " + .vm_name + " in namespace "+.vm_namespace'
         actionDataFilter:
           toStateData: .jiraCreateIssueResult
     transition: "Notify Backstage: JIRA ticket created"
@@ -50,16 +54,16 @@ states:
         functionRef:
           refName: createNotification
           arguments:
-            title: '"JIRA ticket created for VM " + .inputs.vm_name'
-            message: '"JIRA ticket created to request authorization to create VM " + .inputs.vm_name + " in namespace "+.inputs.vm_namespace'
-            origin: "SonataFlow"
-            topic: "Request CM on CNV workflow"
-            targetUsers:
-              - "default/guest"
-            actions:
-              - title: "View on JIRA"
-                # There are more dynamic ways to get the JIRA URL, but for simplicity, we are using a hardcoded URL
-                url: '$SECRET.jira_url + "/jira/servicedesk/projects/" + .inputs.projectKey + "/issues/" + .jiraCreateIssueResult.key'
+            recipients:
+              type: "entity"
+              entityRef: .recipients
+            payload:
+              title: '"JIRA ticket created for VM " + .vm_name'
+              description: '"JIRA ticket created to request authorization to create VM " + .vm_name + " in namespace "+.vm_namespace'
+              scope: "SonataFlow"
+              topic: "Request CM on CNV workflow"
+              # There are more dynamic ways to get the JIRA URL, but for simplicity, we are using a hardcoded URL
+              link: '$SECRET.jira_url + "/jira/servicedesk/projects/" + .projectKey + "/issues/" + .jiraCreateIssueResult.key'
     transition: Poll issue
   - name: Poll issue
     type: operation
@@ -95,19 +99,21 @@ states:
             functionRef:
               refName: print
               arguments:
-                message: '${"VM creation authorized, see Jira issue: " + $SECRET.jira_url + "/jira/servicedesk/projects/" + .inputs.projectKey + "/issues/" + .jiraCreateIssueResult.key + " ==> " + .inputs.vm_name}'
+                message: '${"VM creation authorized, see Jira issue: " + $SECRET.jira_url + "/jira/servicedesk/projects/" + .projectKey + "/issues/" + .jiraCreateIssueResult.key + " ==> " + .vm_name}'
       - name: "Create notification: VM creation authorized"
         actions:
           - name: "Create notification: VM creation authorized"
             functionRef:
               refName: createNotification
               arguments:
-                title: '"Authorization granted to create VM" + .inputs.vm_name + " in namespace "+.inputs.vm_namespace'
-                message:  '"Authorization granted to create VM" + .inputs.vm_name + " in namespace "+.inputs.vm_namespace + " using image "+ .inputs.vm_image +". A notification will be sent once the VM is ready."'
-                origin: "SonataFlow"
-                topic: "Request VM on CNV workflow"
-                targetUsers:
-                  - "default/guest"
+                recipients:
+                  type: "entity"
+                  entityRef: .recipients
+                payload:
+                  title: '"Authorization granted to create VM" + .vm_name + " in namespace "+.vm_namespace'
+                  description: '"Authorization granted to create VM" + .vm_name + " in namespace "+.vm_namespace + " using image "+ .vm_image +". A notification will be sent once the VM is ready."'
+                  scope: "SonataFlow"
+                  topic: "Request CM on CNV workflow"
     transition: Create VM
   - name: Create VM
     type: operation
@@ -115,24 +121,24 @@ states:
       - functionRef:
           refName: createNamespacedVirtualMachine
           arguments:
-            namespace: .inputs.vm_namespace
+            namespace: .vm_namespace
             apiVersion: kubevirt.io/v1
             kind: VirtualMachine
             metadata:
-              name: .inputs.vm_name
-              namespace: .inputs.vm_namespace
+              name: .vm_name
+              namespace: .vm_namespace
               labels:
-                app: .inputs.vm_name
+                app: .vm_name
             spec:
               dataVolumeTemplates:
                 - apiVersion: cdi.kubevirt.io/v1beta1
                   kind: DataVolume
                   metadata:
-                    name: .inputs.vm_name
+                    name: .vm_name
                   spec:
                     sourceRef:
                       kind: DataSource
-                      name: .inputs.vm_image
+                      name: .vm_image
                       namespace: openshift-virtualization-os-images
                     storage:
                       resources:
@@ -143,12 +149,12 @@ states:
                 metadata:
                   labels:
                     kubevirt.io/size: small
-                    kubevirt.io/domain: .inputs.vm_name
+                    kubevirt.io/domain: .vm_name
                 spec:
                   architecture: amd64
                   networks:
-                  - name: default
-                    pod: {}
+                    - name: default
+                      pod: {}
                   domain:
                     cpu:
                       cores: 1
@@ -163,13 +169,13 @@ states:
                             bus: virtio
                           name: cloudinitdisk
                       interfaces:
-                      - name: default
-                        masquerade: {}
+                        - name: default
+                          masquerade: {}
                     memory:
                       guest: 2Gi
                   volumes:
                     - dataVolume:
-                        name: .inputs.vm_name
+                        name: .vm_name
                       name: rootdisk
                     - cloudInitNoCloud:
                         userData: |-
@@ -195,8 +201,8 @@ states:
         functionRef:
           refName: readNamespacedVirtualMachine
           arguments:
-            namespace: .inputs.vm_namespace
-            name: .inputs.vm_name
+            namespace: .vm_namespace
+            name: .vm_name
         sleep:
           before: PT10S
     transition: IncreaseVMStatusRunningRetriesRetry
@@ -227,22 +233,22 @@ states:
             functionRef:
               refName: print
               arguments:
-                message: 'VM running: .vm'
+                message: "VM running: .vm"
       - name: "Create notification: VM running"
         actions:
           - name: "Create notification: VM creation running"
             functionRef:
               refName: createNotification
               arguments:
-                title:  '"VM" + .inputs.vm_name + " in namespace "+.inputs.vm_namespace + " ready"'
-                message:  '"VM" + .inputs.vm_name + " in namespace "+.inputs.vm_namespace + " using image "+ .inputs.vm_image +" ready and running."'
-                origin: "SonataFlow"
-                topic: "Request VM on CNV workflow"
-                actions:
-                  - title: "Open console"
-                    url: '$SECRET.cluster_console_url + "/k8s/ns/" + .inputs.vm_namespace + "/kubevirt.io~v1~VirtualMachine/" + .inputs.vm_name + "/console/standalone"'
-                targetUsers:
-                  - "default/guest"
+                recipients:
+                  type: "entity"
+                  entityRef: .recipients
+                payload:
+                  title: '"VM" + .vm_name + " in namespace "+.vm_namespace + " ready"'
+                  description: '"VM" + .vm_name + " in namespace "+.vm_namespace + " using image "+ .vm_image +" ready and running."'
+                  scope: "SonataFlow"
+                  topic: "Request CM on CNV workflow"
+                  link: '$SECRET.cluster_console_url + "/k8s/ns/" + .vm_namespace + "/kubevirt.io~v1~VirtualMachine/" + .vm_name + "/console/standalone"'
     end: true
   - name: Notify VM not running
     type: parallel
@@ -253,19 +259,21 @@ states:
             functionRef:
               refName: print
               arguments:
-                message: 'VM not running: .vm'
+                message: "VM not running: .vm"
       - name: "Create notification: VM not running"
         actions:
           - name: "Create notification: VM not running"
             functionRef:
               refName: createNotification
               arguments:
-                title:  '"VM" + .inputs.vm_name + " in namespace "+.inputs.vm_namespace + " not ready"'
-                message:  '"VM" + .inputs.vm_name + " in namespace "+.inputs.vm_namespace + " using image "+ .inputs.vm_image +" not ready after "+.vmStatusRunningRetries+" retries: " + .vm.status'
-                origin: "SonataFlow"
-                topic: "Request VM on CNV workflow"
-                targetUsers:
-                  - "default/guest"
+                recipients:
+                  type: "entity"
+                  entityRef: .recipients
+                payload:
+                  title: '"VM" + .vm_name + " in namespace "+.vm_namespace + " not ready"'
+                  description: '"VM" + .vm_name + " in namespace "+.vm_namespace + " using image "+ .vm_image +" not ready after "+.vmStatusRunningRetries+" retries: " + .vm.status'
+                  scope: "SonataFlow"
+                  topic: "Request CM on CNV workflow"
     end: true
   - name: Notify VM creation denied
     type: parallel
@@ -276,21 +284,20 @@ states:
             functionRef:
               refName: print
               arguments:
-                message: '${"VM creation denied, see Jira issue: " + $SECRET.jira_url + "/jira/servicedesk/projects/" + .inputs.projectKey + "/issues/" + .jiraCreateIssueResult.key + " ==> " + .inputs.vm_name}'
+                message: '${"VM creation denied, see Jira issue: " + $SECRET.jira_url + "/jira/servicedesk/projects/" + .projectKey + "/issues/" + .jiraCreateIssueResult.key + " ==> " + .vm_name}'
       - name: "Create notification: VM creation denied"
         actions:
           - name: "Create notification: VM creation denied"
             functionRef:
               refName: createNotification
               arguments:
-                title: '"Authorization denied to create VM" + .inputs.vm_name + " in namespace "+.inputs.vm_namespace'
-                message:  '"Authorization denied to create VM" + .inputs.vm_name + " in namespace "+.inputs.vm_namespace + " using image "+ .inputs.vm_image '
-                origin: "SonataFlow"
-                topic: "Request VM on CNV workflow"
-                targetUsers:
-                  - "default/guest"
-                actions:
-                  - title: "View on JIRA"
-                    url: '$SECRET.jira_url + "/jira/servicedesk/projects/" + .inputs.projectKey + "/issues/" + .jiraCreateIssueResult.key'
-      
+                recipients:
+                  type: "entity"
+                  entityRef: .recipients
+                payload:
+                  title: '"Authorization denied to create VM" + .vm_name + " in namespace "+.vm_namespace'
+                  description: '"Authorization denied to create VM" + .vm_name + " in namespace "+.vm_namespace + " using image "+ .vm_image '
+                  scope: "SonataFlow"
+                  topic: "Request CM on CNV workflow"
+                  link: '$SECRET.jira_url + "/jira/servicedesk/projects/" + .projectKey + "/issues/" + .jiraCreateIssueResult.key'
     end: true

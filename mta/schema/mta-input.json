@@ -16,20 +16,10 @@
         "pattern": "^(user|group):[a-z0-9]([-a-z0-9]*[a-z0-9])?/([a-z0-9]([-a-z0-9]*[a-z0-9])?)$"
       },
       "minItems": 1
-    },
-    "exportToIssueManager": {
-      "type": "string"
-    },
-    "migrationStartDatetime": {
-      "type": "string"
-    },
-    "migrationEndDatetime": {
-      "type": "string"
     }
   },
   "required": [
     "repositoryURL",
-    "exportToIssueManager",
     "recipients"
   ]
 }

@@ -6,12 +6,17 @@
       "type": "string",
       "pattern": "^(git|http|https)://.+$"
     },
-    "backstageUser": {
-      "type": "string"
+    "recipients": {
+      "title": "Recipients",
+      "type": "array",
+      "description": "A list of recipients for the notification in the format of 'user:<namespace>/<username>' or 'group:<namespace>/<groupname>', i.e. 'user:default/jsmith'",
+      "items": {
+        "title": "Recipient",
+        "type": "string",
+        "pattern": "^(user|group):[a-z0-9]([-a-z0-9]*[a-z0-9])?/([a-z0-9]([-a-z0-9]*[a-z0-9])?)$"
+      },
+      "minItems": 1
     },
-    "backstageGroup": {
-      "type": "string"
-    }, 
     "exportToIssueManager": {
       "type": "string"
     },
@@ -24,7 +29,8 @@
   },
   "required": [
     "repositoryURL",
-    "exportToIssueManager"
+    "exportToIssueManager",
+    "recipients"
   ]
 }
 
