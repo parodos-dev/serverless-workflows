@@ -49,7 +49,15 @@ COPY --from=builder --chown=185 /home/kogito/serverless-workflow-project/target/
 COPY --from=builder --chown=185 /home/kogito/serverless-workflow-project/target/quarkus-app/*.jar /deployments/
 COPY --from=builder --chown=185 /home/kogito/serverless-workflow-project/target/quarkus-app/app/ /deployments/app/
 COPY --from=builder --chown=185 /home/kogito/serverless-workflow-project/target/quarkus-app/quarkus/ /deployments/quarkus/
-COPY LICENSE /licenses/
+
+# Copy the license file if it exists in the context
+RUN --mount=type=bind,target=/context,Z <<EOF
+if [ -f /context/LICENSE ]; then
+    mkdir /licenses
+    cp -v /context/LICENSE /licenses
+fi
+EOF
+
 
 EXPOSE 8080
 USER 185
