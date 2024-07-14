@@ -88,15 +88,6 @@ DEPLOYMENT_BRANCH ?= main
 
 ENABLE_PERSISTENCE ?= false
 
-# extra extensions needed for persistence at build time.
-# The extentions listed below are included in the cache in image quay.io/kiegroup/kogito-swf-builder:9.99.1.CR1 or available from maven central repository
-QUARKUS_EXTENSIONS=org.kie.kogito:kogito-addons-quarkus-jobs-knative-eventing:9.99.1.redhat-00003,org.kie.kogito:kogito-addons-quarkus-persistence-jdbc:9.99.1.redhat-00003,org.kie.kogito:kogito-addons-persistence-jdbc:9.99.1.redhat-00003,io.quarkus:quarkus-jdbc-postgresql:3.2.9.Final,io.quarkus:quarkus-agroal:3.2.9.Final,org.kie:kie-addons-quarkus-monitoring-prometheus:999-SNAPSHOT,org.kie:kie-addons-quarkus-monitoring-sonataflow:999-SNAPSHOT
-QUARKUS_DEV_EXTENSIONS=""
-#org.kie:kie-addons-quarkus-persistence-jdbc:999-20240317-SNAPSHOT,io.quarkus:quarkus-jdbc-postgresql:3.2.9.Final,io.quarkus:quarkus-agroal:3.2.9.Final
-
-# build time properties required for persistence.
-MAVEN_ARGS_APPEND="-Dkogito.persistence.type=jdbc -Dquarkus.datasource.db-kind=postgresql -Dkogito.persistence.proto.marshaller=false"
-
 .PHONY: all
 
 all: build-image push-image gen-manifests push-manifests
@@ -118,7 +109,7 @@ prepare-workdir:
 # Depends on: prepare-workdir target.
 # Usage: make build-image
 ifeq ($(IS_WORKFLOW),true)
-build-image: BUILD_ARGS=--build-arg-file=$(WORKFLOW_ID)/argfile.conf --build-arg=BUILDER_IMAGE= --build-arg WF_RESOURCES=$(WORKFLOW_ID) --build-arg=QUARKUS_EXTENSIONS=$(QUARKUS_EXTENSIONS) --build-arg=MAVEN_ARGS_APPEND=$(MAVEN_ARGS_APPEND)
+build-image: BUILD_ARGS=--build-arg-file=$(WORKFLOW_ID)/argfile.conf --build-arg=BUILDER_IMAGE= --build-arg WF_RESOURCES=$(WORKFLOW_ID)
 endif
 build-image: EXTRA_ARGS=--ulimit nofile=4096:4096
 build-image: prepare-workdir
@@ -136,7 +127,6 @@ else
 		--tag ${IMAGE_NAME}:${IMAGE_TAG} --tag ${IMAGE_NAME}:latest .
 endif
 
-build-dev-image: QUARKUS_EXTENSIONS=$(QUARKUS_DEV_EXTENSIONS)
 build-dev-image: DOCKERFILE=$(DEV_DOCKERFILE)
 build-dev-image: build-image
 
