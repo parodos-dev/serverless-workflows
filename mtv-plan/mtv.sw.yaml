@@ -6,8 +6,14 @@ description: assessment creates a plan and waits for it to be ready or failed
 annotations:
   - "workflow-type/assessment"
 dataInputSchema: schemas/mtv-input.json
+extensions:
+  - extensionid: workflow-uri-definitions
+    definitions:
+      notifications: "https://raw.githubusercontent.com/parodos-dev/serverless-workflows/main/shared/specs/notifications-openapi.yaml"
 start: CreatePlan
 functions:
+  - name: createNotification
+    operation: notifications#createNotification
   - name: createPlan
     type: rest
     operation: 'specs/mtv.yaml#createPlan'
@@ -82,12 +88,36 @@ states:
           toStateData: .planErrorMessage
         functionRef:
           refName: getPlanError
+      - name: createNotification
+        functionRef:
+          refName: createNotification
+          arguments:
+            recipients:
+              type: "entity"
+              entityRef: .recipients
+            payload:
+              title: "MTV plan is not ready for migration"
+              description: '"MTV plan " + .migrationName + " is not ready for migration. Error: " + .planErrorMessage'
+              scope: "SonataFlow"
+              topic: "MTV plan assessment workflow"
     stateDataFilter:
       output: '{assessmentResult: {passed: false, message: .planErrorMessage}}'
     end: true
   - name: PlanReady
     type: operation
-    actions: []
+    actions:
+      - name: createNotification
+        functionRef:
+          refName: createNotification
+          arguments:
+            recipients:
+              type: "entity"
+              entityRef: .recipients
+            payload:
+              title: "MTV plan is ready for migration"
+              description: '"MTV plan " + .migrationName + " is ready for migration"'
+              scope: "SonataFlow"
+              topic: "MTV plan assessment workflow"
     stateDataFilter:
       output: '{workflowOptions: {migrationOptions: [{id: "mtv-migration", name: "MTV migration workflow"}]}, assessmentResult: {passed: true, message: "plan is ready for migration"}}'
     end: true
