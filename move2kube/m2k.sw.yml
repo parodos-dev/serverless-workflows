@@ -21,6 +21,7 @@ events:
   - name: saveTransformationEvent
     source: ""
     type: save-transformation
+    kind: produced
 functions:
   - name: systemOut
     type: custom
