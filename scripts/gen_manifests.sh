@@ -23,11 +23,6 @@ echo -e "\nquarkus.flyway.migrate-at-start=true" >> application.properties
 # https://github.com/apache/incubator-kie-tools/pull/2136
 ../kn workflow gen-manifest --namespace ""
 
-
-if [ "$ENABLE_PERSISTENCE" = false ]; then
-  exit
-fi
-
 # Find the workflow file with .sw.yaml suffix since kn-cli uses the ID to generate resource names
 workflow_file=$(printf '%s\n' ./*.sw.yaml 2>/dev/null | head -n 1)
 
@@ -50,6 +45,11 @@ SONATAFLOW_CR=manifests/01-sonataflow_${workflow_id}.yaml
 yq --inplace eval '.metadata.annotations["sonataflow.org/profile"] = "prod"' "${SONATAFLOW_CR}"
 
 yq --inplace ".spec.podTemplate.container.image=\"quay.io/orchestrator/serverless-workflow-${workflow_id}:latest\"" "${SONATAFLOW_CR}"
+yq --inplace ".spec.podTemplate.container.envFrom=[{\"secretRef\": { \"name\": \"${workflow_id}-creds\"}}]" "${SONATAFLOW_CR}"
+
+if [ "$ENABLE_PERSISTENCE" = false ]; then
+  exit
+fi
 
 yq --inplace ".spec |= (
   . + {
