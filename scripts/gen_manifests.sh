@@ -1,6 +1,6 @@
 #!/bin/bash
 
-WORKFLOW_ID=$1
+WORKFLOW_FOLDER=$1
 
 if [ ! -f kn ]; then
   echo "Installing kn-workflow CLI"
@@ -10,7 +10,7 @@ else
   echo "kn cli already available"
 fi
 
-cd "${WORKFLOW_ID}" || exit
+cd "${WORKFLOW_FOLDER}" || exit
 
 echo -e "\nquarkus.flyway.migrate-at-start=true" >> application.properties
 
@@ -40,7 +40,7 @@ fi
 SONATAFLOW_CR=manifests/01-sonataflow_${workflow_id}.yaml
 yq --inplace eval '.metadata.annotations["sonataflow.org/profile"] = "prod"' "${SONATAFLOW_CR}"
 
-yq --inplace ".spec.podTemplate.container.image=\"quay.io/orchestrator/serverless-workflow-${workflow_id}:latest\"" "${SONATAFLOW_CR}"
+yq --inplace ".spec.podTemplate.container.image=\"quay.io/orchestrator/serverless-workflow-${WORKFLOW_FOLDER}:latest\"" "${SONATAFLOW_CR}"
 
 if test -f "secret.properties"; then
   if [ ! -f kubectl ]; then
@@ -69,7 +69,7 @@ if [ "${ENABLE_PERSISTENCE}" = true ]; then
               \"name\": \"sonataflow-psql-postgresql\",
               \"port\": 5432,
               \"databaseName\": \"sonataflow\",
-              \"databaseSchema\": \"${WORKFLOW_ID}\"
+              \"databaseSchema\": \"${WORKFLOW_FOLDER}\"
             }
           }
         }
