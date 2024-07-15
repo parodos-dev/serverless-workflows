@@ -18,13 +18,16 @@ echo -e "\nquarkus.flyway.migrate-at-start=true" >> application.properties
 # https://github.com/apache/incubator-kie-tools/pull/2136
 ../kn workflow gen-manifest --namespace ""
 
-
+# Enable bash's extended blobing for better pattern matching
+shopt -s extglob
 # Find the workflow file with .sw.yaml suffix since kn-cli uses the ID to generate resource names
-workflow_file=$(printf '%s\n' ./*.sw.yaml 2>/dev/null | head -n 1)
+workflow_file=$(printf '%s\n' ./*.sw.y?(a)ml 2>/dev/null | head -n 1)
+# Disable bash's extended globing
+shopt -u extglob
 
 # Check if the workflow_file was found
 if [ -z "$workflow_file" ]; then
-  echo "No workflow file with .sw.yaml suffix found."
+  echo "No workflow file with .sw.yaml or .sw.yml suffix found."
   exit 1
 fi
 
