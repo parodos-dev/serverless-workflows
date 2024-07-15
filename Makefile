@@ -4,9 +4,21 @@
 # .git_token file exists with current Token (or injected as the GIT_TOKEN env var)
 # Linux OS
 
-ifndef WORKFLOW_ID
-$(error WORKFLOW_ID variable is not defined. Please provide the required value)
-endif
+WORKFLOWS = \
+	greeting \
+	escalation \
+	move2kube \
+	mta \
+	mta-v6.x \
+	mta-v7.x \
+	$(NULL)
+
+# Dynamic rule patten that uses one of the workflows and sets the workflow id
+# for the rest of the execution. Use with other targets, e.g, make move2kube gen-manifests
+.PHONY: $(WORKFLOWS)
+$(WORKFLOWS):
+	$(eval WORKFLOW_ID="$@")
+	@echo Specify one of the targets: build-image, push-image, gen-manifests, push-manifests
 
 ifndef APPLICATION_ID
 APPLICATION_ID = UNDEFINED
@@ -86,7 +98,7 @@ endif
 DEPLOYMENT_REPO ?= parodos-dev/serverless-workflows-config
 DEPLOYMENT_BRANCH ?= main
 
-ENABLE_PERSISTENCE ?= false
+ENABLE_PERSISTENCE ?= true
 
 .PHONY: all
 
@@ -162,8 +174,8 @@ save-oci: build-image
 # Usage: make gen-manifests
 gen-manifests: prepare-workdir
 	cd $(WORKDIR)
-	@$(CONTAINER_ENGINE) run --rm -v $(WORKDIR):/workdir -w /workdir \
-		$(LINUX_IMAGE) /bin/bash -c "${SCRIPTS_DIR}/gen_manifests.sh $(WORKFLOW_ID) $(ENABLE_PERSISTENCE)"
+	@$(CONTAINER_ENGINE) run --rm -v $(WORKDIR):/workdir:Z -w /workdir \
+		$(LINUX_IMAGE) /bin/bash -c "ENABLE_PERSISTENCE=$(ENABLE_PERSISTENCE) ${SCRIPTS_DIR}/gen_manifests.sh $(WORKFLOW_ID)"
 	@echo "Manifests are available in workdir $(WORKDIR)/$(WORKFLOW_ID)/manifests"
 
 # Target: push-manifests

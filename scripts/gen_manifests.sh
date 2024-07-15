@@ -2,11 +2,6 @@
 
 WORKFLOW_ID=$1
 
-ENABLE_PERSISTENCE=false
-if [ "$2" = "true" ]; then
-    ENABLE_PERSISTENCE=true
-fi
-
 if [ ! -f kn ]; then
   echo "Installing kn-workflow CLI"
   KN_CLI_URL="https://mirror.openshift.com/pub/openshift-v4/clients/serverless/1.11.2/kn-linux-amd64.tar.gz"
@@ -23,10 +18,6 @@ echo -e "\nquarkus.flyway.migrate-at-start=true" >> application.properties
 # https://github.com/apache/incubator-kie-tools/pull/2136
 ../kn workflow gen-manifest --namespace ""
 
-
-if [ "$ENABLE_PERSISTENCE" = false ]; then
-  exit
-fi
 
 # Find the workflow file with .sw.yaml suffix since kn-cli uses the ID to generate resource names
 workflow_file=$(printf '%s\n' ./*.sw.yaml 2>/dev/null | head -n 1)
@@ -64,22 +55,24 @@ if test -f "secret.properties"; then
   ../kubectl create -n sonataflow-infra secret generic "${workflow_id}-creds" --from-env-file=secret.properties --dry-run=client -oyaml > "manifests/01-secret_${workflow_id}.yaml"
 fi
 
-yq --inplace ".spec |= (
-  . + {
-    \"persistence\": {
-      \"postgresql\": {
-        \"secretRef\": {
-          \"name\": \"sonataflow-psql-postgresql\",
-          \"userKey\": \"postgres-username\",
-          \"passwordKey\": \"postgres-password\"
-        },
-        \"serviceRef\": {
-          \"name\": \"sonataflow-psql-postgresql\",
-          \"port\": 5432,
-          \"databaseName\": \"sonataflow\",
-          \"databaseSchema\": \"${WORKFLOW_ID}\"
+if [ "${ENABLE_PERSISTENCE}" = true ]; then
+    yq --inplace ".spec |= (
+      . + {
+        \"persistence\": {
+          \"postgresql\": {
+            \"secretRef\": {
+              \"name\": \"sonataflow-psql-postgresql\",
+              \"userKey\": \"postgres-username\",
+              \"passwordKey\": \"postgres-password\"
+            },
+            \"serviceRef\": {
+              \"name\": \"sonataflow-psql-postgresql\",
+              \"port\": 5432,
+              \"databaseName\": \"sonataflow\",
+              \"databaseSchema\": \"${WORKFLOW_ID}\"
+            }
+          }
         }
       }
-    }
-  }
-)" "${SONATAFLOW_CR}"
+    )" "${SONATAFLOW_CR}"
+fi
