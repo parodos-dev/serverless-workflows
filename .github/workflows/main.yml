@@ -41,6 +41,7 @@ jobs:
       run: |
         make WORKFLOW_ID=${{ inputs.workflow_id }} \
           APPLICATION_ID=${{ inputs.application_id }} \
+          IMAGE_TAG=${{ github.sha }} \
           GIT_TOKEN=${{ env.GH_TOKEN }} \
           REGISTRY_REPO=${{ env.REGISTRY_REPO }} \
           REGISTRY_USERNAME=${{ secrets.NEW_QUAY_USERNAME }} \
@@ -81,6 +82,7 @@ jobs:
       run: |
         make WORKFLOW_ID=${{ inputs.workflow_id }} \
           APPLICATION_ID=${{ inputs.application_id }} \
+          IMAGE_TAG=${{ github.sha }} \
           GIT_TOKEN=${{ env.GH_TOKEN }} \
           REGISTRY_REPO=${{ env.REGISTRY_REPO }} \
           REGISTRY_USERNAME=${{ secrets.NEW_QUAY_USERNAME }} \
@@ -98,6 +100,7 @@ jobs:
         WORKDIR=${{ runner.temp }}/serverless-workflows
         make WORKFLOW_ID=${{ inputs.workflow_id }} \
           WORKDIR=${WORKDIR} \
+          IMAGE_TAG=${{ github.sha }} \
           APPLICATION_ID=${{ inputs.application_id }} \
           PR_OR_COMMIT_URL=${PR_OR_COMMIT_URL} \
           gen-manifests

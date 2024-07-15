@@ -1,6 +1,10 @@
 #!/bin/bash
 
 WORKFLOW_FOLDER=$1
+WORKFLOW_IMAGE_REGISTRY="${WORKFLOW_IMAGE_REGISTRY:-quay.io}"
+WORKFLOW_IMAGE_NAMESPACE="${WORKFLOW_IMAGE_NAMESPACE:-orchestrator}"
+WORKFLOW_IMAGE_REPO="${WORKFLOW_IMAGE_REPO:-serverless-workflow-${WORKFLOW_FOLDER}}"
+WORKFLOW_IMAGE_TAG="${WORKFLOW_IMAGE_TAG:-latest}"
 
 if [ ! -f kn ]; then
   echo "Installing kn-workflow CLI"
@@ -43,7 +47,7 @@ fi
 SONATAFLOW_CR=manifests/01-sonataflow_${workflow_id}.yaml
 yq --inplace eval '.metadata.annotations["sonataflow.org/profile"] = "prod"' "${SONATAFLOW_CR}"
 
-yq --inplace ".spec.podTemplate.container.image=\"quay.io/orchestrator/serverless-workflow-${WORKFLOW_FOLDER}:latest\"" "${SONATAFLOW_CR}"
+yq --inplace ".spec.podTemplate.container.image=\"${WORKFLOW_IMAGE_REGISTRY}/${WORKFLOW_IMAGE_NAMESPACE}/${WORKFLOW_IMAGE_REPO}:${WORKFLOW_IMAGE_TAG}\"" "${SONATAFLOW_CR}"
 
 if test -f "secret.properties"; then
   if [ ! -f kubectl ]; then
