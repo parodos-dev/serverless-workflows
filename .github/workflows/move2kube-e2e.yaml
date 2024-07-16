@@ -107,6 +107,11 @@ jobs:
             sed -i '/quarkus\.flyway\.migrate-at-start=true/d' "$file"
           done
 
+          # Set notification external access token
+          echo " Set notification external access token"
+          yq --inplace '.data."NOTIFICATIONS_BEARER_TOKEN" = "ZTJldG9rZW4="' manifests/01-secret_m2k.yaml # notsecret
+          cat manifests/01-secret_m2k.yaml
+
           # deploy the manifests created by the  ${{ steps.build-image.outputs.image }}"                                                                    
           kubectl apply -f manifests
           sleep 5

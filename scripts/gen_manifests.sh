@@ -52,7 +52,7 @@ yq --inplace ".spec.podTemplate.container.image=\"${WORKFLOW_IMAGE_REGISTRY}/${W
 
 if test -f "secret.properties"; then
   yq --inplace ".spec.podTemplate.container.envFrom=[{\"secretRef\": { \"name\": \"${workflow_id}-creds\"}}]" "${SONATAFLOW_CR}"
-  kubectl create -n sonataflow-infra secret generic "${workflow_id}-creds" --from-env-file=secret.properties --dry-run=client -oyaml > "manifests/01-secret_${workflow_id}.yaml"
+  kubectl create secret generic "${workflow_id}-creds" --from-env-file=secret.properties --dry-run=client -oyaml > "manifests/01-secret_${workflow_id}.yaml"
 fi
 
 if [ "${ENABLE_PERSISTENCE}" = true ]; then

@@ -116,6 +116,11 @@ jobs:
           cat manifests/01-sonataflow_mtaanalysis.yaml
           echo "---"
 
+          # Set notification external access token
+          echo " Set notification external access token"
+          yq --inplace '.data."NOTIFICATIONS_BEARER_TOKEN" = "ZTJldG9rZW4="' manifests/01-secret_mtaanalysis.yaml # notsecret
+          cat manifests/01-secret_mtaanalysis.yaml
+
           # deploy the manifests created by the ${{ steps.build-image.outputs.image }} image
           kubectl apply -f manifests/
           sleep 5
