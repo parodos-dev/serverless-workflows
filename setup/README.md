@@ -5,6 +5,8 @@ This container images extends a basic UBI 9 image with the required tools:
 * `kustomize`
 * `jq`
 * `yq`
+* `kn`
+* `kubectl`
 
 # Build and publish the image
 Customize the `push` command to publish in your own repository:
