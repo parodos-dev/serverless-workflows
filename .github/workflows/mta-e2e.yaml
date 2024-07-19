@@ -81,7 +81,10 @@ jobs:
           kubectl wait --for=condition=Ready=true pods -l "app.kubernetes.io/name=backstage" --timeout=120s
           kubectl get pods -o wide
           kubectl wait --for=condition=Ready=true pods -l "app=sonataflow-platform" --timeout=120s
-
+          #give the data-index time to register and start.
+          sleep 1m
+          kubectl get pods
+          kubecel get svc
       - name: Deploy fake notifications service
         run: |
           source e2e/helper-functions.sh
