@@ -1,6 +1,6 @@
 specVersion: "0.8"
 id: mta-analysis-v7
-name: MTA Analysis
+name: MTA v7.x Analysis
 description: Workflow to execute MTA Analysis
 annotations:
   - "workflow-type/assessment"
@@ -429,7 +429,7 @@ states:
               description: '"MTA analysis is completed and the report for " + .application.repository.url + " is ready."'
               scope: "MTA Analysis Workflow"
               topic: "MTA Analysis Workflow"
-              link: '$SECRET.mta.url + "/hub/applications/" + (.application.id|tostring) + "/bucket/" + .data.output'
+              link: '$SECRET.mta.url + "/hub/applications/" + (.application.id|tostring) + "/analysis/report"'
     transition: report
   - name: report
     type: operation
@@ -450,7 +450,7 @@ states:
               description: '"MTA analysis for " + .application.repository.url + " completed with " + (.application.mandatoriesIncidents|tostring) +" incidents in mandatories issues. Check the analysis report."'
               scope: "MTA Analysis Workflow"
               topic: "MTA Analysis Workflow"
-              link: '$SECRET.mta.url + "/applications/" + (.application.id|tostring)+ "/analysis"'
+              link: '$SECRET.mta.url + "/hub/applications/" + (.application.id|tostring) + "/analysis/report"'
     end: true
   - name: NotifyFailureBackstage
     type: operation
