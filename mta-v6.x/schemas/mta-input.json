@@ -18,7 +18,9 @@
       "minItems": 1
     },
     "exportToIssueManager": {
-      "type": "string"
+      "type": "string",
+      "enum": ["true", "false"],
+      "description": "Creating Jira issues for a migration wave"
     },
     "migrationStartDatetime": {
       "type": "string"

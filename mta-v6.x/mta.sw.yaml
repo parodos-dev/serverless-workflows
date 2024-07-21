@@ -1,6 +1,6 @@
 specVersion: "0.8"
 id: mta-analysis-v6
-name: MTA Analysis
+name: MTA v6.x Analysis
 description: Workflow to execute MTA Analysis
 annotations:
   - "workflow-type/assessment"
@@ -372,7 +372,7 @@ states:
               description: '"MTA analysis is completed and the report for " + .application.repository.url + " is ready."'
               scope: "MTA Analysis Workflow"
               topic: "MTA Analysis Workflow"
-              link: '$SECRET.mta.url + "/hub/applications/" + (.application.id|tostring) + "/bucket/" + .data.output'
+              link: '$SECRET.mta.url + "/hub/applications/" + (.application.id|tostring) + "/bucket/windup/report/"'
     transition: report
   - name: report
     type: operation
