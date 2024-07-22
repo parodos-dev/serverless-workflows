@@ -28,7 +28,7 @@ echo "Proxy Janus-idp port ✅"
 
 echo "End to end tests start ⏳"
 
-out=$(curl -XPOST -H "Content-Type: application/json"  http://localhost:9080/api/orchestrator/workflows/MTAAnalysis/execute -d '{"repositoryURL": "https://github.com/spring-projects/spring-petclinic"}')
+out=$(curl -XPOST -H "Content-Type: application/json"  http://localhost:9080/api/orchestrator/workflows/MTAAnalysis/execute -d '{"repositoryURL": "https://github.com/spring-projects/spring-petclinic", "recipients": ["user:default/guest"]}')
 id=$(echo "$out" | jq -e .id)
 
 if [ -z "$id" ] || [ "$id" == "null" ]; then

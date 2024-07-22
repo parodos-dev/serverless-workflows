@@ -55,7 +55,7 @@ M2K_STATUS=$(curl -XGET -s -o /dev/null -w "%{http_code}" ${BACKSTAGE_URL}/api/o
 done
 
 echo "M2K is available in backstage, sending execution request"
-out=$(curl -XPOST -H "Content-Type: application/json"  ${BACKSTAGE_URL}/api/orchestrator/workflows/m2k/execute -d "{\"repositoryURL\": \"ssh://${GIT_REPO}\", \"sourceBranch\": \"${GIT_SOURCE_BRANCH}\", \"targetBranch\": \"${GIT_TARGET_BRANCH}\", \"workspaceId\": \"${WORKSPACE_ID}\", \"projectId\": \"${PROJECT_ID}\"}")
+out=$(curl -XPOST -H "Content-Type: application/json"  ${BACKSTAGE_URL}/api/orchestrator/workflows/m2k/execute -d "{\"repositoryURL\": \"ssh://${GIT_REPO}\", \"recipients\": [\"user:default/guest\"], \"sourceBranch\": \"${GIT_SOURCE_BRANCH}\", \"targetBranch\": \"${GIT_TARGET_BRANCH}\", \"workspaceId\": \"${WORKSPACE_ID}\", \"projectId\": \"${PROJECT_ID}\"}")
 id=$(echo "$out" | jq -e .id)
 
 if [ -z "$id" ] || [ "$id" == "null" ]; then

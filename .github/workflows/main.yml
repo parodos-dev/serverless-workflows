@@ -6,6 +6,13 @@ on:
       workflow_id:
         required: true
         type: string
+      # application is those auxilary application we deploy with a workflow to
+      # complete some part of it with specialized code, like for example the
+      # jira-listener for the escalation flow.
+      application_id:
+        required: false
+        type: string
+        default: 'UNDEFINED'
       it_mode:
         type: boolean
         default: false
@@ -28,23 +35,18 @@ jobs:
         username: ${{ secrets.REGISTRY_REDHAT_IO_USER }}
         password: ${{ secrets.REGISTRY_REDHAT_IO_PASSWORD }}
 
-    - name: Buildah Action
+    - name: Build Image
       id: build-image
-      uses: redhat-actions/buildah-build@v2
       if: ${{ ! inputs.it_mode }}
-      with:
-        image: serverless-workflow-${{ inputs.workflow_id }}
-        tags: latest ${{ github.sha }}
-        extra-args: --ulimit nofile=4096:4096
-        containerfiles: |
-          pipeline/workflow-builder.Dockerfile
-        build-args: |
-          WF_RESOURCES=${{ inputs.workflow_id }}
-          FLOW_NAME=${{ inputs.workflow_id }}
-          FLOW_SUMMARY=${{ inputs.workflow_id }}
-          FLOW_DESCRIPTION=${{ inputs.workflow_id }}
-          MAVEN_ARGS_APPEND=-Dkogito.persistence.type=jdbc -Dquarkus.datasource.db-kind=postgresql -Dkogito.persistence.proto.marshaller=false
-          QUARKUS_EXTENSIONS=org.kie.kogito:kogito-addons-quarkus-jobs-knative-eventing:9.99.1.redhat-00003,org.kie.kogito:kogito-addons-quarkus-persistence-jdbc:9.99.1.redhat-00003,org.kie.kogito:kogito-addons-persistence-jdbc:9.99.1.redhat-00003,io.quarkus:quarkus-jdbc-postgresql:3.2.9.Final,io.quarkus:quarkus-agroal:3.2.9.Final,org.kie:kie-addons-quarkus-monitoring-prometheus:999-SNAPSHOT,org.kie:kie-addons-quarkus-monitoring-sonataflow:999-SNAPSHOT
+      run: |
+        make WORKFLOW_ID=${{ inputs.workflow_id }} \
+          APPLICATION_ID=${{ inputs.application_id }} \
+          IMAGE_TAG=${{ github.sha }} \
+          GIT_TOKEN=${{ env.GH_TOKEN }} \
+          REGISTRY_REPO=${{ env.REGISTRY_REPO }} \
+          REGISTRY_USERNAME=${{ secrets.NEW_QUAY_USERNAME }} \
+          REGISTRY_PASSWORD=${{ secrets.NEW_QUAY_PASSWORD }} \
+          build-image
 
     - name: Buildah Action for testing
       id: build-dev-image
@@ -61,8 +63,6 @@ jobs:
           FLOW_NAME=${{ inputs.workflow_id }}
           FLOW_SUMMARY=${{ inputs.workflow_id }}
           FLOW_DESCRIPTION=${{ inputs.workflow_id }}
-          MAVEN_ARGS_APPEND=
-          QUARKUS_EXTENSIONS=
 
     - name: Buildah push to OCI Arcive
       if: ${{ inputs.it_mode }}
@@ -79,70 +79,38 @@ jobs:
     - name: Push To quay.io
       id: push-to-quay
       if: ${{ ! inputs.it_mode }}
-      uses: redhat-actions/push-to-registry@v2
-      with:
-        image: ${{ steps.build-image.outputs.image }}
-        tags: ${{ steps.build-image.outputs.tags }}
-        registry: quay.io/orchestrator
-        username: ${{ secrets.NEW_QUAY_USERNAME }}
-        password: ${{ secrets.NEW_QUAY_PASSWORD }}
-
-    - name: Print image url
-      run: echo "Image pushed to ${{ steps.push-to-quay.outputs.registry-paths }}"
+      run: |
+        make WORKFLOW_ID=${{ inputs.workflow_id }} \
+          APPLICATION_ID=${{ inputs.application_id }} \
+          IMAGE_TAG=${{ github.sha }} \
+          GIT_TOKEN=${{ env.GH_TOKEN }} \
+          REGISTRY_REPO=${{ env.REGISTRY_REPO }} \
+          REGISTRY_USERNAME=${{ secrets.NEW_QUAY_USERNAME }} \
+          REGISTRY_PASSWORD=${{ secrets.NEW_QUAY_PASSWORD }} \
+          push-image
 
   generate-manifests:
     needs: build
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pull-requests: write
     steps:
     - uses: actions/checkout@v4
-
-    - name: Add auto DB migration in props
-      run: echo -e "\nquarkus.flyway.migrate-at-start=true" >> ${{ inputs.workflow_id }}/application.properties
-
-    - name: Setup kn-workflow
+    - name: Generate Manifests
+      id: generate-manifests
       run: |
-          KN_CLI_URL="https://mirror.openshift.com/pub/openshift-v4/clients/serverless/1.11.2/kn-linux-amd64.tar.gz"
-          curl -L "$KN_CLI_URL" | tar -xz && chmod +x kn-linux-amd64 && mv kn-linux-amd64 kn
-
-    - name: Use kn-workflow to generate manifests
-      run: cd ${{ inputs.workflow_id }} && ../kn workflow gen-manifest --namespace ""
-
-    - name: Set prod profile
-      run: yq --inplace eval '.metadata.annotations["sonataflow.org/profile"] = "prod"' ${{ inputs.workflow_id }}/manifests/01-sonataflow*.yaml
-
-    - name: Set container image ref in SonataFlow resource
-      run: yq --inplace '.spec.podTemplate.container.image="quay.io/orchestrator/serverless-workflow-${{ inputs.workflow_id }}:${{ github.sha }}"' ${{ inputs.workflow_id }}/manifests/01-sonataflow*.yaml
-
-    - name: Set persistence spec in SonataFlow resource
-      run: |
-        yq --inplace '.spec |= (
-          . + {
-            "persistence": {
-              "postgresql": {
-                "secretRef": {
-                  "name": "sonataflow-psql-postgresql",
-                  "userKey": "postgres-username",
-                  "passwordKey": "postgres-password"
-                },
-                "serviceRef": {
-                  "name": "sonataflow-psql-postgresql",
-                  "port": 5432,
-                  "databaseName": "sonataflow",
-                  "databaseSchema": "${{ inputs.workflow_id }}"
-                }
-              }
-            }
-          }
-        )' ${{ inputs.workflow_id }}/manifests/01-sonataflow*.yaml
+        WORKDIR=${{ runner.temp }}/serverless-workflows
+        make WORKFLOW_ID=${{ inputs.workflow_id }} \
+          WORKDIR=${WORKDIR} \
+          IMAGE_TAG=${{ github.sha }} \
+          APPLICATION_ID=${{ inputs.application_id }} \
+          PR_OR_COMMIT_URL=${PR_OR_COMMIT_URL} \
+          gen-manifests
+        echo manifests_dir=${{ runner.temp }}/serverless-workflows/${{ inputs.workflow_id }}/manifests >> "$GITHUB_OUTPUT"
 
     - name: Archive manifests
       uses: actions/upload-artifact@v4
       with:
         name: serverless-workflow-${{ inputs.workflow_id }}-manifests
-        path: ${{ inputs.workflow_id }}/manifests
+        path: ${{ steps.generate-manifests.outputs.manifests_dir }}
 
     - uses: actions/github-script@v7
       id: get_pr_data
