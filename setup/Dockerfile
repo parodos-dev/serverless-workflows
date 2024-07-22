@@ -1,7 +1,7 @@
 FROM registry.access.redhat.com/ubi9-minimal
 
 # Install Git
-RUN microdnf install -y which git tar jq && \
+RUN microdnf install -y which git tar jq which && \
     microdnf clean all
 
 RUN mkdir -p /usr/local/bin && \
