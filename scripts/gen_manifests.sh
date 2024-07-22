@@ -12,8 +12,8 @@ WORKFLOW_IMAGE_TAG="${WORKFLOW_IMAGE_TAG:-latest}"
 # helper binaries should be either on the developer machine or in the helper
 # image quay.io/orchestrator/ubi9-pipeline from setup/Dockerfile, which we use
 # to exeute this script. See the Makefile gen-manifests target.
-which kn 
-which kubectl
+command -v kn 
+command -v kubectl
 
 cd "${WORKFLOW_FOLDER}"
 
