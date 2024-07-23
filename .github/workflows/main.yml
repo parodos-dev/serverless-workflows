@@ -24,7 +24,7 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
 
     - uses: actions/checkout@v4
@@ -39,7 +39,6 @@ jobs:
 
     - name: Build Image
       id: build-image
-      if: ${{ ! inputs.it_mode }}
       run: |
         make WORKFLOW_ID=${{ inputs.workflow_id }} \
           APPLICATION_ID=${{ inputs.application_id }} \
@@ -93,7 +92,7 @@ jobs:
 
   generate-manifests:
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04	
     steps:
     - uses: actions/checkout@v4
     - name: Generate Manifests
