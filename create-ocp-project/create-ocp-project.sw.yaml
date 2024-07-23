@@ -81,7 +81,6 @@ states:
             payload:
               title: "Jira ticket created"
               description: "Jira ticket created"
-              scope: "SonataFlow"
               topic: "Create OCP Project workflow"
               link: '$SECRET.jira_url + "/jira/servicedesk/projects/" + .operationsProjectKey + "/issues/" + .operationsJiraCreateIssueResult.key'
     transition: Poll Operation Jira issue
@@ -163,7 +162,6 @@ states:
             payload:
               title: '"Project " + .projectName + " active"'
               description: '"Project " + .projectName + " active"'
-              scope: "SonataFlow"
               topic: "Create OCP Project workflow"
     transition:
       nextState: "[Audit]: Close issue on Jira"
@@ -180,7 +178,6 @@ states:
             payload:
               title: '"Project " + .projectName + " inactive"'
               description: '"Project " + .projectName + " inactive"'
-              scope: "SonataFlow"
               topic: "Create OCP Project workflow"
     transition:
       nextState: "[Audit]: Close issue on Jira"

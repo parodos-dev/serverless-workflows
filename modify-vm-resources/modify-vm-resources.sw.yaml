@@ -95,7 +95,6 @@ states:
             payload:
               title: '"JIRA ticket created for VM " + .vm_name'
               description: '"JIRA ticket created to request update for VM " + .vm_name + " in namespace " + .vm_namespace'
-              scope: "SonataFlow"
               topic: "Modify VM Resources workflow"
               # There are more dynamic ways to get the JIRA URL, but for simplicity, we are using a hardcoded URL
               link: '$SECRET.jira_url + "/jira/servicedesk/projects/" + .projectKey + "/issues/" + .jiraCreateIssueResult.key'
@@ -147,7 +146,6 @@ states:
                 payload:
                   title: '"Authorization granted to update VM" + .vm_name + " in namespace " + .vm_namespace'
                   description: '"Authorization granted to update VM " + .vm_name + " in namespace " + .vm_namespace + ". Memory: " + .vm_new_memory + ". CPU cores: " + (.vm_new_cpu_cores|tostring) + ". CPU threads: " + (.vm_new_cpu_threads|tostring) + ". CPU sockets: " + (.vm_new_cpu_sockets|tostring) + ". Auto restart: " + (if .vm_auto_restart == true then "yes" else "no" end)'
-                  scope: "SonataFlow"
                   topic: "Modify VM Resources workflow"
     transition: Update VM
   - name: Update VM
@@ -252,7 +250,6 @@ states:
                 payload:
                   title: '"VM" + .vm_name + " in namespace " + .vm_namespace + " updated and ready"'
                   description: '"VM" + .vm_name + " in namespace " + .vm_namespace + " updated."' # " + .vm.status.currentCPUTopology + " -- " + .vm.status.memory'
-                  scope: "SonataFlow"
                   topic: "Modify VM Resources workflow"
                   # There are more dynamic ways to get the JIRA URL, but for simplicity, we are using a hardcoded URL
                   link: '$SECRET.cluster_console_url + "/k8s/ns/" + .vm_namespace + "/kubevirt.io~v1~VirtualMachine/" + .vm_name + "/console/standalone"'
@@ -279,7 +276,6 @@ states:
                 payload:
                   title: '"VM" + .vm_name + " in namespace " + .vm_namespace + " not ready"'
                   description: '"VM" + .vm_name + " in namespace " + .vm_namespace + " not ready after the update after checking" +.vmStatusRunningRetries+" times: " + .vm.status'
-                  scope: "SonataFlow"
                   topic: "Modify VM Resources workflow"
     end: true
   - name: Notify VM update denied
@@ -304,7 +300,6 @@ states:
                 payload:
                   title: '"Authorization denied to create VM" + .vm_name + " in namespace " + .vm_namespace'
                   description: '"Authorization denied to update VM " + .vm_name + " in namespace " + .vm_namespace + ". Memory: " + .vm_new_memory + ". CPU cores: " + (.vm_new_cpu_cores|tostring) + ". CPU threads: " + (.vm_new_cpu_threads|tostring) + ". CPU sockets: " + (.vm_new_cpu_sockets|tostring)'
-                  scope: "SonataFlow"
                   topic: "Modify VM Resources workflow"
                   link: '$SECRET.jira_url + "/jira/servicedesk/projects/" + .projectKey + "/issues/" + .jiraCreateIssueResult.key'
     end: true

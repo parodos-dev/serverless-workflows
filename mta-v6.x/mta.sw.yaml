@@ -370,7 +370,6 @@ states:
             payload:
               title: "MTA analysis completed"
               description: '"MTA analysis is completed and the report for " + .application.repository.url + " is ready."'
-              scope: "MTA Analysis Workflow"
               topic: "MTA Analysis Workflow"
               link: '$SECRET.mta.url + "/hub/applications/" + (.application.id|tostring) + "/bucket/windup/report/"'
     transition: report
@@ -391,6 +390,5 @@ states:
             payload:
               title: "MTA analysis failed"
               description: '"MTA analysis for " + .application.repository.url + " failed. Check logs of task pod: " + .taskgroup.tasks[0].pod'
-              scope: "MTA Analysis Workflow"
               topic: "MTA Analysis Workflow"
     end: true
