@@ -128,6 +128,7 @@ jobs:
     - name: Send PRs to config repo
       if: ${{ ! inputs.it_mode }}
       run: |
+          WORKDIR=${{ runner.temp }}/serverless-workflows
           git config --global user.email "${{ github.event.head_commit.author.email || 'parodos@redhat.com' }}"
           git config --global user.name ${{ github.event.head_commit.author.name || github.triggering_actor }}
           gh repo clone $WF_CONFIG_REPO config-repo
@@ -137,7 +138,7 @@ jobs:
           ./hack/bump_chart_version.sh ${{ inputs.workflow_id }} --bump-patch-version
 
           mkdir -p charts/${{ inputs.workflow_id }}/templates
-          cp ../${{ inputs.workflow_id }}/manifests/* charts/${{ inputs.workflow_id }}/templates
+          cp ${WORKDIR}/${{ inputs.workflow_id }}/manifests/* charts/${{ inputs.workflow_id }}/templates
           git add -A
 
           # determine pr or commit url
