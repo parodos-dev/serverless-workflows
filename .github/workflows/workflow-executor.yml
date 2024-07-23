@@ -10,15 +10,16 @@ on:
         required: false
         type: string
         default: 'UNDEFINED'
-      push_pr:
+      it_mode:
         required: false
         type: boolean
         default: true
 
 env:
-  DEPLOYMENT_REPO: parodos-dev/serverless-workflows-config
+  WF_CONFIG_REPO: parodos-dev/serverless-workflows-config
   REGISTRY_REPO: orchestrator
   GH_TOKEN: ${{ secrets.HELM_REPO_TOKEN }}
+
 jobs:
   build-and-push-image:
     runs-on: ubuntu-latest
@@ -29,8 +30,8 @@ jobs:
       with:
         registry: registry.redhat.io
         username: ${{ secrets.REGISTRY_REDHAT_IO_USER }}
-        password: ${{ secrets.REGISTRY_REDHAT_IO_PASSWORD }}    
-    - name: Build
+        password: ${{ secrets.REGISTRY_REDHAT_IO_PASSWORD }}
+    - name: Build image
       run: |
         make WORKFLOW_ID=${{ inputs.workflow_id }} \
           APPLICATION_ID=${{ inputs.application_id }} \
@@ -39,11 +40,45 @@ jobs:
           REGISTRY_USERNAME=${{ secrets.NEW_QUAY_USERNAME }} \
           REGISTRY_PASSWORD=${{ secrets.NEW_QUAY_PASSWORD }} \
           build-image push-image
+
+    - name: Push image
+      if: ${{ ! inputs.it_mode }}
+      run: |
+        make WORKFLOW_ID=${{ inputs.workflow_id }} \
+          APPLICATION_ID=${{ inputs.application_id }} \
+          GIT_TOKEN=${{ env.GH_TOKEN }} \
+          REGISTRY_REPO=${{ env.REGISTRY_REPO }} \
+          REGISTRY_USERNAME=${{ secrets.NEW_QUAY_USERNAME }} \
+          REGISTRY_PASSWORD=${{ secrets.NEW_QUAY_PASSWORD }} \
+          push-image
+
   gen-and-push-manifests:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
+
+    - name: Generate manifests
+      if: ${{ ! inputs.it_mode }}
+      run: |
+        # TODO: update PR_OR_COMMIT_URL with PR's URL, if it comes from a PR
+        if [ "${{ github.event.head_commit.url }}" != "" ]; then
+          PR_OR_COMMIT_URL="${{ github.event.head_commit.url }}"
+        else
+          PR_OR_COMMIT_URL="${GITHUB_SHA::7}"
+        fi
+
+        WORKDIR=${{ runner.temp }}/serverless-workflows
+        make WORKFLOW_ID=${{ inputs.workflow_id }} \
+          WORKDIR=${WORKDIR} \
+          APPLICATION_ID=${{ inputs.application_id }} \
+          GIT_USER_NAME=${{ github.actor }} \
+          GIT_USER_EMAIL="${{ github.actor }}@users.noreply.github.com" \
+          GIT_TOKEN=${{ env.GH_TOKEN }} \
+          PR_OR_COMMIT_URL=${PR_OR_COMMIT_URL} \
+          gen-manifests
+    
     - name: Push manifests to CD repo
+      if: ${{ ! inputs.it_mode }}
       run: |
         # TODO: update PR_OR_COMMIT_URL with PR's URL, if it comes from a PR
         if [ "${{ github.event.head_commit.url }}" != "" ]; then
@@ -61,7 +96,9 @@ jobs:
           GIT_TOKEN=${{ env.GH_TOKEN }} \
           PR_OR_COMMIT_URL=${PR_OR_COMMIT_URL} \
           gen-manifests push-manifests
-    - name: Send PR
+
+    - name: Send PRs to config repo
+      if: ${{ ! inputs.it_mode }}
       run: |
         WORKDIR=${{ runner.temp }}/serverless-workflows
         cd ${WORKDIR}/helm-repo
@@ -77,7 +114,7 @@ jobs:
           PR_OR_COMMIT_URL="${GITHUB_SHA::7}"
         fi
 
-        gh repo set-default ${{ env.DEPLOYMENT_REPO }}
+        gh repo set-default ${{ env.WF_CONFIG_REPO }}
 
         # Construct the PR body
         PR_BODY="Updating generated manifests"
