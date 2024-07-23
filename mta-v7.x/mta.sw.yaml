@@ -427,7 +427,6 @@ states:
             payload:
               title: "MTA analysis completed"
               description: '"MTA analysis is completed and the report for " + .application.repository.url + " is ready."'
-              scope: "MTA Analysis Workflow"
               topic: "MTA Analysis Workflow"
               link: '$SECRET.mta.url + "/hub/applications/" + (.application.id|tostring) + "/analysis/report"'
     transition: report
@@ -448,7 +447,6 @@ states:
             payload:
               title: "MTA analysis completed with incidents in mandatory issues."
               description: '"MTA analysis for " + .application.repository.url + " completed with " + (.application.mandatoriesIncidents|tostring) +" incidents in mandatories issues. Check the analysis report."'
-              scope: "MTA Analysis Workflow"
               topic: "MTA Analysis Workflow"
               link: '$SECRET.mta.url + "/hub/applications/" + (.application.id|tostring) + "/analysis/report"'
     end: true
@@ -464,6 +462,5 @@ states:
             payload:
               title: "MTA analysis failed"
               description: '"MTA analysis for " + .application.repository.url + " failed. Check logs of task pod: " + .taskgroup.tasks[0].pod'
-              scope: "MTA Analysis Workflow"
               topic: "MTA Analysis Workflow"
     end: true

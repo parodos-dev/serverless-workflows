@@ -60,7 +60,6 @@ states:
             payload:
               title: '"JIRA ticket created for VM " + .vm_name'
               description: '"JIRA ticket created to request authorization to create VM " + .vm_name + " in namespace "+.vm_namespace'
-              scope: "SonataFlow"
               topic: "Request CM on CNV workflow"
               # There are more dynamic ways to get the JIRA URL, but for simplicity, we are using a hardcoded URL
               link: '$SECRET.jira_url + "/jira/servicedesk/projects/" + .projectKey + "/issues/" + .jiraCreateIssueResult.key'
@@ -112,7 +111,6 @@ states:
                 payload:
                   title: '"Authorization granted to create VM" + .vm_name + " in namespace "+.vm_namespace'
                   description: '"Authorization granted to create VM" + .vm_name + " in namespace "+.vm_namespace + " using image "+ .vm_image +". A notification will be sent once the VM is ready."'
-                  scope: "SonataFlow"
                   topic: "Request CM on CNV workflow"
     transition: Create VM
   - name: Create VM
@@ -246,7 +244,6 @@ states:
                 payload:
                   title: '"VM" + .vm_name + " in namespace "+.vm_namespace + " ready"'
                   description: '"VM" + .vm_name + " in namespace "+.vm_namespace + " using image "+ .vm_image +" ready and running."'
-                  scope: "SonataFlow"
                   topic: "Request CM on CNV workflow"
                   link: '$SECRET.cluster_console_url + "/k8s/ns/" + .vm_namespace + "/kubevirt.io~v1~VirtualMachine/" + .vm_name + "/console/standalone"'
     end: true
@@ -272,7 +269,6 @@ states:
                 payload:
                   title: '"VM" + .vm_name + " in namespace "+.vm_namespace + " not ready"'
                   description: '"VM" + .vm_name + " in namespace "+.vm_namespace + " using image "+ .vm_image +" not ready after "+.vmStatusRunningRetries+" retries: " + .vm.status'
-                  scope: "SonataFlow"
                   topic: "Request CM on CNV workflow"
     end: true
   - name: Notify VM creation denied
@@ -297,7 +293,6 @@ states:
                 payload:
                   title: '"Authorization denied to create VM" + .vm_name + " in namespace "+.vm_namespace'
                   description: '"Authorization denied to create VM" + .vm_name + " in namespace "+.vm_namespace + " using image "+ .vm_image '
-                  scope: "SonataFlow"
                   topic: "Request CM on CNV workflow"
                   link: '$SECRET.jira_url + "/jira/servicedesk/projects/" + .projectKey + "/issues/" + .jiraCreateIssueResult.key'
     end: true

@@ -85,7 +85,6 @@ states:
             payload:
               title: "MTV migration failed"
               description: '"MTV migration " + .migrationName + " failed. Error: " + .migrationErrorMessage'
-              scope: "SonataFlow"
               topic: "MTV migration workflow"
     stateDataFilter:
       output: '{migrationError: .migrationErrorMessage}'
@@ -103,7 +102,6 @@ states:
             payload:
               title: "MTV migration successful"
               description: '"MTV migration " + .migrationName + " succeeded"'
-              scope: "SonataFlow"
               topic: "MTV migration workflow"
     stateDataFilter:
       output: '{migrationSuccessful: "migration successful"}'

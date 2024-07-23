@@ -92,7 +92,6 @@ states:
             payload:
               title: '"ATTN: Escalation for ticket - " + .createResponse.ticketId'
               description: '"Please manage escalation ticket " + .createResponse.ticketId '
-              scope: "Escalation Workflow"
               topic: "Escalation Workflow"
               link: .createResponse.browseUrl
     onErrors:
