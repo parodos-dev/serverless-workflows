@@ -17,3 +17,5 @@ RUN curl -sSL "https://mirror.openshift.com/pub/openshift-v4/clients/serverless/
 RUN curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" \
     && chmod +x kubectl && mv kubectl /usr/local/bin/
 
+RUN curl -LO "https://github.com/rgolangh/kie-tools/releases/download/packages%2Fkn-plugin-workflow%2F0.0.0-69ab19c/kn-workflow-linux-amd64" \
+    && chmod +x kn-workflow-linux-amd64 && mv kn-workflow-linux-amd64 /usr/local/bin/kn-workflow
