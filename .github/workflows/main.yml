@@ -19,6 +19,8 @@ on:
 
 env:
   WF_CONFIG_REPO: parodos-dev/serverless-workflows-config
+  REGISTRY_REPO: orchestrator
+  GH_TOKEN: ${{ secrets.HELM_REPO_TOKEN }}  
 
 jobs:
   build:
@@ -126,8 +128,6 @@ jobs:
 
     - name: Send PRs to config repo
       if: ${{ ! inputs.it_mode }}
-      env:
-        GH_TOKEN: ${{ secrets.HELM_REPO_TOKEN }}
       run: |
           git config --global user.email "${{ github.event.head_commit.author.email || 'parodos@redhat.com' }}"
           git config --global user.name ${{ github.event.head_commit.author.name || github.triggering_actor }}
