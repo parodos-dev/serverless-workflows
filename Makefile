@@ -134,7 +134,7 @@ ifeq ($(IS_APPLICATION),true)
 		$(BUILD_ARGS) $(EXTRA_ARGS) \
 		--tag ${IMAGE_NAME}:${IMAGE_TAG} --tag ${IMAGE_NAME}:latest .
 else
-	@$(CONTAINER_ENGINE) build -f $(DOCKERFILE) \
+	@cd $(WORKDIR)/ && $(CONTAINER_ENGINE) build -f $(DOCKERFILE) \
 		$(BUILD_ARGS) $(EXTRA_ARGS) \
 		--tag ${IMAGE_NAME}:${IMAGE_TAG} --tag ${IMAGE_NAME}:latest .
 endif
