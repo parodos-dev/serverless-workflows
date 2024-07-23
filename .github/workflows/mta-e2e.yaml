@@ -21,7 +21,7 @@ jobs:
       workflow_id: mta
       it_mode: true
   run-e2e:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: build
     steps:
       - uses: actions/checkout@v4

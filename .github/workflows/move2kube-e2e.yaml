@@ -27,7 +27,7 @@ jobs:
       it_mode: true
 
   run-m2k-e2e:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: build
     steps:
       - uses: actions/checkout@v4

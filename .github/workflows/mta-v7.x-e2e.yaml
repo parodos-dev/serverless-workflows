@@ -21,7 +21,7 @@ jobs:
       workflow_id: mta-v7.x
       it_mode: true
   run-e2e:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: build
     steps:
       - name: Create k8s Kind Cluster
