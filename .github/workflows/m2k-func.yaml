@@ -78,7 +78,6 @@ jobs:
       run: echo "Image pushed to ${{ steps.push-to-quay.outputs.registry-paths }}"
     
     - uses: actions/github-script@v7
-      if: ${{ inputs.it_mode }}
       id: get_pr_data
       with:
         script: |
