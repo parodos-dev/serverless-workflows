@@ -40,6 +40,11 @@ functions:
   - name: increasePlanRetries
     type: expression
     operation: ".planRetries=.planRetries + 1"
+  - name: formatTransformationErrorExitMessage
+    type: expression
+    operation: '{
+      exitMessage: "Error while saving transformation output: " + (if .error == null then "timeout exception was thrown." else .error end)
+      }'
 states:
   - name: StartPlanning
     type: operation
@@ -145,9 +150,11 @@ states:
       exitMessage: Transformation successful.
     transition: PrintExitSuccessMessage
   - name: TransformationError
-    type: inject
-    data:
-      exitMessage: '"Error while saving transformation output. Error: " + if .error == null then "timeout exception was thrown." else .error end '
+    type: operation
+    actions:
+      - functionRef:
+      # we have to use an expression function to be able to have conditional eror. Switch may work as well
+          refName: formatTransformationErrorExitMessage
     transition: PrintExitErrorMessage
   - name: GetPlanRetryExceededError
     type: inject
@@ -163,7 +170,7 @@ states:
             functionRef:
               refName: systemOut
               arguments:
-                message: '${"m2k workflow: " + $WORKFLOW.instanceId + " has finalized with error. Exit message: " + .exitMessage + " -- Plan retries: " + (.planRetries|tostring) }'
+                message: '"m2k workflow: " + $WORKFLOW.instanceId + " has finalized with error. Exit message: " + .exitMessage + " -- Plan retries: " + (.planRetries|tostring)'
       - name: createNotification
         actions:
           - name: createNotification
