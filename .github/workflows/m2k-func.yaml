@@ -19,7 +19,9 @@ env:
   WORKDIR: move2kube/m2k-func
   MVN_OPTS: ""
   WF_CONFIG_REPO: parodos-dev/serverless-workflows-config
-  
+  REGISTRY_REPO: orchestrator
+  GH_TOKEN: ${{ secrets.HELM_REPO_TOKEN }}
+
 jobs:
   build-and-push-m2k-func:
     runs-on: ubuntu-24.04
@@ -90,8 +92,6 @@ jobs:
 
     - name: Send PRs to config repo
       if: ${{ ! inputs.it_mode }}
-      env:
-        GH_TOKEN: ${{ secrets.HELM_REPO_TOKEN }}
       run: |
           git config --global user.email "${{ github.event.head_commit.author.email || 'parodos@redhat.com' }}"
           git config --global user.name ${{ github.event.head_commit.author.name || github.triggering_actor }}
