@@ -1,7 +1,7 @@
 #!/bin/bash
 
 function create-fake-notifications-service() {
-    oc run fake-notifications-service --image=docker.io/golang:1.21 --port=8080 -- bash -c 'cat <<EOF > main.go && go run main.go
+    kubectl run fake-notifications-service --image=docker.io/golang:1.21 --port=8080 -- bash -c 'cat <<EOF > main.go && go run main.go
 package main
 
 import (
