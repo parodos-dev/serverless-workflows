@@ -84,7 +84,7 @@ jobs:
           #give the data-index time to register and start.
           sleep 1m
           kubectl get pods
-          kubecel get svc
+          kubectl get svc
       - name: Deploy fake notifications service
         run: |
           source e2e/helper-functions.sh
