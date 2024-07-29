@@ -74,21 +74,14 @@ jobs:
           helm repo add orchestrator https://parodos-dev.github.io/orchestrator-helm-chart
           helm install orchestrator orchestrator/orchestrator-k8s
 
-          echo "sleep bit long till the PV for data index and kaniko cache is ready. its a bit slow. TODO fixit"
-          kubectl get pv
-          sleep 3m
           kubectl get sfp -A
-          kubectl wait --for=condition=Ready=true pods -l "app.kubernetes.io/name=backstage" --timeout=120s
+          kubectl wait --for=condition=Ready=true pods -l "app.kubernetes.io/name=backstage" --timeout=10m
           kubectl get pods -o wide
           kubectl wait --for=condition=Ready=true pods -l "app=sonataflow-platform" --timeout=120s
           #give the data-index time to register and start.
           sleep 1m
           kubectl get pods
           kubectl get svc
-      - name: Deploy fake notifications service
-        run: |
-          source e2e/helper-functions.sh
-          create-fake-notifications-service
 
       - name: Download sonataflow artifacts generated manifests
         uses: actions/download-artifact@v4
@@ -109,24 +102,25 @@ jobs:
       - name: Deploy MTA serverless workflow
         run: |
           # Set the endpoint to the tackle-ui service
-          yq --inplace '.spec.podTemplate.container.env |= ( . + [{"name": "QUARKUS_REST_CLIENT_MTA_JSON_URL", "value": "http://tackle-ui.my-konveyor-operator.svc:8080/hub"}, {"name": "BACKSTAGE_NOTIFICATIONS_URL", "value": "http://fake-notifications-service.default.svc.cluster.local:8080/api/notifications/"}] )' manifests/01-sonataflow_mtaanalysis.yaml
+          yq --inplace '.spec.podTemplate.container.env |= ( . + [{"name": "QUARKUS_REST_CLIENT_MTA_JSON_URL", "value": "http://tackle-ui.my-konveyor-operator.svc:8080/hub"}, {"name": "BACKSTAGE_NOTIFICATIONS_URL", "value": "http://orchestrator-backstage.default.svc.cluster.local:8080/api/notifications/"}] )' manifests/0?-sonataflow_mtaanalysis.yaml
           
           # Disable persistence for e2e tests
-          yq e '.spec.persistence = {}' -i manifests/01-sonataflow_mtaanalysis.yaml
-          sed -i '/quarkus\.flyway\.migrate-at-start=true/d' manifests/02-configmap_mtaanalysis-props.yaml
+          yq e '.spec.persistence = {}' -i manifests/0?-sonataflow_mtaanalysis.yaml
+          sed -i '/quarkus\.flyway\.migrate-at-start=true/d' manifests/0?-configmap_mtaanalysis-props.yaml
 
           echo "manifests/02-configmap_mtaanalysis-props.yaml"
-          cat manifests/02-configmap_mtaanalysis-props.yaml
+          cat manifests/0?-configmap_mtaanalysis-props.yaml
           echo "---"
 
-          echo "manifests/01-sonataflow_mtaanalysis.yaml"
-          cat manifests/01-sonataflow_mtaanalysis.yaml
+          echo "manifests/0?-sonataflow_mtaanalysis.yaml"
+          cat manifests/0?-sonataflow_mtaanalysis.yaml
           echo "---"
 
           # Set notification external access token
           echo " Set notification external access token"
-          yq --inplace '.data."NOTIFICATIONS_BEARER_TOKEN" = "ZTJldG9rZW4="' manifests/01-secret_mtaanalysis.yaml # notsecret
-          cat manifests/01-secret_mtaanalysis.yaml
+          BACKEND_SECRET=$(kubectl get secret orchestrator-auth -o jsonpath={.data.backend-secret})
+          yq --inplace ".data.NOTIFICATIONS_BEARER_TOKEN=\"$BACKEND_SECRET\"" manifests/0?-secret_mtaanalysis.yaml # notsecret
+          cat manifests/0?-secret_mtaanalysis.yaml
 
           # deploy the manifests created by the ${{ steps.build-image.outputs.image }} image
           kubectl apply -f manifests/
@@ -139,6 +133,7 @@ jobs:
 
       - name: Run e2e script
         run: |
+          export BACKEND_SECRET=$(kubectl get secret orchestrator-auth -o jsonpath={.data.backend-secret} | base64 -d)
           e2e/mta.sh
 
       - name: Export kind Logs

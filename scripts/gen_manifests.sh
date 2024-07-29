@@ -12,7 +12,7 @@ WORKFLOW_IMAGE_TAG="${WORKFLOW_IMAGE_TAG:-latest}"
 # helper binaries should be either on the developer machine or in the helper
 # image quay.io/orchestrator/ubi9-pipeline from setup/Dockerfile, which we use
 # to exeute this script. See the Makefile gen-manifests target.
-command -v kn 
+command -v kn-workflow
 command -v kubectl
 
 cd "${WORKFLOW_FOLDER}"
@@ -21,7 +21,7 @@ echo -e "\nquarkus.flyway.migrate-at-start=true" >> application.properties
 
 # TODO Update to use --skip-namespace when the following is released
 # https://github.com/apache/incubator-kie-tools/pull/2136
-kn workflow gen-manifest --namespace ""
+kn-workflow gen-manifest --namespace ""
 
 # Enable bash's extended blobing for better pattern matching
 shopt -s extglob
@@ -45,7 +45,9 @@ if [ -z "$workflow_id" ]; then
   exit 1
 fi
 
-SONATAFLOW_CR=manifests/01-sonataflow_${workflow_id}.yaml
+# the main sonataflow file will have a prefix of variable number, 01 or 02 and so on, because manifests created by
+# gen-manifests are now sorted by name. We need to take *-sonataflow-$workflow_id.yaml to resolve that.
+SONATAFLOW_CR=$(printf '%s' manifests/*-sonataflow_"${workflow_id}".yaml)
 yq --inplace eval '.metadata.annotations["sonataflow.org/profile"] = "prod"' "${SONATAFLOW_CR}"
 
 yq --inplace ".spec.podTemplate.container.image=\"${WORKFLOW_IMAGE_REGISTRY}/${WORKFLOW_IMAGE_NAMESPACE}/${WORKFLOW_IMAGE_REPO}:${WORKFLOW_IMAGE_TAG}\"" "${SONATAFLOW_CR}"

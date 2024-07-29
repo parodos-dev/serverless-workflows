@@ -6,7 +6,7 @@ description: YAML based greeting workflow
 annotations:
   - "workflow-type/infrastructure"
 expressionLang: jsonpath
-dataInputSchema: "specs/greeting.sw.input-schema.json"
+dataInputSchema: "schemas/greeting.sw.input-schema.json"
 start: ChooseOnLanguage
 functions:
   - name: greetFunction

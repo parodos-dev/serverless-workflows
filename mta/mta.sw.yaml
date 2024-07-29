@@ -10,7 +10,7 @@ timeouts:
     duration: PT1H
 start: GetApplication
 dataInputSchema:
-  schema: schema/mta-input.json
+  schema: schemas/mta-input.json
   failOnValidationErrors: true
 extensions:
   - extensionid: workflow-uri-definitions
