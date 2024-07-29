@@ -20,6 +20,11 @@ function workflowDone() {
     fi
 }
 
+function getAllNotifications() {
+    GUEST_TOKEN=$(curl $BACKSTAGE_URL/api/auth/guest/refresh | jq -r .backstageIdentity.token)
+    curl -s -H "Authorization: Bearer ${GUEST_TOKEN}" "${BACKSTAGE_NOTIFICATION_URL}" | jq ".notifications"
+}
+
 trap 'cleanup' EXIT SIGTERM
 
 echo "Proxy Janus-idp port ⏳"
@@ -48,11 +53,11 @@ WORKSPACE_ID=$(curl -X POST "${MOVE2KUBE_URL}/api/v1/workspaces" -H 'Content-Typ
 PROJECT_ID=$(curl -X POST "${MOVE2KUBE_URL}/api/v1/workspaces/${WORKSPACE_ID}/projects" -H 'Content-Type: application/json' --data '{"name": "e2e Project",  "description": "e2e tests"}' | jq -r .id)
 
 echo "Wait until M2K workflow is available in backstage..."
-M2K_STATUS=$(curl -XGET -s -o /dev/null -w "%{http_code}" ${BACKSTAGE_URL}/api/orchestrator/workflows/m2k)
+M2K_STATUS=$(curl -XGET -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer ${BACKEND_SECRET}" ${BACKSTAGE_URL}/api/orchestrator/workflows/m2k)
 until [ "$M2K_STATUS" -eq 200 ]
 do
 sleep 5
-M2K_STATUS=$(curl -XGET -s -o /dev/null -w "%{http_code}" ${BACKSTAGE_URL}/api/orchestrator/workflows/m2k)
+M2K_STATUS=$(curl -XGET -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer ${BACKEND_SECRET}" ${BACKSTAGE_URL}/api/orchestrator/workflows/m2k)
 done
 
 echo "M2K is available in backstage, sending execution request"
@@ -89,12 +94,31 @@ then
   exit 1
 fi
 
+
+GUEST_TOKEN=$(curl $BACKSTAGE_URL/api/auth/guest/refresh | jq -r .backstageIdentity.token)
+
 echo "Checking if Q&A waiting notification with move2kube URL received"
-NOTIFICATION=$(curl "${BACKSTAGE_NOTIFICATION_URL}/notifications?messageScope=all&orderBy=created&orderByDirec=desc" | jq ".[0]")
-URL_IN_NOTIFICATION=$(printf "%s" "${NOTIFICATION}" | jq ".actions[0].url | select(contains(\"${MOVE2KUBE_URL}/api/v1/workspaces/${WORKSPACE_ID}/projects/${PROJECT_ID}/outputs\"))")
-if [ -z "${URL_IN_NOTIFICATION}" ]
+retries=20
+while test ${retries} -ne 0 && getAllNotifications | jq -e '.|length == 0'  ; do
+echo "Wait until a message arrives"
+  sleep 5
+  retries=$((retries-1))
+done
+
+ALL_NOTIFICATION=$(getAllNotifications)
+printf "All notifications\n%s\n" "$ALL_NOTIFICATION"
+if printf "%s" "$ALL_NOTIFICATION" | jq -e '.|length == 0'
 then
-      printf "Notification has no action with matching URL: %s\n\nexiting " "${NOTIFICATION}"
+      printf "No notification found. The full reply is %s\n\nexiting " "${NOTIFICATION}"
+      exit 1
+fi
+
+NOTIFICATION=$(printf "%s" "$ALL_NOTIFICATION" | jq '.[0]')
+if printf "%s" "${NOTIFICATION}" | jq ".payload.link | select(contains(\"${MOVE2KUBE_URL}/api/v1/workspaces/${WORKSPACE_ID}/projects/${PROJECT_ID}/outputs\"))"
+then
+      printf "Notification has payload link with matching URL: %s\n\n" "${NOTIFICATION}"
+else
+      printf "Notification has no payload link with matching URL: %s\n\nexiting " "${NOTIFICATION}"
       exit 1
 fi
 
@@ -146,11 +170,28 @@ else
 fi
 
 echo "Checking if completion notification received"
-NOTIFICATION=$(curl "${BACKSTAGE_NOTIFICATION_URL}/notifications?messageScope=all&orderBy=created&orderByDirec=desc" | jq ".[0]")
-SUCCESS_NOTIFICATION=$(printf "%s" "${NOTIFICATION}" | jq ".message | select(contains(\"success\"))")
-if [ -z "${SUCCESS_NOTIFICATION}" ]
+retries=20
+while test ${retries} -ne 0 && getAllNotifications | jq -e '.|length == 1'  ; do
+echo "Wait until a message arrives, expecting 2 messages overall"
+  sleep 5
+  retries=$((retries-1))
+done
+
+ALL_NOTIFICATION=$(getAllNotifications)
+printf "All notifications\n%s\n" "$ALL_NOTIFICATION"
+
+if printf "%s" "$ALL_NOTIFICATION" | jq -e '.|length == 1'
 then
-      printf "Notification has no action with matching URL: %s\n\nexiting " "${NOTIFICATION}"
+      printf "No notification with result found - expecting success or failure notification. The full reply is %s\n\nexiting " "${ALL_NOTIFICATION}"
+      exit 1
+fi
+
+NOTIFICATION=$(printf "%s" "$ALL_NOTIFICATION" | jq '.[0]')
+if printf "%s" "$NOTIFICATION" | jq -e '.payload| .title != null and (.title|contains("succeeded"))'
+then
+      printf "Notification has result with success in it: %s\n\n" "${NOTIFICATION}"
+else
+      printf "Notification has no result with success in it: %s\n\nexiting " "${NOTIFICATION}"
       exit 1
 fi
 
