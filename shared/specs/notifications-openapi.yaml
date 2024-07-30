@@ -12,7 +12,7 @@ servers:
 security:
   - BearerToken: []
 paths:
-  /api/notifications:
+  /notifications:
     post:
       tags:
         - "notifications"
