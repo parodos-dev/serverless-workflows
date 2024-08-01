@@ -8,7 +8,7 @@ version: "1.0"
 timeouts:
   workflowExecTimeout:
     duration: PT1H
-start: GetApplication
+start: CreateApplication
 dataInputSchema:
   schema: schemas/mta-input.json
   failOnValidationErrors: false
@@ -69,25 +69,6 @@ functions:
     operation: .applicationAnalysis | [select (.issues[].category!="mandatory")][0] | [.issues[]?.incidents //[]] | .[-1][-1].id
 
 states:
-  - name: GetApplication
-    type: operation
-    actionMode: sequential
-    actions:
-      - name: getApp
-        functionRef: getApplication
-        actionDataFilter:
-          toStateData: ".applications"
-    stateDataFilter:
-      output: "{recipients: .recipients, repositoryURL: .repositoryURL, migrationStartDatetime: .migrationStartDatetime, migrationEndDatetime: .migrationEndDatetime, exportToIssueManager: .exportToIssueManager, application: .repositoryURL as $r| if .applications == null then null else .applications|map(select(.repository.url == $r))[0] end}"
-    transition: AppExist
-  - name: AppExist
-    type: switch
-    dataConditions:
-      - condition: ".application != null"
-        transition:
-          nextState: CreateTaskgroup
-    defaultCondition:
-      transition: CreateApplication
   - name: CreateApplication
     type: operation
     actions:
@@ -97,7 +78,7 @@ states:
         functionRef:
           refName: createApplication
           arguments:
-            name: ".repositoryURL"
+            name: '$WORKFLOW.instanceId + "_" + .repositoryURL'
             repository:
               url: ".repositoryURL"
               kind: git
@@ -434,7 +415,7 @@ states:
               entityRef: .recipients
             payload:
               title: "MTA analysis completed"
-              description: '"MTA analysis is completed and the report for " + .application.repository.url + " is ready."'
+              description: '"MTA analysis is completed and the report for " + .application.repository.url + " is ready." + (if .migrationWaveJiraTicket != null then "Application was exported to issue manager" else "" end)'
               topic: "MTA Analysis Workflow"
               link: '$SECRET.mta.url + "/hub/applications/" + (.application.id|tostring) + "/analysis/report"'
               severity: "normal"
@@ -455,7 +436,7 @@ states:
               entityRef: .recipients
             payload:
               title: "MTA analysis completed with incidents in mandatory issues."
-              description: '"MTA analysis for " + .application.repository.url + " completed with " + (.application.mandatoriesIncidents|tostring) +" incidents in mandatories issues. Check the analysis report."'
+              description: '"MTA analysis for " + .application.repository.url + " completed with " + (.application.mandatoriesIncidents|tostring) +" incidents in mandatories issues. Check the analysis report." + (if .migrationWaveJiraTicket != null then "Application was exported to issue manager." else "" end)'
               topic: "MTA Analysis Workflow"
               link: '$SECRET.mta.url + "/hub/applications/" + (.application.id|tostring) + "/analysis/report"'
               severity: "high"
