@@ -98,6 +98,7 @@ states:
               topic: "Modify VM Resources workflow"
               # There are more dynamic ways to get the JIRA URL, but for simplicity, we are using a hardcoded URL
               link: '$SECRET.jira_url + "/jira/servicedesk/projects/" + .projectKey + "/issues/" + .jiraCreateIssueResult.key'
+              severity: "normal"
     transition: Poll issue
   - name: Poll issue
     type: operation
@@ -147,6 +148,7 @@ states:
                   title: '"Authorization granted to update VM" + .vm_name + " in namespace " + .vm_namespace'
                   description: '"Authorization granted to update VM " + .vm_name + " in namespace " + .vm_namespace + ". Memory: " + .vm_new_memory + ". CPU cores: " + (.vm_new_cpu_cores|tostring) + ". CPU threads: " + (.vm_new_cpu_threads|tostring) + ". CPU sockets: " + (.vm_new_cpu_sockets|tostring) + ". Auto restart: " + (if .vm_auto_restart == true then "yes" else "no" end)'
                   topic: "Modify VM Resources workflow"
+                  severity: "normal"
     transition: Update VM
   - name: Update VM
     type: operation
@@ -253,6 +255,7 @@ states:
                   topic: "Modify VM Resources workflow"
                   # There are more dynamic ways to get the JIRA URL, but for simplicity, we are using a hardcoded URL
                   link: '$SECRET.cluster_console_url + "/k8s/ns/" + .vm_namespace + "/kubevirt.io~v1~VirtualMachine/" + .vm_name + "/console/standalone"'
+                  severity: "normal"
     end: true
   - name: Notify VM not running
     type: parallel
@@ -277,6 +280,7 @@ states:
                   title: '"VM" + .vm_name + " in namespace " + .vm_namespace + " not ready"'
                   description: '"VM" + .vm_name + " in namespace " + .vm_namespace + " not ready after the update after checking" +.vmStatusRunningRetries+" times: " + .vm.status'
                   topic: "Modify VM Resources workflow"
+                  severity: "high"
     end: true
   - name: Notify VM update denied
     type: parallel
@@ -302,4 +306,5 @@ states:
                   description: '"Authorization denied to update VM " + .vm_name + " in namespace " + .vm_namespace + ". Memory: " + .vm_new_memory + ". CPU cores: " + (.vm_new_cpu_cores|tostring) + ". CPU threads: " + (.vm_new_cpu_threads|tostring) + ". CPU sockets: " + (.vm_new_cpu_sockets|tostring)'
                   topic: "Modify VM Resources workflow"
                   link: '$SECRET.jira_url + "/jira/servicedesk/projects/" + .projectKey + "/issues/" + .jiraCreateIssueResult.key'
+                  severity: "high"
     end: true

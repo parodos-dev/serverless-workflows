@@ -94,6 +94,7 @@ states:
               description: '"Please manage escalation ticket " + .createResponse.ticketId '
               topic: "Escalation Workflow"
               link: .createResponse.browseUrl
+              severity: "normal"
     onErrors:
       - errorRef: notAvailable
         transition: GetTicket

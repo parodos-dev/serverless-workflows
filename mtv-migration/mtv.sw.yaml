@@ -86,6 +86,7 @@ states:
               title: "MTV migration failed"
               description: '"MTV migration " + .migrationName + " failed. Error: " + .migrationErrorMessage'
               topic: "MTV migration workflow"
+              severity: "critical"
     stateDataFilter:
       output: '{migrationError: .migrationErrorMessage}'
     end: true
@@ -103,6 +104,7 @@ states:
               title: "MTV migration successful"
               description: '"MTV migration " + .migrationName + " succeeded"'
               topic: "MTV migration workflow"
+              severity: "normal"
     stateDataFilter:
       output: '{migrationSuccessful: "migration successful"}'
     end: true
