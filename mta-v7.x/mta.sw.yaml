@@ -233,7 +233,7 @@ states:
       - condition: .application.mandatoriesIncidents > 0
         transition: NotifyMandatoriesIncidentsInApplication
         name: hasMandatoriesIncidents
-      - condition: (.application.mandatoriesIncidents == 0 and .exportToIssueManager == "true")
+      - condition: .exportToIssueManager == "true"
         transition: GetTrackers
         name: NotifyTracker
     defaultCondition:
@@ -414,7 +414,15 @@ states:
             id: .createdJiraTicket.id
         actionDataFilter:
           toStateData: ".migrationWaveJiraTicket"
-    transition: NotifyCompletion
+    transition: CheckMandatoriesIncidentsAfterIssueCreation
+  - name: CheckMandatoriesIncidentsAfterIssueCreation
+    type: switch
+    dataConditions:
+      - condition: .application.mandatoriesIncidents > 0
+        transition: NotifyMandatoriesIncidentsInApplication
+        name: hasMandatoriesIncidents
+    defaultCondition:
+      transition: NotifyCompletion
   - name: NotifyCompletion
     type: operation
     actions:
