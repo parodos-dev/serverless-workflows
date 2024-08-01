@@ -71,30 +71,15 @@ jobs:
           kubectl wait --for=condition=Ready=true pods -l "app.kubernetes.io/name=tackle-ui" -n my-konveyor-operator --timeout=240s
           # now MTA workflow can execute agains tackle-ui.my-konveyor-operator.svc:8080
 
-      - name: Deploy Sonataflow-operator
+      - name: Deploy sonataflow-operator
         run: |
-          # Namespace for Sonataflow
-          kubectl create namespace sonataflow-infra
+          helm repo add orchestrator https://parodos-dev.github.io/orchestrator-helm-chart
+          helm install orchestrator orchestrator/orchestrator-k8s
 
-          # PostgreSQL installation
-          kubectl create secret generic sonataflow-psql-postgresql --from-literal=postgres-username=postgres --from-literal=postgres-password=postgres -n sonataflow-infra
-          helm repo add bitnami https://charts.bitnami.com/bitnami
-          helm install sonataflow-psql bitnami/postgresql --version 12.12.10 \
-            -f https://raw.githubusercontent.com/rgolangh/orchestrator-helm-chart/main/postgresql/values.yaml \
-            -n sonataflow-infra
-          sleep 60s
-          kubectl wait --for=jsonpath='{.status.phase}'=Running "$(kubectl get pod -o name -n sonataflow-infra | grep sonataflow-psql-postgresql)" --timeout=300s -n sonataflow-infra
-
-          # Sonataflow operator
-          kubectl create -f https://raw.githubusercontent.com/kiegroup/kogito-serverless-operator/main/operator.yaml
-          kubectl apply -f https://raw.githubusercontent.com/rhkp/sonataflow-cluster-resources/main/sonata-flow-operator.yaml
-          kubectl wait --for=jsonpath='{.status.phase}'=Running "$(kubectl get pod -o name -n sonataflow-operator-system | grep sonataflow-operator-controller-manager)" -n sonataflow-operator-system  --timeout=300s
-
-          # Core services of Sonataflow
-          kubectl apply -f https://raw.githubusercontent.com/rhkp/sonataflow-cluster-resources/main/sonata-flow-platform.yaml
-          sleep 60s
-          kubectl wait --for=jsonpath='{.status.phase}'=Running "$(kubectl get pod -o name -n sonataflow-infra | grep sonataflow-platform-jobs-service)" -n sonataflow-infra --timeout=300s
-          kubectl wait --for=jsonpath='{.status.phase}'=Running "$(kubectl get pod -o name -n sonataflow-infra | grep sonataflow-platform-data-index-service)" -n sonataflow-infra --timeout=300s
+          kubectl get sfp -A
+          kubectl wait --for=condition=Ready=true pods -l "app.kubernetes.io/name=backstage" --timeout=10m
+          kubectl get pods -o wide
+          kubectl wait --for=condition=Ready=true pods -l "app=sonataflow-platform" --timeout=180s
 
       - name: Download sonataflow artifacts generated manifests
         uses: actions/download-artifact@v4
@@ -129,6 +114,12 @@ jobs:
           cat manifests/04-sonataflow_mta-analysis-v7.yaml
           echo "---"
 
+          # Set notification external access token
+          echo " Set notification external access token"
+          BACKEND_SECRET=$(kubectl get secret orchestrator-auth -o jsonpath={.data.backend-secret})
+          yq --inplace ".data.NOTIFICATIONS_BEARER_TOKEN=\"$BACKEND_SECRET\"" manifests/0?-secret_mta-analysis-v7.yaml # notsecret
+          cat manifests/0?-secret_mta-analysis-v7.yaml
+
           # deploy the manifests created by the ${{ steps.build-image.outputs.image }} image
           kubectl apply -f manifests/
           sleep 5
@@ -141,6 +132,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Run e2e script
         run: |
+          export BACKEND_SECRET=$(kubectl get secret orchestrator-auth -o jsonpath={.data.backend-secret} | base64 -d)
           e2e/mta-v7.x.sh
 
       - name: Export kind Logs
