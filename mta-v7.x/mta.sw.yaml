@@ -371,7 +371,7 @@ states:
         actionDataFilter:
           toStateData: ".jiraTickets"
     stateDataFilter:
-      output: "{repositoryURL: .repositoryURL, tracker: .tracker, trackerProject: .trackerProject, trackerProjectIssueTypes: .trackerProjectIssueTypes, application: .application, migrationWaveJiraTicket: .repositoryURL as $r| if .jiraTickets == null then null else .jiraTickets|map(select(.application.name == $r))[0] end}"
+      output: "{recipients: .recipients, repositoryURL: .repositoryURL, tracker: .tracker, trackerProject: .trackerProject, trackerProjectIssueTypes: .trackerProjectIssueTypes, application: .application, migrationWaveJiraTicket: .repositoryURL as $r| if .jiraTickets == null then null else .jiraTickets|map(select(.application.name == $r))[0] end}"
     transition: MigrationWaveJiraTicketExists
   - name: MigrationWaveJiraTicketExists
     type: switch
@@ -442,7 +442,7 @@ states:
   - name: report
     type: operation
     stateDataFilter:
-      output: '{mtaAnalysisResultURL: ($SECRET.mta.url + "/hub/applications/" + (.application.id|tostring) + "/bucket/windup/report/"), migrationWaveJiraTicketURL: .migrationWaveJiraTicket.link, repositoryURL: .repositoryURL, workflowOptions: {migrationOptions: [{id: "m2k", name: "Move2Kube workflow"}]}}'
+      output: '{recipients: .recipients, mtaAnalysisResultURL: ($SECRET.mta.url + "/hub/applications/" + (.application.id|tostring) + "/bucket/windup/report/"), migrationWaveJiraTicketURL: .migrationWaveJiraTicket.link, repositoryURL: .repositoryURL, workflowOptions: {migrationOptions: [{id: "m2k", name: "Move2Kube workflow"}]}}'
     end: true
   - name: NotifyMandatoriesIncidentsInApplication
     type: operation
