@@ -99,6 +99,7 @@ states:
               title: "MTV plan is not ready for migration"
               description: '"MTV plan " + .migrationName + " is not ready for migration. Error: " + .planErrorMessage'
               topic: "MTV plan assessment workflow"
+              severity: "critical"
     stateDataFilter:
       output: '{assessmentResult: {passed: false, message: .planErrorMessage}}'
     end: true
@@ -116,6 +117,7 @@ states:
               title: "MTV plan is ready for migration"
               description: '"MTV plan " + .migrationName + " is ready for migration"'
               topic: "MTV plan assessment workflow"
+              severity: "normal"
     stateDataFilter:
       output: '{workflowOptions: {migrationOptions: [{id: "mtv-migration", name: "MTV migration workflow"}]}, assessmentResult: {passed: true, message: "plan is ready for migration"}}'
     end: true

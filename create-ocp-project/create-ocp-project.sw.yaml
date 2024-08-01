@@ -83,6 +83,7 @@ states:
               description: "Jira ticket created"
               topic: "Create OCP Project workflow"
               link: '$SECRET.jira_url + "/jira/servicedesk/projects/" + .operationsProjectKey + "/issues/" + .operationsJiraCreateIssueResult.key'
+              severity: "normal"
     transition: Poll Operation Jira issue
   - name: Poll Operation Jira issue
     type: operation
@@ -163,6 +164,7 @@ states:
               title: '"Project " + .projectName + " active"'
               description: '"Project " + .projectName + " active"'
               topic: "Create OCP Project workflow"
+              severity: "normal"
     transition:
       nextState: "[Audit]: Close issue on Jira"
   - name: Notify project not active
@@ -179,6 +181,7 @@ states:
               title: '"Project " + .projectName + " inactive"'
               description: '"Project " + .projectName + " inactive"'
               topic: "Create OCP Project workflow"
+              severity: "high"
     transition:
       nextState: "[Audit]: Close issue on Jira"
   - name: "[Audit]: Close issue on Jira"

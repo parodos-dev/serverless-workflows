@@ -128,6 +128,7 @@ states:
               description: '"Please go to your move2kube instance and answer the questions in order to continue the Move2Kube workflow"'
               topic: "Move2Kube Workflow"
               link: '$SECRET.move2kube_url + "/workspaces/"+ .workspaceId + "/projects/" + .projectId + "/outputs/"+ .transformId '
+              severity: "normal"
     transition:
       nextState: WaitForSaveTransformationCompletionEvent
       produceEvents:
@@ -184,6 +185,7 @@ states:
                   title: '"Move2Kube workflow " + $WORKFLOW.instanceId + " failed"'
                   description: '"Move2Kube workflow  " + $WORKFLOW.instanceId + " on workspace " + .workspaceId + " and project " + .projectId + " failed with exit message: "+ .exitMessage + " -- Plan retries: "  + (.planRetries|tostring)'
                   topic: "Move2Kube Workflow"
+                  severity: "critical"
     end: true
   - name: PrintExitSuccessMessage
     type: parallel
@@ -208,4 +210,5 @@ states:
                   title: '"Move2Kube workflow " + $WORKFLOW.instanceId + " succeeded"'
                   description: '"Move2Kube workflow  " + $WORKFLOW.instanceId + " on workspace " + .workspaceId + " and project " + .projectId + " was successful; the output is available in the branch " + .targetBranch + " of your git repository "+ .repositoryURL'
                   topic: "Move2Kube Workflow"
+                  severity: "normal"
     end: true

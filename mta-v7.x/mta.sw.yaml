@@ -429,6 +429,7 @@ states:
               description: '"MTA analysis is completed and the report for " + .application.repository.url + " is ready."'
               topic: "MTA Analysis Workflow"
               link: '$SECRET.mta.url + "/hub/applications/" + (.application.id|tostring) + "/analysis/report"'
+              severity: "normal"
     transition: report
   - name: report
     type: operation
@@ -449,6 +450,7 @@ states:
               description: '"MTA analysis for " + .application.repository.url + " completed with " + (.application.mandatoriesIncidents|tostring) +" incidents in mandatories issues. Check the analysis report."'
               topic: "MTA Analysis Workflow"
               link: '$SECRET.mta.url + "/hub/applications/" + (.application.id|tostring) + "/analysis/report"'
+              severity: "high"
     end: true
   - name: NotifyFailureBackstage
     type: operation
@@ -463,4 +465,5 @@ states:
               title: "MTA analysis failed"
               description: '"MTA analysis for " + .application.repository.url + " failed. Check logs of task pod: " + .taskgroup.tasks[0].pod'
               topic: "MTA Analysis Workflow"
+              severity: "critical"
     end: true
