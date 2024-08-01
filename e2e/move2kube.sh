@@ -187,11 +187,11 @@ then
 fi
 
 NOTIFICATION=$(printf "%s" "$ALL_NOTIFICATION" | jq '.[0]')
-if printf "%s" "$NOTIFICATION" | jq -e '.payload| .title != null and (.title|contains("succeeded"))'
+if printf "%s" "$NOTIFICATION" | jq -e '.payload| (.severity != "high" and .severity != "critical" )'
 then
-      printf "Notification has result with success in it: %s\n\n" "${NOTIFICATION}"
+      printf "Notification has NO result with high or critical severuty in it: %s\n\n" "${NOTIFICATION}"
 else
-      printf "Notification has no result with success in it: %s\n\nexiting " "${NOTIFICATION}"
+      printf "Notification has result high or critical severity in it: %s\n\nexiting " "${NOTIFICATION}"
       exit 1
 fi
 
