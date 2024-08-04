@@ -8,7 +8,7 @@ version: "1.0"
 timeouts:
   workflowExecTimeout:
     duration: PT1H
-start: GetApplication
+start: CreateApplication
 dataInputSchema:
   schema: schemas/mta-input.json
   failOnValidationErrors: false
@@ -69,25 +69,6 @@ functions:
     operation: .applicationAnalysis | [select (.issues[].category!="mandatory")][0] | [.issues[]?.incidents //[]] | .[-1][-1].id
 
 states:
-  - name: GetApplication
-    type: operation
-    actionMode: sequential
-    actions:
-      - name: getApp
-        functionRef: getApplication
-        actionDataFilter:
-          toStateData: ".applications"
-    stateDataFilter:
-      output: "{recipients: .recipients, repositoryURL: .repositoryURL, migrationStartDatetime: .migrationStartDatetime, migrationEndDatetime: .migrationEndDatetime, exportToIssueManager: .exportToIssueManager, application: .repositoryURL as $r| if .applications == null then null else .applications|map(select(.repository.url == $r))[0] end}"
-    transition: AppExist
-  - name: AppExist
-    type: switch
-    dataConditions:
-      - condition: ".application != null"
-        transition:
-          nextState: CreateTaskgroup
-    defaultCondition:
-      transition: CreateApplication
   - name: CreateApplication
     type: operation
     actions:
@@ -97,7 +78,7 @@ states:
         functionRef:
           refName: createApplication
           arguments:
-            name: ".repositoryURL"
+            name: '$WORKFLOW.instanceId + "_" + .repositoryURL'
             repository:
               url: ".repositoryURL"
               kind: git
@@ -233,7 +214,7 @@ states:
       - condition: .application.mandatoriesIncidents > 0
         transition: NotifyMandatoriesIncidentsInApplication
         name: hasMandatoriesIncidents
-      - condition: (.application.mandatoriesIncidents == 0 and .exportToIssueManager == "true")
+      - condition: .exportToIssueManager == "true"
         transition: GetTrackers
         name: NotifyTracker
     defaultCondition:
@@ -371,7 +352,7 @@ states:
         actionDataFilter:
           toStateData: ".jiraTickets"
     stateDataFilter:
-      output: "{repositoryURL: .repositoryURL, tracker: .tracker, trackerProject: .trackerProject, trackerProjectIssueTypes: .trackerProjectIssueTypes, application: .application, migrationWaveJiraTicket: .repositoryURL as $r| if .jiraTickets == null then null else .jiraTickets|map(select(.application.name == $r))[0] end}"
+      output: "{recipients: .recipients, repositoryURL: .repositoryURL, tracker: .tracker, trackerProject: .trackerProject, trackerProjectIssueTypes: .trackerProjectIssueTypes, application: .application, migrationWaveJiraTicket: .repositoryURL as $r| if .jiraTickets == null then null else .jiraTickets|map(select(.application.name == $r))[0] end}"
     transition: MigrationWaveJiraTicketExists
   - name: MigrationWaveJiraTicketExists
     type: switch
@@ -414,7 +395,15 @@ states:
             id: .createdJiraTicket.id
         actionDataFilter:
           toStateData: ".migrationWaveJiraTicket"
-    transition: NotifyCompletion
+    transition: CheckMandatoriesIncidentsAfterIssueCreation
+  - name: CheckMandatoriesIncidentsAfterIssueCreation
+    type: switch
+    dataConditions:
+      - condition: .application.mandatoriesIncidents > 0
+        transition: NotifyMandatoriesIncidentsInApplication
+        name: hasMandatoriesIncidents
+    defaultCondition:
+      transition: NotifyCompletion
   - name: NotifyCompletion
     type: operation
     actions:
@@ -426,7 +415,7 @@ states:
               entityRef: .recipients
             payload:
               title: "MTA analysis completed"
-              description: '"MTA analysis is completed and the report for " + .application.repository.url + " is ready."'
+              description: '"MTA analysis is completed and the report for " + .application.repository.url + " is ready." + (if .migrationWaveJiraTicket != null then "Application was exported to issue manager" else "" end)'
               topic: "MTA Analysis Workflow"
               link: '$SECRET.mta.url + "/hub/applications/" + (.application.id|tostring) + "/analysis/report"'
               severity: "normal"
@@ -434,7 +423,7 @@ states:
   - name: report
     type: operation
     stateDataFilter:
-      output: '{mtaAnalysisResultURL: ($SECRET.mta.url + "/hub/applications/" + (.application.id|tostring) + "/bucket/windup/report/"), migrationWaveJiraTicketURL: .migrationWaveJiraTicket.link, repositoryURL: .repositoryURL, workflowOptions: {migrationOptions: [{id: "m2k", name: "Move2Kube workflow"}]}}'
+      output: '{recipients: .recipients, mtaAnalysisResultURL: ($SECRET.mta.url + "/hub/applications/" + (.application.id|tostring) + "/bucket/windup/report/"), migrationWaveJiraTicketURL: .migrationWaveJiraTicket.link, repositoryURL: .repositoryURL, workflowOptions: {migrationOptions: [{id: "m2k", name: "Move2Kube workflow"}]}}'
     end: true
   - name: NotifyMandatoriesIncidentsInApplication
     type: operation
@@ -447,7 +436,7 @@ states:
               entityRef: .recipients
             payload:
               title: "MTA analysis completed with incidents in mandatory issues."
-              description: '"MTA analysis for " + .application.repository.url + " completed with " + (.application.mandatoriesIncidents|tostring) +" incidents in mandatories issues. Check the analysis report."'
+              description: '"MTA analysis for " + .application.repository.url + " completed with " + (.application.mandatoriesIncidents|tostring) +" incidents in mandatories issues. Check the analysis report." + (if .migrationWaveJiraTicket != null then "Application was exported to issue manager." else "" end)'
               topic: "MTA Analysis Workflow"
               link: '$SECRET.mta.url + "/hub/applications/" + (.application.id|tostring) + "/analysis/report"'
               severity: "high"

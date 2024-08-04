@@ -23,10 +23,14 @@
       "description": "Creating Jira issues for a migration wave"
     },
     "migrationStartDatetime": {
-      "type": "string"
+      "type": "string",
+      "description": "Migration start DateTime, i.e: 2024-08-01T12:50:20",
+      "pattern": "^[0-9]{4}-[01][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9](?:[.][0-9]+)?Z?$"
     },
     "migrationEndDatetime": {
-      "type": "string"
+      "type": "string",
+      "description": "Migration potential end DateTime, i.e: 2024-08-02T12:50:20",
+      "pattern": "^[0-9]{4}-[01][0-9]-[0-3][0-9]T[0-2][0-9]:[0-5][0-9]:[0-5][0-9](?:[.][0-9]+)?Z?$"
     }
   },
   "required": [
