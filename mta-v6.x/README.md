@@ -12,10 +12,18 @@ the cloud-readiness compatibility of their code.
 - `repositoryUrl` [mandatory] - the git repo url to examine
 - `recipients` [mandatory] - A list of recipients for the notification in the format of `user:<namespace>/<username>` or `group:<namespace>/<groupname>`, i.e. `user:default/jsmith`.
 
+# Requirement for Repository
+- Create a git repo with a simple Java class. It can either be public or private.
+- If repository is private, refer to [configuring repository][4] on how to set up credentials on MTA.
+  - Note: When creating the source control credentials in MTA, ensure to input personal access token in the password field.
+    Refer to [personal access token] [5] on how to create personal access token (classic) on GitHub.
+  - Also, git url address must use https. Refer to [about remote repositories][6] for more details.
+- If the repo is public, no further configuration is needed.
+
 # Output
 1. On completion the workflow returns an [options structure][2] in the exit state of the workflow (also named variables in SonataFlow)
 linking to the [move2kube][3] workflow that will generate k8s manifests for container deployment.
-1. When the workflow completes there should be a report link on the exit state of the workflow (also named variables in SonataFlow)
+2. When the workflow completes there should be a report link on the exit state of the workflow (also named variables in SonataFlow)
 Currently this is working with MTA version 6.2.x and in the future 7.x version the report link will be removed or will be made
 optional. Instead of an html report the workflow will use a machine friendly json file.
 
@@ -45,3 +53,6 @@ All the configuration items are on [./application.properties]
 [1]: https://developers.redhat.com/products/mta/download
 [2]: https://github.com/parodos-dev/serverless-workflows/blob/main/assessment/schema/workflow-options-output-schema.json  
 [3]: https://github.com/parodos-dev/serverless-workflows/tree/main/move2kube
+[4]: https://docs.redhat.com/en/documentation/migration_toolkit_for_applications/6.2/html-single/user_interface_guide/index#configuring-credentials
+[5]: https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-personal-access-token-classic
+[6]: https://docs.github.com/en/get-started/getting-started-with-git/about-remote-repositories
