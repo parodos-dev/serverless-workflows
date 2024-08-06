@@ -39,7 +39,7 @@ Notifications Plugin - OpenAPI Specs
 [.createNotification]
 ==== createNotification
 
-`POST /`
+`POST /api/notifications`
 
 Create a notification
 
@@ -48,7 +48,7 @@ Create a notification
 Create a notification
 
 
-// markup not found, no include::{specDir}POST/spec.adoc[opts=optional]
+// markup not found, no include::{specDir}api/notifications/POST/spec.adoc[opts=optional]
 
 
 
@@ -99,20 +99,240 @@ array[<<Notification>>]
 ===== Samples
 
 
-// markup not found, no include::{snippetDir}POST/http-request.adoc[opts=optional]
+// markup not found, no include::{snippetDir}api/notifications/POST/http-request.adoc[opts=optional]
 
 
-// markup not found, no include::{snippetDir}POST/http-response.adoc[opts=optional]
+// markup not found, no include::{snippetDir}api/notifications/POST/http-response.adoc[opts=optional]
 
 
 
-// file not found, no * wiremock data link :POST/POST.json[]
+// file not found, no * wiremock data link :api/notifications/POST/POST.json[]
 
 
 ifdef::internal-generation[]
 ===== Implementation
 
-// markup not found, no include::{specDir}POST/implementation.adoc[opts=optional]
+// markup not found, no include::{specDir}api/notifications/POST/implementation.adoc[opts=optional]
+
+
+endif::internal-generation[]
+
+
+[.getNotifications]
+==== getNotifications
+
+`GET /api/notifications`
+
+Get user's notifications
+
+===== Description
+
+Get user's notifications
+
+
+// markup not found, no include::{specDir}api/notifications/GET/spec.adoc[opts=optional]
+
+
+
+===== Parameters
+
+
+
+
+
+
+
+===== Return Type
+
+<<GetNotifications>>
+
+
+===== Content Type
+
+* application/json
+
+===== Responses
+
+.HTTP Response Codes
+[cols="2,3,1"]
+|===
+| Code | Message | Datatype
+
+
+| 200
+| Successful operation
+|  <<GetNotifications>>
+
+|===
+
+===== Samples
+
+
+// markup not found, no include::{snippetDir}api/notifications/GET/http-request.adoc[opts=optional]
+
+
+// markup not found, no include::{snippetDir}api/notifications/GET/http-response.adoc[opts=optional]
+
+
+
+// file not found, no * wiremock data link :api/notifications/GET/GET.json[]
+
+
+ifdef::internal-generation[]
+===== Implementation
+
+// markup not found, no include::{specDir}api/notifications/GET/implementation.adoc[opts=optional]
+
+
+endif::internal-generation[]
+
+
+[.getStatus]
+==== getStatus
+
+`GET /api/notifications/status`
+
+Get user's count of unread+read notifications
+
+===== Description
+
+Get user's count of unread+read notifications
+
+
+// markup not found, no include::{specDir}api/notifications/status/GET/spec.adoc[opts=optional]
+
+
+
+===== Parameters
+
+
+
+
+
+
+
+===== Return Type
+
+<<Count>>
+
+
+===== Content Type
+
+* application/json
+
+===== Responses
+
+.HTTP Response Codes
+[cols="2,3,1"]
+|===
+| Code | Message | Datatype
+
+
+| 200
+| Successful operation
+|  <<Count>>
+
+|===
+
+===== Samples
+
+
+// markup not found, no include::{snippetDir}api/notifications/status/GET/http-request.adoc[opts=optional]
+
+
+// markup not found, no include::{snippetDir}api/notifications/status/GET/http-response.adoc[opts=optional]
+
+
+
+// file not found, no * wiremock data link :api/notifications/status/GET/GET.json[]
+
+
+ifdef::internal-generation[]
+===== Implementation
+
+// markup not found, no include::{specDir}api/notifications/status/GET/implementation.adoc[opts=optional]
+
+
+endif::internal-generation[]
+
+
+[.setRead]
+==== setRead
+
+`POST /api/notifications/update`
+
+Set read/unread notifications
+
+===== Description
+
+Set read/unread notifications
+
+
+// markup not found, no include::{specDir}api/notifications/update/POST/spec.adoc[opts=optional]
+
+
+
+===== Parameters
+
+
+====== Body Parameter
+
+[cols="2,3,1,1,1"]
+|===
+|Name| Description| Required| Default| Pattern
+
+| SetReadRequest
+|  <<SetReadRequest>>
+| -
+| 
+| 
+
+|===
+
+
+
+
+
+===== Return Type
+
+array[<<Notification>>]
+
+
+===== Content Type
+
+* application/json
+
+===== Responses
+
+.HTTP Response Codes
+[cols="2,3,1"]
+|===
+| Code | Message | Datatype
+
+
+| 200
+| Successful operation
+| List[<<Notification>>] 
+
+|===
+
+===== Samples
+
+
+// markup not found, no include::{snippetDir}api/notifications/update/POST/http-request.adoc[opts=optional]
+
+
+// markup not found, no include::{snippetDir}api/notifications/update/POST/http-response.adoc[opts=optional]
+
+
+
+// file not found, no * wiremock data link :api/notifications/update/POST/POST.json[]
+
+
+ifdef::internal-generation[]
+===== Implementation
+
+// markup not found, no include::{specDir}api/notifications/update/POST/implementation.adoc[opts=optional]
 
 
 endif::internal-generation[]
@@ -120,6 +340,35 @@ endif::internal-generation[]
 
 [#models]
 == Models
+
+
+[#Count]
+=== _Count_ 
+
+
+
+
+[.fields-Count]
+[cols="2,1,1,2,4,1"]
+|===
+| Field Name| Required| Nullable | Type| Description | Format
+
+| unread
+| X
+| 
+|   BigDecimal  
+| 
+|     
+
+| read
+| X
+| 
+|   BigDecimal  
+| 
+|     
+
+|===
+
 
 
 [#CreateBody]
@@ -187,6 +436,35 @@ endif::internal-generation[]
 
 
 
+[#GetNotifications]
+=== _GetNotifications_ 
+
+
+
+
+[.fields-GetNotifications]
+[cols="2,1,1,2,4,1"]
+|===
+| Field Name| Required| Nullable | Type| Description | Format
+
+| totalCount
+| 
+| 
+|   BigDecimal  
+| 
+|     
+
+| notifications
+| 
+| 
+|   List   of <<Notification>>
+| 
+|     
+
+|===
+
+
+
 [#Notification]
 === _Notification_ 
 
@@ -229,9 +507,9 @@ endif::internal-generation[]
 | read
 | 
 | 
-|   Date  
+|   BigDecimal  
 | 
-| date-time    
+|     
 
 | updated
 | 
@@ -315,6 +593,35 @@ endif::internal-generation[]
 | 
 | 
 |   String  
+| 
+|     
+
+|===
+
+
+
+[#SetReadRequest]
+=== _SetReadRequest_ 
+
+
+
+
+[.fields-SetReadRequest]
+[cols="2,1,1,2,4,1"]
+|===
+| Field Name| Required| Nullable | Type| Description | Format
+
+| ids
+| X
+| 
+|   List   of <<string>>
+| 
+|     
+
+| read
+| X
+| 
+|   Boolean  
 | 
 |     
 
