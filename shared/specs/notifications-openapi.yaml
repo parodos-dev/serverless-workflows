@@ -13,6 +13,21 @@ security:
   - BearerToken: []
 paths:
   /api/notifications:
+    get:
+      tags:
+        - "notifications"
+      summary: Get user's notifications
+      description: Get user's notifications
+      operationId: getNotifications
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetNotifications"
+      security:
+        - BearerToken: []
     post:
       tags:
         - "notifications"
@@ -24,6 +39,43 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/CreateBody"
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Notifications"
+      security:
+        - BearerToken: []
+  /api/notifications/status:
+    get:
+      tags:
+        - "notifications"
+      summary: Get user's count of unread+read notifications
+      description: Get user's count of unread+read notifications
+      operationId: getStatus
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Count"
+      security:
+        - BearerToken: []
+  /api/notifications/update:
+    post:
+      tags:
+        - "notifications"
+      summary: Set read/unread notifications
+      description: Set read/unread notifications
+      operationId: setRead
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SetReadRequest"
       responses:
         "200":
           description: Successful operation
@@ -92,8 +144,7 @@ components:
           type: string
           format: date-time
         read:
-          type: string
-          format: date-time
+          type: number
         updated:
           type: string
           format: date-time
@@ -106,6 +157,33 @@ components:
       type: array
       items:
         $ref: "#/components/schemas/Notification"
+    Count:
+      type: object
+      properties:
+        unread:
+          type: number
+        read:
+          type: number
+      required: [unread, read]
+    SetReadRequest:
+      type: object
+      properties:
+        ids:
+          type: array
+          items:
+            type: string
+          minItems: 1
+        read:
+          type: boolean
+      required: [ids, read]
+    GetNotifications:
+      type: object
+      properties:
+        totalCount:
+          type: number
+        notifications:
+          type: object
+          $ref: "#/components/schemas/Notifications"
   securitySchemes:
     BearerToken:
       type: http
