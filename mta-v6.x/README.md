@@ -14,6 +14,7 @@ the cloud-readiness compatibility of their code.
 
 # Requirement for Repository
 - Create a git repo with a simple Java class. It can either be public or private.
+  Currently, MTA supports mostly Java projects.
 - If repository is private, refer to [configuring repository][4] on how to set up credentials on MTA.
   - Note: When creating the source control credentials in MTA, ensure to input personal access token in the password field.
     Refer to [personal access token] [5] on how to create personal access token (classic) on GitHub.
@@ -23,7 +24,7 @@ the cloud-readiness compatibility of their code.
 # Output
 1. On completion the workflow returns an [options structure][2] in the exit state of the workflow (also named variables in SonataFlow)
 linking to the [move2kube][3] workflow that will generate k8s manifests for container deployment.
-2. When the workflow completes there should be a report link on the exit state of the workflow (also named variables in SonataFlow)
+1. When the workflow completes there should be a report link on the exit state of the workflow (also named variables in SonataFlow)
 Currently this is working with MTA version 6.2.x and in the future 7.x version the report link will be removed or will be made
 optional. Instead of an html report the workflow will use a machine friendly json file.
 
