@@ -306,32 +306,13 @@ states:
     type: switch
     dataConditions:
       - condition: (.trackerProjectIssueTypes != null)
-        transition: GetMigrationWaves
-    defaultCondition:
-      transition: NotifyFailureBackstage
-  - name: GetMigrationWaves
-    type: operation
-    actions:
-      - condition: .trackerProjectIssueTypes != null
-        functionRef:
-          refName: getMigrationwaves
-        actionDataFilter:
-          toStateData: ".migrationWaves"
-    transition: MigrationWavesExist
-  - name: MigrationWavesExist
-    type: switch
-    dataConditions:
-      - condition: (.migrationWaves != null)
-        transition: GetJiraTickets
-      - condition: (.migrationWaves == null)
         transition: CreateMigrationWave
     defaultCondition:
       transition: NotifyFailureBackstage
   - name: CreateMigrationWave
     type: operation
     actions:
-      - condition: .migrationWaves == null
-        functionRef:
+      - functionRef:
           refName: createMigrationwave
           arguments:
             name: ("migrationWave_" + .application.name)
@@ -342,27 +323,7 @@ states:
                 name: .application.name
         actionDataFilter:
           toStateData: ".createdMigrationWave"
-    transition: GetJiraTickets
-  - name: GetJiraTickets
-    type: operation
-    actionMode: sequential
-    actions:
-      - name: getTickets
-        functionRef: getTickets
-        actionDataFilter:
-          toStateData: ".jiraTickets"
-    stateDataFilter:
-      output: "{recipients: .recipients, repositoryURL: .repositoryURL, tracker: .tracker, trackerProject: .trackerProject, trackerProjectIssueTypes: .trackerProjectIssueTypes, application: .application, migrationWaveJiraTicket: .repositoryURL as $r| if .jiraTickets == null then null else .jiraTickets|map(select(.application.name == $r))[0] end}"
-    transition: MigrationWaveJiraTicketExists
-  - name: MigrationWaveJiraTicketExists
-    type: switch
-    dataConditions:
-      - condition: (.migrationWaveJiraTicket != null)
-        transition: NotifyCompletion
-      - condition: (.migrationWaveJiraTicket == null)
-        transition: CreateJira
-    defaultCondition:
-      transition: NotifyFailureBackstage
+    transition: CreateJira
   - name: CreateJira
     type: operation
     actionMode: sequential
