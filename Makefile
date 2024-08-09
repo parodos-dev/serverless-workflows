@@ -11,6 +11,7 @@ WORKFLOWS = \
 	mta \
 	mta-v6.x \
 	mta-v7.x \
+	create-ocp-project \
 	$(NULL)
 
 # Dynamic rule patten that uses one of the workflows and sets the workflow id
