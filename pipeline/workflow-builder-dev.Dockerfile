@@ -1,18 +1,18 @@
-FROM quay.io/kiegroup/kogito-swf-builder-nightly:main-2024-04-08 AS builder
+FROM docker.io/apache/incubator-kie-sonataflow-builder:main AS builder
 
 # Temp hack to provide persistence artifacts
 # ENV MAVEN_REPO_URL=https://maven.repository.redhat.com/earlyaccess/all
 
 # variables that can be overridden by the builder
 # To add a Quarkus extension to your application
-ARG QUARKUS_EXTENSIONS
+ARG QUARKUS_EXTENSIONS="org.kie:kogito-addons-quarkus-jobs-knative-eventing:999-SNAPSHOT,org.kie:kie-addons-quarkus-persistence-jdbc:999-SNAPSHOT,io.quarkus:quarkus-jdbc-postgresql:3.8.4,io.quarkus:quarkus-agroal:3.8.4,org.kie:kie-addons-quarkus-monitoring-prometheus:999-SNAPSHOT,org.kie:kie-addons-quarkus-monitoring-sonataflow:999-SNAPSHOT"
 # Args to pass to the Quarkus CLI
 # add extension command
 # ARG QUARKUS_ADD_EXTENSION_ARGS
 
 # Additional java/mvn arguments to pass to the builder.
 # This are is conventient to pass sonataflow and quarkus build time properties.
-ARG MAVEN_ARGS_APPEND
+ARG MAVEN_ARGS_APPEND="-Dkogito.persistence.type=jdbc -Dquarkus.datasource.db-kind=postgresql -Dkogito.persistence.proto.marshaller=false"
 
 # Argument for passing the resources folder if not current context dir
 ARG WF_RESOURCES

@@ -96,7 +96,7 @@ states:
           arguments:
             issueIdOrKey: .operationsJiraCreateIssueResult.id
         sleep:
-          before: PT10S
+          before: PT60S
     transition: Check Operation issue done
   - name: Check Operation issue done
     type: switch
