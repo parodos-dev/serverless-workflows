@@ -5,7 +5,7 @@ FROM docker.io/apache/incubator-kie-sonataflow-builder:main AS builder
 
 # variables that can be overridden by the builder
 # To add a Quarkus extension to your application
-ARG QUARKUS_EXTENSIONS="org.kie:kogito-addons-quarkus-jobs-knative-eventing:999-SNAPSHOT,org.kie:kie-addons-quarkus-persistence-jdbc:999-SNAPSHOT,io.quarkus:quarkus-jdbc-postgresql:3.8.4,io.quarkus:quarkus-agroal:3.8.4,org.kie:kie-addons-quarkus-monitoring-prometheus:999-SNAPSHOT,org.kie:kie-addons-quarkus-monitoring-sonataflow:999-SNAPSHOT"
+ARG QUARKUS_EXTENSIONS="org.kie:kogito-addons-quarkus-jobs-knative-eventing:999-SNAPSHOT,org.kie:kie-addons-quarkus-persistence-jdbc:999-SNAPSHOT,io.quarkus:quarkus-jdbc-postgresql:3.8.4,io.quarkus:quarkus-agroal:3.8.4"
 # Args to pass to the Quarkus CLI
 # add extension command
 # ARG QUARKUS_ADD_EXTENSION_ARGS

@@ -10,7 +10,7 @@ FROM ${BUILDER_IMAGE:-quay.io/kiegroup/kogito-swf-builder:9.99.1.CR1} AS builder
 
 # variables that can be overridden by the builder
 # To add a Quarkus extension to your application
-ARG QUARKUS_EXTENSIONS="org.kie.kogito:kogito-addons-quarkus-jobs-knative-eventing:9.99.1.redhat-00003,org.kie.kogito:kogito-addons-quarkus-persistence-jdbc:9.99.1.redhat-00003,org.kie.kogito:kogito-addons-persistence-jdbc:9.99.1.redhat-00003,io.quarkus:quarkus-jdbc-postgresql:3.2.9.Final,io.quarkus:quarkus-agroal:3.2.9.Final,org.kie:kie-addons-quarkus-monitoring-prometheus:999-SNAPSHOT,org.kie:kie-addons-quarkus-monitoring-sonataflow:999-SNAPSHOT"
+ARG QUARKUS_EXTENSIONS="org.kie.kogito:kogito-addons-quarkus-jobs-knative-eventing:9.99.1.redhat-00003,org.kie.kogito:kogito-addons-quarkus-persistence-jdbc:9.99.1.redhat-00003,org.kie.kogito:kogito-addons-persistence-jdbc:9.99.1.redhat-00003,io.quarkus:quarkus-jdbc-postgresql:3.2.9.Final,io.quarkus:quarkus-agroal:3.2.9.Final"
 
 # Args to pass to the Quarkus CLI
 # add extension command
