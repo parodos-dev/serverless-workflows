@@ -6,6 +6,7 @@ on:
     branches: [ "main" ]
     paths:
       - 'setup/Dockerfile'
+      - .github/workflows/builder-utility.yaml
 
 jobs:
   build:
