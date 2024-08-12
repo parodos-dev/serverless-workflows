@@ -40,7 +40,7 @@ See [Continuous Integration with make](https://github.com/parodos-dev/serverless
 
 ### Builder image
 There are two builder images under ./pipeline folder:
-- workflow-builder-dev.Dockerfile - references nightly build image from quay.io/kiegroup/kogito-swf-builder-nightly that doesn't required any authorization
+- workflow-builder-dev.Dockerfile - references nightly build image from `docker.io/apache/incubator-kie-sonataflow-builder:main` that doesn't required any authorization
 - workflow-builder.Dockerfile - references OpenShift Serverless Logic builder image from registry.redhat.io which requires authorization.
   - To use this dockerfile locally, you must be logged to registry.redhat.io. To get access to that registry, follow:
     1. Get tokens [here](https://access.redhat.com/terms-based-registry/accounts). Once logged in to podman, you should be able to pull the image.
