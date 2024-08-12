@@ -1,0 +1,45 @@
+name: Builder utility container image and push
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'setup/Dockerfile'
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+
+    - uses: actions/checkout@v4
+
+    - name: Buildah Action - build builder utility image
+      id: build-image
+      uses: redhat-actions/buildah-build@v2
+      with:
+        image: ubi9-pipeline
+        tags: latest ${{ github.sha }}
+        containerfiles: |
+          setup/Dockerfile
+    
+    - name: Buildah push to OCI Arcive
+      run: |
+        buildah push ubi9-pipeline:${{ github.sha }} \
+          oci-archive:ubi9-pipeline-${{ github.sha }}.tar:quay.io/orchestrator/ubi9-pipeline:${{ github.sha }}
+
+    - name: Save OCI archive
+      uses: actions/upload-artifact@v4
+      with:
+        name: ubi9-pipeline-${{ github.sha }}.tar
+        path: ubi9-pipeline-${{ github.sha }}.tar
+
+    - name: Push To quay.io
+      id: push-to-quay
+      uses: redhat-actions/push-to-registry@v2
+      with:
+        image: ${{ steps.build-image.outputs.image }}
+        tags: ${{ steps.build-image.outputs.tags }}
+        registry: quay.io/orchestrator
+        username: ${{ secrets.REGISTRY_REDHAT_IO_USER }}
+        password: ${{ secrets.REGISTRY_REDHAT_IO_PASSWORD }}
