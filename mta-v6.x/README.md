@@ -39,6 +39,8 @@ optional. Instead of an html report the workflow will use a machine friendly jso
 
 All the configuration items are on [./application.properties]
 
+For running and testing the workflow refer to [mta testing](https://github.com/parodos-dev/serverless-workflows/tree/main/mta#output).
+
 # Workflow Diagram
 ![mta workflow diagram](https://github.com/parodos-dev/serverless-workflows/blob/main/mta/mta.svg?raw=true)
 
