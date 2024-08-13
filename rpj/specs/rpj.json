@@ -1,0 +1,97 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "RPJ API",
+    "contact": {},
+    "license": {
+      "name": "Apache 2.0",
+      "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+    },
+    "version": "0.3.z"
+  },
+  "servers": [
+    {
+      "url": "/"
+    }
+  ],
+  "paths": {
+    "/{launch_id}": {
+      "get": {
+        "operationId": "run",
+        "tags": [
+          "run"
+        ],
+        "summary": "Create Jira tickets from a launch in Report Portal.",
+        "description": "create Jira tickets from a launch in Report Portal.",
+        "parameters": [
+          {
+            "name": "launch_id",
+            "in": "path",
+            "description": "ID of the launch for which Jira ticket shall be created.",
+            "required": true,
+            "example": "1234",
+            "schema": {
+              "$ref": "#/components/schemas/ID"
+            }
+          },
+          {
+            "name": "epic",
+            "in": "query",
+            "description": "Epic code in which include the created Jira ticket.",
+            "required": false,
+            "example": "XX-11",
+            "schema": {
+              "$ref": "#/components/schemas/EpicCode"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StartResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ID": {
+        "type": "string",
+        "description": "A unique ID.",
+        "example": "1234"
+      },
+      "EpicCode": {
+        "pattern": "^[a-zA-Z0-9-_]+$",
+        "type": "string",
+        "description": "Epic code.",
+        "example": "id-1234"
+      },
+    "StartResponse": {
+        "required": [
+          "success",
+          "message",
+          "data"
+        ],
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

@@ -49,3 +49,5 @@ kn
 
 temp
 *.tar
+
+__pycache__

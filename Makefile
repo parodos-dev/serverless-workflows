@@ -14,6 +14,7 @@ WORKFLOWS = \
 	request-vm-cnv \
 	mtv-migration \
 	modify-vm-resources \
+	rpj \
 	$(NULL)
 
 # Dynamic rule patten that uses one of the workflows and sets the workflow id
