@@ -1,0 +1,139 @@
+specVersion: "0.8"
+id: rpj
+name: Report Portal to Jira
+description: Workflow to execute RPJ
+annotations:
+  - "workflow-type/infrastructure"
+version: "1.0"
+timeouts:
+  workflowExecTimeout:
+    duration: PT1H
+start: Run
+dataInputSchema:
+  schema: schemas/rpj-input.json
+  failOnValidationErrors: true
+extensions:
+  - extensionid: workflow-output-schema
+    outputSchema: schemas/workflow-output-schema.json
+  - extensionid: workflow-uri-definitions
+    definitions:
+      notifications: "https://raw.githubusercontent.com/parodos-dev/serverless-workflows/main/shared/specs/notifications-openapi.yaml"
+functions:
+  - name: run
+    operation: specs/rpj.json#run
+  - name: createNotification
+    operation: notifications#createNotification
+  - name: systemOut
+    type: custom
+    operation: sysout
+  - name: successResult
+    type: expression
+    operation: '{
+        "result": {
+          "completedWith":"success",
+          "message": "RPJ workflow  " + $WORKFLOW.instanceId + " was successful",
+          "outputs": [
+            {
+                "key":"Launch ID",
+                "value": .launchId
+            },
+            {
+                "key":"Epic code",
+                "value": (if .epicCode == null then "None provided" else .epicCode end)
+            }
+          ]
+        }
+      }'
+  - name: errorResult
+    type: expression
+    operation: '{
+        "result": {
+          "completedWith":"error",
+          "message": "RPJ workflow  " + $WORKFLOW.instanceId + " failed",
+          "outputs": [
+            {
+                "key":"Launch ID",
+                "value": .launchId
+            },
+            {
+                "key":"Epic code",
+                "value": (if .epicCode == null then "None provided" else .epicCode end)
+            },
+            {
+                "key":"Run result message",
+                "value": .runResults.message
+            }
+          ]
+        }
+      }'
+states:
+  - name: Run
+    type: operation
+    actionMode: sequential
+    actions:
+      - name: getApp
+        functionRef: 
+          refName: run
+          arguments:
+            launch_id: .launchId
+            epic: .epicCode
+        actionDataFilter:
+          toStateData: ".runResults"
+    transition: CheckResults
+  - name: CheckResults
+    type: switch
+    dataConditions:
+      - condition: .runResults.success == true
+        transition: NotifyBackstage
+        name: success
+      - condition: .runResults.success == false
+        transition: NotifyFailureBackstage
+        name: failure
+    defaultCondition:
+      transition: NotifyFailureBackstage
+  - name: NotifyBackstage
+    type: operation
+    actions:
+      - name: printSystemOut
+        functionRef:
+          refName: systemOut
+          arguments:
+            message: '"RPJ run results for launch " + .launchId + ": " + (.runResults|tostring)'
+      - name: createNotification
+        functionRef:
+          refName: createNotification
+          arguments:
+            recipients:
+              type: "entity"
+              entityRef: .recipients
+            payload:
+              title: "RPJ run results"
+              description: '"RPJ result for launch " + .launchId + ": Message: " + .runResults.message ' #+ "; Data: " + .runResults.data 
+              topic: "RPJ Workflow"
+      - name: setOutput
+        functionRef:
+          refName: successResult
+    end: true
+  - name: NotifyFailureBackstage
+    type: operation
+    actions:
+      - name: printSystemOut
+        functionRef:
+          refName: systemOut
+          arguments:
+            message: '"RPJ run failed with results for launch " + .launchId + ": " + (.runResults|tostring)'
+      - name: createFailureNotification
+        functionRef:
+          refName: createNotification
+          arguments:
+            recipients:
+              type: "entity"
+              entityRef: .recipients
+            payload:
+              title: "RPJ run failed"
+              description: '"RPJ run failed for launch " + .launchId + ". Message: " + .runResults.message '
+              topic: "RPJ Workflow"
+      - name: setOutput
+        functionRef:
+          refName: errorResult
+    end: true
