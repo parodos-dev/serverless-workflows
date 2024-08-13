@@ -1,0 +1,90 @@
+specVersion: "0.8"
+id: rpj
+name: rpj
+description: Workflow to execute RPJ
+annotations:
+  - "workflow-type/infrastructure"
+version: "1.0"
+timeouts:
+  workflowExecTimeout:
+    duration: PT1H
+start: Run
+dataInputSchema:
+  schema: schemas/rpj-input.json
+  failOnValidationErrors: true
+extensions:
+  - extensionid: workflow-uri-definitions
+    definitions:
+      notifications: "https://raw.githubusercontent.com/parodos-dev/serverless-workflows/main/shared/specs/notifications-openapi.yaml"
+functions:
+  - name: run
+    operation: specs/rpj.json#run
+  - name: createNotification
+    operation: notifications#createNotification
+  - name: systemOut
+    type: custom
+    operation: sysout
+states:
+  - name: Run
+    type: operation
+    actionMode: sequential
+    actions:
+      - name: getApp
+        functionRef: 
+          refName: run
+          arguments:
+            launch_id: .launchId
+            epic: .epicCode
+        actionDataFilter:
+          toStateData: ".runResults"
+    transition: CheckResults
+  - name: CheckResults
+    type: switch
+    dataConditions:
+      - condition: .runResults.success == true
+        transition: NotifyBackstage
+        name: success
+      - condition: .runResults.success == false
+        transition: NotifyFailureBackstage
+        name: failure
+    defaultCondition:
+      transition: NotifyFailureBackstage
+  - name: NotifyBackstage
+    type: operation
+    actions:
+      - name: printSystemOut
+        functionRef:
+          refName: systemOut
+          arguments:
+            message: '"RPJ run results for launch " + .launchId + ": " + (.runResults|tostring)'
+      #    - functionRef:
+      #        refName: createNotification
+      #        arguments:
+      #          recipients:
+      #            type: "entity"
+      #            entityRef: .recipients
+      #          payload:
+      #            title: "RPJ run results"
+      #            description: '"RPJ result for launch " + .launchId + ": Data: " + .runResults.data + "; Message: " + .runResults.message '
+      #            topic: "RPJ Workflow"
+    end: true
+  - name: NotifyFailureBackstage
+    type: operation
+    actions:
+      - name: printSystemOut
+        functionRef:
+          refName: systemOut
+          arguments:
+            message: '"RPJ run failed with results for launch " + .launchId + ": " + (.runResults|tostring)'
+      #    - name: createNotification
+      #      functionRef:
+      #        refName: createNotification
+      #        arguments:
+      #          recipients:
+      #            type: "entity"
+      #            entityRef: .recipients
+      #          payload:
+      #            title: "RPJ run failed"
+      #            description: '"RPJ run failed for launch " + .launchId + ". Message: " + .runResults.message '
+      #            topic: "RPJ Workflow"
+    end: true
