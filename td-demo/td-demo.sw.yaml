@@ -1,0 +1,294 @@
+specVersion: "0.8"
+id: td-demo
+version: 0.0.1
+name: TD Demo
+description: Workflow to launch TD demo
+annotations:
+  - "workflow-type/infrastructure"
+dataInputSchema: schemas/td-demo-input-schema.json
+start: LaunchJob
+extensions:
+  - extensionid: workflow-uri-definitions
+    definitions:
+      notifications: "https://raw.githubusercontent.com/parodos-dev/serverless-workflows/main/shared/specs/notifications-openapi.yaml"
+functions:
+  - name: launchJob
+    operation: specs/aap-openapi.yaml#launchJob
+  - name: getJob
+    operation: specs/aap-openapi.yaml#getJob
+  - name: createAppsV1NamespacedDeployment
+    operation: specs/ocp-openapi.yaml#createAppsV1NamespacedDeployment
+  - name: readAppsV1NamespacedDeployment
+    operation: specs/ocp-openapi.yaml#readAppsV1NamespacedDeployment
+  - name: createCoreV1NamespacedService
+    operation: specs/ocp-openapi.yaml#createCoreV1NamespacedService
+  - name: createRouteOpenshiftIoV1NamespacedRoute
+    operation: specs/ocp-openapi.yaml#createRouteOpenshiftIoV1NamespacedRoute
+  - name: createNotification
+    operation: notifications#createNotification
+  - name: logInfo
+    type: custom
+    operation: "sysout:INFO"
+  - name: increaseDeploymentStatusRunningRetries
+    type: expression
+    operation: ".deploymentStatusRunningRetries=.deploymentStatusRunningRetries + 1"
+states:
+  - name: LaunchJob
+    type: operation
+    actions:
+      - functionRef:
+          refName: launchJob
+          arguments:
+            job_template_id: .jobTemplateId
+            limit: .limit
+            extra_vars:
+              rhel_inventory_group: .inventoryGroup
+        actionDataFilter:
+          toStateData: .launchedJob
+    stateDataFilter:
+      output: '.launchedJob += { outputUrl: $SECRET.app_url +  "/#/jobs/playbook/" + (.launchedJob.id|tostring) + "/output" }'
+    transition: GetJob
+  - name: GetJob
+    type: operation
+    actions:
+      - functionRef:
+          refName: logInfo
+          arguments:
+            message: "\"Sleeping before checking the aap job \\(.launchedJob)\""
+        sleep:
+          after: PT30S
+      - functionRef:
+          refName: getJob
+          arguments:
+            job_id: .launchedJob.id
+        actionDataFilter:
+          toStateData: .readJob
+    transition: IsJobDone
+  - name: IsJobDone
+    type: switch
+    dataConditions:
+      - condition: (.readJob.status == "successful")
+        transition:
+          nextState: Create Deployment
+      - condition: (.readJob.failed == true)
+        transition:
+          nextState: SendAAPJobFailureNotification
+    defaultCondition:
+      transition: GetJob
+
+  - name: Create Deployment
+    type: operation
+    actions:
+      - functionRef:
+          refName: createAppsV1NamespacedDeployment
+          arguments:
+            namespace: default
+            apiVersion: apps/v1
+            kind: Deployment
+            metadata:
+              annotations:
+              labels:
+                app: spring-petclinic
+                app.kubernetes.io/component: web
+                app.kubernetes.io/instance: spring-petclinic
+                app.kubernetes.io/name: spring-petclinic
+                app.kubernetes.io/part-of: spring-petclinic
+                app.openshift.io/runtime: java
+              name: spring-petclinic
+            spec:
+              replicas: 1
+              selector:
+                matchLabels:
+                  app: spring-petclinic
+              template:
+                metadata:
+                  labels:
+                    app: spring-petclinic
+                spec:
+                  containers:
+                    - name: spring-petclinic
+                      imagePullPolicy: Always
+                      image: quay.io/nmalvankar/spring-petclinic:latest
+                      livenessProbe:
+                        failureThreshold: 3
+                        httpGet:
+                          path: /
+                          port: 8080
+                          scheme: HTTP
+                        initialDelaySeconds: 45
+                        periodSeconds: 10
+                        successThreshold: 1
+                        timeoutSeconds: 1
+                      env:
+                        # TODO get those values from installed playbook
+                        - name: POSTGRES_URL
+                          value: .psqlURL
+                        - name: POSTGRES_USER
+                          value: .psqlUser
+                        - name: POSTGRES_PASS
+                          value: .psqlPassword
+                      ports:
+                        - containerPort: 8080
+                          protocol: TCP
+                        - containerPort: 8443
+                          protocol: TCP
+                        - containerPort: 8778
+                          protocol: TCP
+                      readinessProbe:
+                        failureThreshold: 3
+                        httpGet:
+                          path: /
+                          port: 8080
+                          scheme: HTTP
+                        initialDelaySeconds: 45
+                        periodSeconds: 10
+                        successThreshold: 1
+                        timeoutSeconds: 5
+        actionDataFilter:
+          toStateData: .createdDeployment
+    transition: InitDeploymentStatusRunningRetry
+  - name: InitDeploymentStatusRunningRetry
+    type: inject
+    data:
+      deploymentStatusRunningRetries: 0
+    transition: Poll Deployment
+  - name: Poll Deployment
+    type: operation
+    actions:
+      - name: get VM
+        actionDataFilter:
+          toStateData: .deployment
+        functionRef:
+          refName: readAppsV1NamespacedDeployment
+          arguments:
+            namespace: default
+            name: spring-petclinic
+        sleep:
+          before: PT10S
+    transition: increaseDeploymentStatusRunningRetriesRetry
+  - name: increaseDeploymentStatusRunningRetriesRetry
+    type: operation
+    actions:
+      - functionRef:
+          refName: increaseDeploymentStatusRunningRetries
+    transition: Check Deployment
+  - name: Check Deployment
+    type: switch
+    dataConditions:
+      - name: Deployment running
+        condition: .deployment.status.readyReplicas >= 1
+        transition: Create Service
+      - name: Deployment not running
+        condition: (.deploymentStatusRunningRetries > ($SECRET.deployment_check_running_max_retries | tonumber))
+        transition: Notify Deployment no replicas available
+    defaultCondition:
+      transition:
+        nextState: Poll Deployment
+  - name: Create Service
+    type: operation
+    actions:
+      - functionRef:
+          refName: createCoreV1NamespacedService
+          arguments:
+            namespace: default
+            apiVersion: v1
+            kind: Service
+            metadata:
+              labels:
+                app: spring-petclinic
+              name: spring-petclinic
+            spec:
+              ports:
+                - name: 8080-tcp
+                  port: 8080
+                  protocol: TCP
+                  targetPort: 8080
+                - name: 8443-tcp
+                  port: 8443
+                  protocol: TCP
+                  targetPort: 8443
+                - name: 8778-tcp
+                  port: 8778
+                  protocol: TCP
+                  targetPort: 8778
+              selector:
+                app: spring-petclinic
+              sessionAffinity: None
+              type: ClusterIP
+        actionDataFilter:
+          toStateData: .createdService
+    transition: Create Route
+  - name: Create Route
+    type: operation
+    actions:
+      - functionRef:
+          refName: createRouteOpenshiftIoV1NamespacedRoute
+          arguments:
+            namespace: default
+            apiVersion: route.openshift.io/v1
+            kind: Route
+            metadata:
+              labels:
+                app: spring-petclinic
+              name: spring-petclinic
+            spec:
+              port:
+                targetPort: 8080-tcp
+              to:
+                kind: Service
+                name: spring-petclinic
+                weight: 100
+              tls:
+                termination: edge
+                insecureEdgeTerminationPolicy: Redirect
+              wildcardPolicy: None
+        actionDataFilter:
+          toStateData: .createdRoute
+    transition: SendSuccessNotification
+  - name: SendAAPJobFailureNotification
+    type: operation
+    actions:
+      - functionRef:
+          refName: createNotification
+          arguments:
+            recipients:
+              type: "entity"
+              entityRef: .recipients
+            payload:
+              title: '"TD Demo workflow " + $WORKFLOW.instanceId + " failed on AAP Job." '
+              description: '"TD Demo workflow id: " + $WORKFLOW.instanceId + " for job template id: " + (.jobTemplateId|tostring) + " failed."'
+              topic: "TD Demo"
+              link: ".launchedJob.outputUrl"
+              severity: "high"
+    end: true
+  - name: Notify Deployment no replicas available
+    type: operation
+    actions:
+      - functionRef:
+          refName: createNotification
+          arguments:
+            recipients:
+              type: "entity"
+              entityRef: .recipients
+            payload:
+              title: '"TD Demo workflow " + $WORKFLOW.instanceId + " failed on Deployment creation." '
+              description: '"TD Demo workflow id: " + $WORKFLOW.instanceId + " failed to create the Deployment: it has no available replicas after " + ($SECRET.deployment_check_running_max_retries | tonumber) +" retries: " + .deployment'
+              topic: "TD Demo"
+              severity: "high"
+    end: true
+  - name: SendSuccessNotification
+    type: operation
+    actions:
+      - functionRef:
+          refName: createNotification
+          arguments:
+            recipients:
+              type: "entity"
+              entityRef: .recipients
+            payload:
+              title: '"TD Demo workflow " + $WORKFLOW.instanceId + " success." '
+              description: '"TD Demo workflow id: " + $WORKFLOW.instanceId + " for job template id: " + (.jobTemplateId|tostring) + " succeeded. Deployment is in ready state."'
+              topic: "TD Demo"
+              link: ".launchedJob.outputUrl"
+              severity: "normal"
+    end: true

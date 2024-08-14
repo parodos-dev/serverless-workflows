@@ -1,0 +1,104 @@
+openapi: 3.0.3
+info:
+  title: The AAP Rest Api
+  version: v2
+servers:
+  - url: https://your-app-platform.io/
+paths:
+  /api/v2/job_templates/{job_template_id}/launch/:
+    post:
+      description: Launch a job from a template id
+      operationId: launchJob
+      parameters:
+        - name: job_template_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LaunchJobRequest'
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LaunchJobResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedError'
+      security:
+        - basicAuth: []
+  /api/v2/jobs/{job_id}/:
+    get:
+      description: Retrieve a job from a job id
+      operationId: getJob
+      parameters:
+        - name: job_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetJobResponse'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedError'
+      security:
+        - basicAuth: []
+components:
+  schemas:
+    LaunchJobRequest:
+      type: object
+      properties:
+        limit:
+          type: string
+        extra_vars:
+          type: object
+          properties:
+            rhel_inventory_group:
+              type: string
+      additionalProperties: false
+    LaunchJobResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+        failed:
+          type: boolean
+        status:
+          type: string
+      additionalProperties: false
+    GetJobResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+        failed:
+          type: boolean
+        status:
+          type: string
+      additionalProperties: false
+    UnauthorizedError:
+      type: object
+      properties:
+        detail:
+          type: string
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
