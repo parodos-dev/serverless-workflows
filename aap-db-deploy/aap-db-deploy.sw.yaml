@@ -1,11 +1,11 @@
 specVersion: "0.8"
-id: td-demo
+id: aap-db-deploy
 version: 0.0.1
-name: TD Demo
-description: Workflow to launch TD demo
+name: aap-db-deploy
+description: Workflow to launch AAP DB Deploy
 annotations:
   - "workflow-type/infrastructure"
-dataInputSchema: schemas/td-demo-input-schema.json
+dataInputSchema: schemas/aap-db-deploy-input-schema.json
 start: LaunchJob
 extensions:
   - extensionid: workflow-uri-definitions
@@ -39,7 +39,7 @@ states:
       - functionRef:
           refName: launchJob
           arguments:
-            job_template_id: .jobTemplateId
+            job_template_id: 9
             limit: .limit
             extra_vars:
               rhel_inventory_group: .inventoryGroup
@@ -124,9 +124,9 @@ states:
                         - name: POSTGRES_URL
                           value: .psqlURL
                         - name: POSTGRES_USER
-                          value: .psqlUser
+                          value: "vincent"
                         - name: POSTGRES_PASS
-                          value: .psqlPassword
+                          value: "vincent"
                       ports:
                         - containerPort: 8080
                           protocol: TCP
@@ -255,9 +255,9 @@ states:
               type: "entity"
               entityRef: .recipients
             payload:
-              title: '"TD Demo workflow " + $WORKFLOW.instanceId + " failed on AAP Job." '
-              description: '"TD Demo workflow id: " + $WORKFLOW.instanceId + " for job template id: " + (.jobTemplateId|tostring) + " failed."'
-              topic: "TD Demo"
+              title: '"AAP DB Deploy workflow " + $WORKFLOW.instanceId + " failed on AAP Job." '
+              description: '"AAP DB Deploy workflow id: " + $WORKFLOW.instanceId + " for job template id: 9 failed."'
+              topic: "AAP DB Deploy"
               link: ".launchedJob.outputUrl"
               severity: "high"
     end: true
@@ -271,9 +271,9 @@ states:
               type: "entity"
               entityRef: .recipients
             payload:
-              title: '"TD Demo workflow " + $WORKFLOW.instanceId + " failed on Deployment creation." '
-              description: '"TD Demo workflow id: " + $WORKFLOW.instanceId + " failed to create the Deployment: it has no available replicas after " + ($SECRET.deployment_check_running_max_retries | tonumber) +" retries: " + .deployment'
-              topic: "TD Demo"
+              title: '"AAP DB Deploy workflow " + $WORKFLOW.instanceId + " failed on Deployment creation." '
+              description: '"AAP DB Deploy workflow id: " + $WORKFLOW.instanceId + " failed to create the Deployment: it has no available replicas after " + ($SECRET.deployment_check_running_max_retries | tonumber) +" retries: " + .deployment'
+              topic: "AAP DB Deploy"
               severity: "high"
     end: true
   - name: SendSuccessNotification
@@ -286,9 +286,9 @@ states:
               type: "entity"
               entityRef: .recipients
             payload:
-              title: '"TD Demo workflow " + $WORKFLOW.instanceId + " success." '
-              description: '"TD Demo workflow id: " + $WORKFLOW.instanceId + " for job template id: " + (.jobTemplateId|tostring) + " succeeded. Deployment is in ready state."'
-              topic: "TD Demo"
-              link: ".launchedJob.outputUrl"
+              title: '"AAP DB Deploy workflow " + $WORKFLOW.instanceId + " success." '
+              description: '"AAP DB Deploy workflow id: " + $WORKFLOW.instanceId + " for job template id: 9 succeeded. Deployment is in ready state."'
+              topic: "AAP DB Deploy"
+              link: '"https://" + .createdRoute.status.ingress[0].host'
               severity: "normal"
     end: true

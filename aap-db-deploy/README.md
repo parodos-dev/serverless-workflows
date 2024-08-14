@@ -1,4 +1,4 @@
-# AAP DB Deploy
+# aap-db-deploy
 This workflow launches an Ansible Automation Platform (AAP) job and then create Deployment, Service and Route on a remote OpenShift Cluster.
 Notifications are sent to notify for success or failure upon completion.
 The following two (2) inputs are required:
@@ -6,7 +6,7 @@ The following two (2) inputs are required:
 - Inventory group
 
 ## Workflow diagram
-![AAP DB Deploy workflow diagram](https://github.com/parodos-dev/serverless-workflow/blob/main/td-demo/td-demo.svg?raw=true)
+![aap-db-deploy workflow diagram](https://github.com/parodos-dev/serverless-workflow/blob/main/aap-db-deploy/aap-db-deploy.svg?raw=true)
 
 ## Prerequisites
 * A running instance of AAP with admin credentials. 
