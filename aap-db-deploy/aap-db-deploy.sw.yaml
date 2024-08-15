@@ -86,7 +86,7 @@ states:
               entityRef: .recipients
             payload:
               title: '"AAP DB Deploy workflow " + $WORKFLOW.instanceId + " completed AAP Job to create DB." '
-              description: '"AAP DB Deploy workflow id: " + $WORKFLOW.instanceId + " for job template id: 9 completed."'
+              description: '"AAP DB Deploy workflow ID: " + $WORKFLOW.instanceId + " for job template id: 9 completed."'
               topic: "AAP DB Deploy"
               link: ".launchedJob.outputUrl"
               severity: "normal"
@@ -271,7 +271,7 @@ states:
               entityRef: .recipients
             payload:
               title: '"AAP DB Deploy workflow " + $WORKFLOW.instanceId + " failed on AAP Job." '
-              description: '"AAP DB Deploy workflow id: " + $WORKFLOW.instanceId + " for job template id: 9 failed."'
+              description: '"AAP DB Deploy workflow ID: " + $WORKFLOW.instanceId + " for job template id: 9 failed."'
               topic: "AAP DB Deploy"
               link: ".launchedJob.outputUrl"
               severity: "high"
@@ -287,7 +287,7 @@ states:
               entityRef: .recipients
             payload:
               title: '"AAP DB Deploy workflow " + $WORKFLOW.instanceId + " failed on Deployment creation." '
-              description: '"AAP DB Deploy workflow id: " + $WORKFLOW.instanceId + " failed to create the Deployment: it has no available replicas after " + ($SECRET.deployment_check_running_max_retries | tonumber) +" retries: " + .deployment'
+              description: '"AAP DB Deploy workflow ID: " + $WORKFLOW.instanceId + " failed to create the Deployment: " + .deployment.metadata.name '
               topic: "AAP DB Deploy"
               severity: "high"
     end: true
@@ -302,7 +302,7 @@ states:
               entityRef: .recipients
             payload:
               title: '"AAP DB Deploy workflow " + $WORKFLOW.instanceId + " success." '
-              description: '"AAP DB Deploy workflow id: " + $WORKFLOW.instanceId + " for job template id: 9 succeeded. Deployment is in ready state."'
+              description: '"AAP DB Deploy workflow ID: " + $WORKFLOW.instanceId + " for job template id: 9 succeeded. Deployment is in ready state."'
               topic: "AAP DB Deploy"
               link: '"https://" + .createdRoute.status.ingress[0].host'
               severity: "normal"
