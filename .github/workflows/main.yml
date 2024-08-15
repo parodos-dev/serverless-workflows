@@ -31,7 +31,6 @@ jobs:
 
     - name: Log in to Red Hat Registry
       uses: redhat-actions/podman-login@v1
-      if: ${{ ! inputs.it_mode }}
       with:
         registry: registry.redhat.io
         username: ${{ secrets.REGISTRY_REDHAT_IO_USER }}
@@ -48,22 +47,6 @@ jobs:
           REGISTRY_USERNAME=${{ secrets.NEW_QUAY_USERNAME }} \
           REGISTRY_PASSWORD=${{ secrets.NEW_QUAY_PASSWORD }} \
           build-image
-
-    - name: Buildah Action for testing
-      id: build-dev-image
-      uses: redhat-actions/buildah-build@v2
-      if: ${{ inputs.it_mode }}
-      with:
-        image: serverless-workflow-${{ inputs.workflow_id }}
-        tags: latest ${{ github.sha }}
-        extra-args: --ulimit nofile=4096:4096
-        containerfiles: |
-          pipeline/workflow-builder-dev.Dockerfile
-        build-args: |
-          WF_RESOURCES=${{ inputs.workflow_id }}
-          FLOW_NAME=${{ inputs.workflow_id }}
-          FLOW_SUMMARY=${{ inputs.workflow_id }}
-          FLOW_DESCRIPTION=${{ inputs.workflow_id }}
 
     - name: Buildah push to OCI Arcive
       if: ${{ inputs.it_mode }}

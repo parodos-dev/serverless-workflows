@@ -94,8 +94,6 @@ else
 DOCKERFILE ?= src/main/docker/Dockerfile.jvm
 endif
 
-DEV_DOCKERFILE ?= pipeline/workflow-builder-dev.Dockerfile
-
 ifeq ($(IS_WORKFLOW),true)
 IMAGE_NAME = $(REGISTRY)/$(REGISTRY_REPO)/$(IMAGE_PREFIX)-$(WORKFLOW_ID)
 else
@@ -145,9 +143,6 @@ else
 		$(BUILD_ARGS) $(EXTRA_ARGS) \
 		--tag ${IMAGE_NAME}:${IMAGE_TAG} --tag ${IMAGE_NAME}:latest .
 endif
-
-build-dev-image: DOCKERFILE=$(DEV_DOCKERFILE)
-build-dev-image: build-image
 
 # Target: push-image
 # Description: Pushes the workflow containerized image to the configured REGISTRY.
