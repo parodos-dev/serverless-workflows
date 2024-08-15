@@ -113,7 +113,7 @@ states:
                         failureThreshold: 3
                         httpGet:
                           path: /
-                          port: 8080
+                          port: webcache
                           scheme: HTTP
                         initialDelaySeconds: 45
                         periodSeconds: 10
@@ -138,7 +138,7 @@ states:
                         failureThreshold: 3
                         httpGet:
                           path: /
-                          port: 8080
+                          port: webcache
                           scheme: HTTP
                         initialDelaySeconds: 45
                         periodSeconds: 10

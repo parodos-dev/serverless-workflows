@@ -9,11 +9,11 @@
     },
     "inventoryGroup": {
       "type": "string",
-      "description": "Inventory group"
+      "description": "A integer value for the foreign key of an inventory to use in this job run"
     },
     "limit": {
       "type": "string",
-      "description": "..."
+      "description": "A string that represents a comma-separated list of hosts or groups to operate on"
     }
   },
   "required": [
