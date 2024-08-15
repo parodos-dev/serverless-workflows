@@ -11,7 +11,7 @@ FROM ${BUILDER_IMAGE:-registry.redhat.io/openshift-serverless-1/logic-swf-builde
 
 # variables that can be overridden by the builder
 # To add a Quarkus extension to your application
-ARG QUARKUS_EXTENSIONS="QUARKUS_EXTENSIONS=org.kie:kogito-addons-quarkus-jobs-knative-eventing:9.100.0.redhat-00004,org.kie:kie-addons-quarkus-persistence-jdbc:9.100.0.redhat-00004,io.quarkus:quarkus-jdbc-postgresql:3.8.4.redhat-00002,io.quarkus:quarkus-agroal:3.8.4.redhat-00002"
+ARG QUARKUS_EXTENSIONS=org.kie:kogito-addons-quarkus-jobs-knative-eventing:9.100.0.redhat-00004,org.kie:kie-addons-quarkus-persistence-jdbc:9.100.0.redhat-00004,io.quarkus:quarkus-jdbc-postgresql:3.8.4.redhat-00002,io.quarkus:quarkus-agroal:3.8.4.redhat-00002
 
 # Args to pass to the Quarkus CLI
 # add extension command
