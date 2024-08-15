@@ -74,8 +74,23 @@ states:
         transition:
           nextState: SendAAPJobFailureNotification
     defaultCondition:
-      transition: GetJob
-
+      transition: SendAAPJobCompletedNotification
+  - name: SendAAPJobCompletedNotification
+    type: operation
+    actions:
+      - functionRef:
+          refName: createNotification
+          arguments:
+            recipients:
+              type: "entity"
+              entityRef: .recipients
+            payload:
+              title: '"AAP DB Deploy workflow " + $WORKFLOW.instanceId + " completed AAP Job to create DB." '
+              description: '"AAP DB Deploy workflow id: " + $WORKFLOW.instanceId + " for job template id: 9 completed."'
+              topic: "AAP DB Deploy"
+              link: ".launchedJob.outputUrl"
+              severity: "normal"
+    transition: Create Deployment
   - name: Create Deployment
     type: operation
     actions:
