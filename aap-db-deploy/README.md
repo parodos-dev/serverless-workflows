@@ -6,7 +6,7 @@ The following two (2) inputs are required:
 - Inventory group
 
 ## Workflow diagram
-![aap-db-deploy workflow diagram](https://github.com/parodos-dev/serverless-workflow/blob/main/aap-db-deploy/aap-db-deploy.svg?raw=true)
+![aap-db-deploy workflow diagram](https://github.com/parodos-dev/serverless-workflows/blob/feat/aap-db-deploy/aap-db-deploy/aap-db-deploy.svg?raw=true)
 
 ## Prerequisites
 * A running instance of AAP with admin credentials. 
