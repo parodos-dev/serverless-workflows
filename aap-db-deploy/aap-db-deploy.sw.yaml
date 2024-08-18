@@ -6,13 +6,15 @@ description: Workflow to launch AAP DB Deploy
 annotations:
   - "workflow-type/infrastructure"
 dataInputSchema: schemas/aap-db-deploy-input-schema.json
-start: LaunchJob
+start: LaunchSoftwareTemplate
 extensions:
   - extensionid: workflow-uri-definitions
     definitions:
       notifications: "https://raw.githubusercontent.com/parodos-dev/serverless-workflows/main/shared/specs/notifications-openapi.yaml"
 functions:
-  - name: launchJob
+  - name: LaunchSoftwareTemplate
+    operation: spec/scaffolder-openapi.yaml#createTask
+  - name: LaunchAAPJob
     operation: specs/aap-openapi.yaml#launchJob
   - name: getJob
     operation: specs/aap-openapi.yaml#getJob
@@ -33,11 +35,42 @@ functions:
     type: expression
     operation: ".deploymentStatusRunningRetries=.deploymentStatusRunningRetries + 1"
 states:
-  - name: LaunchJob
+  - name: LaunchSoftwareTemplate
     type: operation
     actions:
       - functionRef:
-          refName: launchJob
+          refName: LaunchSoftwareTemplate
+          arguments:
+            templateRef: template:default/my-spring-petclinic-template
+            values:
+              port: 8080
+              system: system:default/janus-orchestrator
+              orgName: test-workflows
+              repoName: petclinic-take2
+              description: petclinic-take2 for automating the process
+              owner: user:default/masayag
+              groupId: org.springframework.samples
+              artifactId: spring-petclinic
+              javaPackageName: org/springframework/samples/petclinic
+              ci: ./github-actions/
+              imageRepository: quay.io
+              imageNamespace: "********************"
+              quayUserName: "*******"
+              quayPassword: "********"
+            secrets:
+              imageNamespace: orchestrator-testing
+              quayUserName: masayag
+              quayPassword: Pf7#9Wds
+        actionDataFilter:
+          toStateData: .launchedJob
+    stateDataFilter:
+      output: '.launchedJob
+
+  - name: LaunchAAPJob
+    type: operation
+    actions:
+      - functionRef:
+          refName: LaunchAAPJob
           arguments:
             job_template_id: 9
             limit: .limit
