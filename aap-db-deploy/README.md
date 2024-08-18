@@ -1,27 +1,53 @@
 # aap-db-deploy
-This workflow launches an Ansible Automation Platform (AAP) job and then create Deployment, Service and Route on a remote OpenShift Cluster.
-Notifications are sent to notify for success or failure upon completion.
-The following two (2) inputs are required:
-- Job template Id
-- Inventory group
 
-## Workflow diagram
-![aap-db-deploy workflow diagram](https://github.com/parodos-dev/serverless-workflows/blob/feat/aap-db-deploy/aap-db-deploy/aap-db-deploy.svg?raw=true)
+This project uses Quarkus, the Supersonic Subatomic Java Framework.
 
-## Prerequisites
-* A running instance of AAP with admin credentials. 
-* A running instance of Backstage notification plugin.
-* An OCP cluster with a ServiceAcount (SA) having permission to create and get Deployment, Service and Route.
+If you want to learn more about Quarkus, please visit its website: https://quarkus.io/ .
 
-## Workflow application configuration
-Application properties can be initialized from environment variables before running the application:
+## Running the application in dev mode
 
-| Environment variable  | Description | Mandatory |
-|-----------------------|-------------|-----------|
-| `AAP_URL`       | The AAP server URL | ✅ |
-| `AAP_USERNAME`      | The AAP server password | ✅ |
-| `AAP_PASSWORD`      | The AAP server password | ✅ |
-| `OCP_API_URL`      | The OpenShift API URL | ✅ |
-| `OCP_API_TOKEN`      | The OCP token to perform the creation of Deployment, Service and Route | ✅ |
+You can run your application in dev mode that enables live coding using:
+```shell script
+./mvnw compile quarkus:dev
+```
 
+> **_NOTE:_**  Quarkus now ships with a Dev UI, which is available in dev mode only at http://localhost:8080/q/dev/.
 
+## Packaging and running the application
+
+The application can be packaged using:
+```shell script
+./mvnw package
+```
+It produces the `quarkus-run.jar` file in the `target/quarkus-app/` directory.
+Be aware that it’s not an _über-jar_ as the dependencies are copied into the `target/quarkus-app/lib/` directory.
+
+The application is now runnable using `java -jar target/quarkus-app/quarkus-run.jar`.
+
+If you want to build an _über-jar_, execute the following command:
+```shell script
+./mvnw package -Dquarkus.package.type=uber-jar
+```
+
+The application, packaged as an _über-jar_, is now runnable using `java -jar target/*-runner.jar`.
+
+## Creating a native executable
+
+You can create a native executable using: 
+```shell script
+./mvnw package -Dnative
+```
+
+Or, if you don't have GraalVM installed, you can run the native executable build in a container using: 
+```shell script
+./mvnw package -Dnative -Dquarkus.native.container-build=true
+```
+
+You can then execute your native executable with: `./target/aap-db-deploy-1.0.0-SNAPSHOT-runner`
+
+If you want to learn more about building native executables, please consult https://quarkus.io/guides/maven-tooling.
+
+## Related Guides
+
+- Kubernetes ([guide](https://quarkus.io/guides/kubernetes)): Generate Kubernetes resources from annotations
+- SmallRye Health ([guide](https://quarkus.io/guides/smallrye-health)): Monitor service health

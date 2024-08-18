@@ -53,7 +53,10 @@ def extract_schemas_from_dict(schema_dict, openapi_spec, collected_schemas, visi
 
 def extract_parameters_from_spec(spec_ref, openapi_spec, collected_schemas, visited_refs):
     """Extract schemas referenced in parameters and add to collected_schemas."""
-    parameter = openapi_spec['parameters'].get(spec_ref)
+    #print(f"=====> {openapi_spec['parameters']}")
+    parameter = openapi_spec['parameters']
+    if parameter is not None:
+        parameter = openapi_spec['parameters'].get(spec_ref)
     if parameter:
         if 'schema' in parameter and '$ref' in parameter['schema']:
             schema_ref = parameter['schema']['$ref']

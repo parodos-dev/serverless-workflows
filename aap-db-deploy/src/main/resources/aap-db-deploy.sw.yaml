@@ -13,10 +13,12 @@ extensions:
       notifications: "https://raw.githubusercontent.com/parodos-dev/serverless-workflows/main/shared/specs/notifications-openapi.yaml"
 functions:
   - name: LaunchSoftwareTemplate
-    operation: spec/scaffolder-openapi.yaml#createTask
+    operation: specs/scaffolder-openapi.yaml#createTask
+  - name: GetSoftwareTemplateTask
+    operation: "specs/scaffolder-openapi.yaml#getTaskDetails"
   - name: LaunchAAPJob
     operation: specs/aap-openapi.yaml#launchJob
-  - name: getJob
+  - name: GetAAPJob
     operation: specs/aap-openapi.yaml#getJob
   - name: createAppsV1NamespacedDeployment
     operation: specs/ocp-openapi.yaml#createAppsV1NamespacedDeployment
@@ -62,10 +64,71 @@ states:
               quayUserName: masayag
               quayPassword: Pf7#9Wds
         actionDataFilter:
-          toStateData: .launchedJob
+          toStateData: .launchedTemplate
     stateDataFilter:
-      output: '.launchedJob
-
+      output: ".launchedTemplate.id"
+    transition: GetSoftwareTemplate
+  - name: GetSoftwareTemplate
+    type: operation
+    actions:
+      - functionRef:
+          refName: logInfo
+          arguments:
+            message: "\"Sleeping before checking the software template \\(.launchedTemplate)\""
+        sleep:
+          after: PT10S
+      - functionRef:
+          refName: GetSoftwareTemplateTask
+          arguments:
+            taskId: .launchedTemplate.id
+        actionDataFilter:
+          toStateData: .readTask
+    transition: IsTaskDone
+  - name: IsTaskDone
+    type: switch
+    dataConditions:
+      - condition: (.readTask.status == "processing")
+        transition:
+          nextState: GetSoftwareTemplate
+      - condition: (.readTask.status == "completed")
+        transition:
+          nextState: SendTaskCompletedNotification
+      - condition: (.readTask.status == "failed")
+        transition:
+          nextState: SendTaskFailureNotification
+    defaultCondition:
+      transition: GetSoftwareTemplate
+  - name: SendTaskCompletedNotification
+    type: operation
+    actions:
+      - functionRef:
+          refName: createNotification
+          arguments:
+            recipients:
+              type: "entity"
+              entityRef: .recipients
+            payload:
+              title: '"AAP DB Deploy workflow " + $WORKFLOW.instanceId + " completed software template creation." + .templateName '
+              description: '"AAP DB Deploy workflow " + $WORKFLOW.instanceId + " completed software template creation." + .templateName'
+              topic: "AAP DB Deploy"
+              link: ".launchedJob.outputUrl"
+              severity: "normal"
+    transition: LaunchAAPJob
+  - name: SendTaskFailureNotification
+    type: operation
+    actions:
+      - functionRef:
+          refName: createNotification
+          arguments:
+            recipients:
+              type: "entity"
+              entityRef: .recipients
+            payload:
+              title: '"AAP DB Deploy workflow " + $WORKFLOW.instanceId + " failed on software template creation." '
+              description: '"AAP DB Deploy workflow ID: " + $WORKFLOW.instanceId + " for software template " + .templateName '
+              topic: "AAP DB Deploy"
+              severity: "high"
+    end: true
   - name: LaunchAAPJob
     type: operation
     actions:
@@ -80,8 +143,8 @@ states:
           toStateData: .launchedJob
     stateDataFilter:
       output: '.launchedJob += { outputUrl: $SECRET.app_url +  "/#/jobs/playbook/" + (.launchedJob.id|tostring) + "/output" }'
-    transition: GetJob
-  - name: GetJob
+    transition: GetAAPJob
+  - name: GetAAPJob
     type: operation
     actions:
       - functionRef:
@@ -91,7 +154,7 @@ states:
         sleep:
           after: PT30S
       - functionRef:
-          refName: getJob
+          refName: GetAAPJob
           arguments:
             job_id: .launchedJob.id
         actionDataFilter:
@@ -102,7 +165,7 @@ states:
     dataConditions:
       - condition: (.readJob.status == "successful")
         transition:
-          nextState: Create Deployment
+          nextState: SendAAPJobCompletedNotification
       - condition: (.readJob.failed == true)
         transition:
           nextState: SendAAPJobFailureNotification
@@ -124,6 +187,7 @@ states:
               link: ".launchedJob.outputUrl"
               severity: "normal"
     transition: Create Deployment
+
   - name: Create Deployment
     type: operation
     actions:
