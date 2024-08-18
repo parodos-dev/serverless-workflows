@@ -1,0 +1,256 @@
+openapi: 3.0.3
+info:
+  version: 1.1.4
+  title: GitHub v3 REST API
+  description: GitHub's v3 REST API.
+  license:
+    name: MIT
+    url: https://spdx.org/licenses/MIT
+  termsOfService: https://docs.github.com/articles/github-terms-of-service
+  contact:
+    name: Support
+    url: https://support.github.com/contact?tags=dotcom-rest-api
+  x-github-plan: api.github.com
+paths:
+  /repos/{owner}/{repo}/actions/workflows:
+    get:
+      summary: List repository workflows
+      description: 'Lists the workflows in a repository.
+
+
+        Anyone with read access to the repository can use this endpoint.
+
+
+        OAuth app tokens and personal access tokens (classic) need the `repo` scope
+        to use this endpoint with a private repository.'
+      tags:
+      - actions
+      operationId: actions/list-repo-workflows
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/actions/workflows#list-repository-workflows
+      parameters:
+      - $ref: '#/components/parameters/owner'
+      - $ref: '#/components/parameters/repo'
+      - $ref: '#/components/parameters/per-page'
+      - $ref: '#/components/parameters/page'
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - total_count
+                - workflows
+                properties:
+                  total_count:
+                    type: integer
+                  workflows:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/workflow'
+              examples:
+                default:
+                  $ref: '#/components/examples/workflow-paginated'
+          headers:
+            Link:
+              $ref: '#/components/headers/link'
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        category: actions
+        subcategory: workflows
+  /repos/{owner}/{repo}/actions/workflows/{workflow_id}/runs:
+    get:
+      summary: List workflow runs for a workflow
+      description: 'List all workflow runs for a workflow. You can replace `workflow_id`
+        with the workflow file name. For example, you could use `main.yaml`. You can
+        use parameters to narrow the list of results. For more information about using
+        parameters, see [Parameters](https://docs.github.com/rest/guides/getting-started-with-the-rest-api#parameters).
+
+
+        Anyone with read access to the repository can use this endpoint
+
+
+        OAuth app tokens and personal access tokens (classic) need the `repo` scope
+        to use this endpoint with a private repository.'
+      tags:
+      - actions
+      operationId: actions/list-workflow-runs
+      externalDocs:
+        description: API method documentation
+        url: https://docs.github.com/rest/actions/workflow-runs#list-workflow-runs-for-a-workflow
+      parameters:
+      - $ref: '#/components/parameters/owner'
+      - $ref: '#/components/parameters/repo'
+      - $ref: '#/components/parameters/workflow-id'
+      - $ref: '#/components/parameters/actor'
+      - $ref: '#/components/parameters/workflow-run-branch'
+      - $ref: '#/components/parameters/event'
+      - $ref: '#/components/parameters/workflow-run-status'
+      - $ref: '#/components/parameters/per-page'
+      - $ref: '#/components/parameters/page'
+      - $ref: '#/components/parameters/created'
+      - $ref: '#/components/parameters/exclude-pull-requests'
+      - $ref: '#/components/parameters/workflow-run-check-suite-id'
+      - $ref: '#/components/parameters/workflow-run-head-sha'
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - total_count
+                - workflow_runs
+                properties:
+                  total_count:
+                    type: integer
+                  workflow_runs:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/workflow-run'
+              examples:
+                default:
+                  $ref: '#/components/examples/workflow-run-paginated'
+          headers:
+            Link:
+              $ref: '#/components/headers/link'
+      x-github:
+        githubCloudOnly: false
+        enabledForGitHubApps: true
+        category: actions
+        subcategory: workflow-runs
+components:
+  schemas: {}
+  parameters:
+    owner:
+      name: owner
+      description: The account owner of the repository. The name is not case sensitive.
+      in: path
+      required: true
+      schema:
+        type: string
+    repo:
+      name: repo
+      description: The name of the repository without the `.git` extension. The name
+        is not case sensitive.
+      in: path
+      required: true
+      schema:
+        type: string
+    per-page:
+      name: per_page
+      description: The number of results per page (max 100). For more information,
+        see "[Using pagination in the REST API](https://docs.github.com/rest/using-the-rest-api/using-pagination-in-the-rest-api)."
+      in: query
+      schema:
+        type: integer
+        default: 30
+    page:
+      name: page
+      description: The page number of the results to fetch. For more information,
+        see "[Using pagination in the REST API](https://docs.github.com/rest/using-the-rest-api/using-pagination-in-the-rest-api)."
+      in: query
+      schema:
+        type: integer
+        default: 1
+    workflow-id:
+      name: workflow_id
+      in: path
+      description: The ID of the workflow. You can also pass the workflow file name
+        as a string.
+      required: true
+      schema:
+        oneOf:
+        - type: integer
+        - type: string
+    actor:
+      name: actor
+      description: Returns someone's workflow runs. Use the login for the user who
+        created the `push` associated with the check suite or workflow run.
+      in: query
+      required: false
+      schema:
+        type: string
+    workflow-run-branch:
+      name: branch
+      description: Returns workflow runs associated with a branch. Use the name of
+        the branch of the `push`.
+      in: query
+      required: false
+      schema:
+        type: string
+    event:
+      name: event
+      description: Returns workflow run triggered by the event you specify. For example,
+        `push`, `pull_request` or `issue`. For more information, see "[Events that
+        trigger workflows](https://docs.github.com/actions/automating-your-workflow-with-github-actions/events-that-trigger-workflows)."
+      in: query
+      required: false
+      schema:
+        type: string
+    workflow-run-status:
+      name: status
+      description: Returns workflow runs with the check run `status` or `conclusion`
+        that you specify. For example, a conclusion can be `success` or a status can
+        be `in_progress`. Only GitHub Actions can set a status of `waiting`, `pending`,
+        or `requested`.
+      in: query
+      required: false
+      schema:
+        type: string
+        enum:
+        - completed
+        - action_required
+        - cancelled
+        - failure
+        - neutral
+        - skipped
+        - stale
+        - success
+        - timed_out
+        - in_progress
+        - queued
+        - requested
+        - waiting
+        - pending
+    created:
+      name: created
+      description: Returns workflow runs created within the given date-time range.
+        For more information on the syntax, see "[Understanding the search syntax](https://docs.github.com/search-github/getting-started-with-searching-on-github/understanding-the-search-syntax#query-for-dates)."
+      in: query
+      required: false
+      schema:
+        type: string
+        format: date-time
+    exclude-pull-requests:
+      name: exclude_pull_requests
+      description: If `true` pull requests are omitted from the response (empty array).
+      in: query
+      required: false
+      schema:
+        type: boolean
+        default: false
+    workflow-run-check-suite-id:
+      name: check_suite_id
+      description: Returns workflow runs with the `check_suite_id` that you specify.
+      in: query
+      schema:
+        type: integer
+    workflow-run-head-sha:
+      name: head_sha
+      description: Only returns workflow runs that are associated with the specified
+        `head_sha`.
+      in: query
+      required: false
+      schema:
+        type: string
+  securitySchemes:
+    BearerToken:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

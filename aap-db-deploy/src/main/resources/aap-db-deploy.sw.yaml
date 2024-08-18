@@ -20,22 +20,24 @@ functions:
     operation: specs/aap-openapi.yaml#launchJob
   - name: GetAAPJob
     operation: specs/aap-openapi.yaml#getJob
-  - name: createAppsV1NamespacedDeployment
-    operation: specs/ocp-openapi.yaml#createAppsV1NamespacedDeployment
-  - name: readAppsV1NamespacedDeployment
-    operation: specs/ocp-openapi.yaml#readAppsV1NamespacedDeployment
-  - name: createCoreV1NamespacedService
-    operation: specs/ocp-openapi.yaml#createCoreV1NamespacedService
-  - name: createRouteOpenshiftIoV1NamespacedRoute
-    operation: specs/ocp-openapi.yaml#createRouteOpenshiftIoV1NamespacedRoute
+  - name: GetActionWorkflows
+    operation: specs/github-openapi.yaml#actions/list-repo-workflows
+  - name: GetActionWorkflowRuns
+    operation: specs/github-openapi.yaml#actions/list-workflow-runs
+  - name: createArgoprojIoV1alpha1NamespacedApplication
+    operation: specs/argocd-openapi.yaml#createArgoprojIoV1alpha1NamespacedApplication
+  - name: readArgoprojIoV1alpha1NamespacedApplication
+    operation: specs/argocd-openapi.yaml#readArgoprojIoV1alpha1NamespacedApplication
+  - name: readRouteOpenshiftIoV1NamespacedRoute
+    operation: "specs/ocp-openapi.yaml#readRouteOpenshiftIoV1NamespacedRoute"
   - name: createNotification
     operation: notifications#createNotification
   - name: logInfo
     type: custom
     operation: "sysout:INFO"
-  - name: increaseDeploymentStatusRunningRetries
+  - name: increaseApplicationStatusSyncedRetries
     type: expression
-    operation: ".deploymentStatusRunningRetries=.deploymentStatusRunningRetries + 1"
+    operation: ".applicationStatusSyncedRetries=.applicationStatusSyncedRetries + 1"
 states:
   - name: LaunchSoftwareTemplate
     type: operation
@@ -62,7 +64,7 @@ states:
             secrets:
               imageNamespace: orchestrator-testing
               quayUserName: masayag
-              quayPassword: Pf7#9Wds
+              quayPassword:
         actionDataFilter:
           toStateData: .launchedTemplate
     stateDataFilter:
@@ -186,174 +188,163 @@ states:
               topic: "AAP DB Deploy"
               link: ".launchedJob.outputUrl"
               severity: "normal"
-    transition: Create Deployment
-
-  - name: Create Deployment
+    transition: GetActionWorkflows
+  - name: GetActionWorkflows
     type: operation
     actions:
       - functionRef:
-          refName: createAppsV1NamespacedDeployment
+          refName: GetActionWorkflows
           arguments:
-            namespace: default
-            apiVersion: apps/v1
-            kind: Deployment
-            metadata:
-              annotations:
-              labels:
-                app: spring-petclinic
-                app.kubernetes.io/component: web
-                app.kubernetes.io/instance: spring-petclinic
-                app.kubernetes.io/name: spring-petclinic
-                app.kubernetes.io/part-of: spring-petclinic
-                app.openshift.io/runtime: java
-              name: spring-petclinic
-            spec:
-              replicas: 1
-              selector:
-                matchLabels:
-                  app: spring-petclinic
-              template:
-                metadata:
-                  labels:
-                    app: spring-petclinic
-                spec:
-                  containers:
-                    - name: spring-petclinic
-                      imagePullPolicy: Always
-                      image: quay.io/nmalvankar/spring-petclinic:latest
-                      livenessProbe:
-                        failureThreshold: 3
-                        httpGet:
-                          path: /
-                          port: webcache
-                          scheme: HTTP
-                        initialDelaySeconds: 45
-                        periodSeconds: 10
-                        successThreshold: 1
-                        timeoutSeconds: 1
-                      env:
-                        # TODO get those values from installed playbook
-                        - name: POSTGRES_URL
-                          value: .psqlURL
-                        - name: POSTGRES_USER
-                          value: "vincent"
-                        - name: POSTGRES_PASS
-                          value: "vincent"
-                      ports:
-                        - containerPort: 8080
-                          protocol: TCP
-                        - containerPort: 8443
-                          protocol: TCP
-                        - containerPort: 8778
-                          protocol: TCP
-                      readinessProbe:
-                        failureThreshold: 3
-                        httpGet:
-                          path: /
-                          port: webcache
-                          scheme: HTTP
-                        initialDelaySeconds: 45
-                        periodSeconds: 10
-                        successThreshold: 1
-                        timeoutSeconds: 5
+            owner: .organization
+            repo: .repository
         actionDataFilter:
-          toStateData: .createdDeployment
-    transition: InitDeploymentStatusRunningRetry
-  - name: InitDeploymentStatusRunningRetry
+          toStateData: .actionWorkflows
+    transition: GetWorkflowID
+  - name: GetWorkflowID
     type: inject
     data:
-      deploymentStatusRunningRetries: 0
-    transition: Poll Deployment
-  - name: Poll Deployment
-    type: operation
-    actions:
-      - name: get VM
-        actionDataFilter:
-          toStateData: .deployment
-        functionRef:
-          refName: readAppsV1NamespacedDeployment
-          arguments:
-            namespace: default
-            name: spring-petclinic
-        sleep:
-          before: PT10S
-    transition: increaseDeploymentStatusRunningRetriesRetry
-  - name: increaseDeploymentStatusRunningRetriesRetry
+      githubWorkflowID: '.workflows[] | select(.name == "CI") | .id'
+    transition: GetActionWorkflowRuns
+  - name: GetActionWorkflowRuns
     type: operation
     actions:
       - functionRef:
-          refName: increaseDeploymentStatusRunningRetries
-    transition: Check Deployment
-  - name: Check Deployment
+          refName: logInfo
+          arguments:
+            message: "\"Sleeping before checking the CI action \\(.githubWorkflowID) in GitHub"
+        sleep:
+          after: PT30S
+      - functionRef:
+          refName: GetActionWorkflowRuns
+          arguments:
+            owner: .organization
+            repo: .repository
+            workflow_id: .githubWorkflowID
+        actionDataFilter:
+          toStateData: .actionWorkflowRuns
+    transition: IsGitHubActionDone
+  - name: IsGitHubActionDone
     type: switch
     dataConditions:
-      - name: Deployment running
-        condition: .deployment.status.readyReplicas >= 1
-        transition: Create Service
-      - name: Deployment not running
-        condition: (.deploymentStatusRunningRetries > ($SECRET.deployment_check_running_max_retries | tonumber))
-        transition: Notify Deployment no replicas available
+      - condition: (.actionWorkflowRuns.workflow_runs[0].status == "completed" and .actionWorkflowRuns.workflow_runs[0].conclusion == "success")
+        transition:
+          nextState: SendGithubActionCompletedNotification
+      - condition: (.actionWorkflowRuns.workflow_runs[0].status == "in_progress" or .actionWorkflowRuns.workflow_runs[0].status == "queued")
+        transition: GetActionWorkflowRuns
+      - condition: (.actionWorkflowRuns.workflow_runs[0].status == "completed" and .actionWorkflowRuns.workflow_runs[0].conclusion == "failure")
+        transition: SendGithubActionFailureNotification
+    defaultCondition:
+      transition: GetActionWorkflowRuns
+  - name: SendGithubActionFailureNotification
+    type: operation
+    actions:
+      - functionRef:
+          refName: createNotification
+          arguments:
+            recipients:
+              type: "entity"
+              entityRef: .recipients
+            payload:
+              title: '"AAP DB Deploy workflow " + $WORKFLOW.instanceId + " failed on GitHub CI workflow."'
+              description: '"AAP DB Deploy workflow ID: " + $WORKFLOW.instanceId + " failed on GitHub CI workflow."'
+              topic: "AAP DB Deploy"
+              link: ".actionWorkflowRuns.workflow_runs[0].html_url"
+              severity: "high"
+    end: true
+  - name: SendGithubActionCompletedNotification
+    type: operation
+    actions:
+      - functionRef:
+          refName: createNotification
+          arguments:
+            recipients:
+              type: "entity"
+              entityRef: .recipients
+            payload:
+              title: '"AAP DB Deploy workflow " + $WORKFLOW.instanceId + " completed GitHub CI workflow."'
+              description: '"AAP DB Deploy workflow ID: " + $WORKFLOW.instanceId + " successfully completed the GitHub CI workflow."'
+              topic: "AAP DB Deploy"
+              link: ".actionWorkflowRuns.workflow_runs[0].html_url"
+              severity: "normal"
+    transition: Create ArgoCD Application
+  - name: Create ArgoCD Application
+    type: operation
+    actions:
+      - functionRef:
+          refName: createArgoprojIoV1alpha1NamespacedApplication
+          arguments:
+            apiVersion: argoproj.io/v1alpha1
+            kind: Application
+            metadata:
+              name: .artifactId + "-dev"
+              namespace: .target_namespace
+              labels:
+                argocd/app-selector: rht-gitops.com/janus-argocd=.artifactId
+            spec:
+              destination:
+                namespace: .target_namespace
+                server: https://kubernetes.default.svc
+              project: janus
+              source:
+                directory:
+                  recurse: true
+                path: app
+                repoURL: https://github.com/test-workflows/petclinict-take1-gitops.git
+                targetRevision: main
+              syncPolicy:
+                syncOptions:
+                  - CreateNamespace=true
+                automated:
+                  prune: true
+                  selfHeal: true
+        actionDataFilter:
+          toStateData: .createdDeployment
+    transition: InitArgoCDApplicationStatusSyncedRetry
+  - name: InitArgoCDApplicationStatusSyncedRetry
+    type: inject
+    data:
+      applicationStatusSyncedRetries: 0
+    transition: Poll ArgoCD Application
+  - name: Poll ArgoCD Application
+    type: operation
+    actions:
+      - name: Get ArgoCD Application
+        actionDataFilter:
+          toStateData: .application
+        functionRef:
+          refName: readArgoprojIoV1alpha1NamespacedApplication
+          arguments:
+            namespace: .target_namespace
+            name: .artifactId + "-dev"
+        sleep:
+          before: PT10S
+    transition: increaseApplicationStatusSyncedRetriesRetry
+  - name: increaseApplicationStatusSyncedRetriesRetry
+    type: operation
+    actions:
+      - functionRef:
+          refName: increaseApplicationStatusSyncedRetries
+    transition: Check ArgoCD Application
+  - name: Check ArgoCD Application
+    type: switch
+    dataConditions:
+      - name: ArgoCD Application Synced
+        condition: ().application.status.status == "Synced" and .application.status.phase == "Succeeded")
+        transition: Read Application Route
+      - name: ArgoCD Application Not Synced
+        condition: (.applicationStatusSyncedRetries > ($SECRET.deployment_check_running_max_retries | tonumber))
+        transition: ArgoCD Application not synced
     defaultCondition:
       transition:
-        nextState: Poll Deployment
-  - name: Create Service
+        nextState: Poll ArgoCD Application
+  - name: Read Application Route
     type: operation
     actions:
       - functionRef:
-          refName: createCoreV1NamespacedService
+          refName: readRouteOpenshiftIoV1NamespacedRoute
           arguments:
-            namespace: default
-            apiVersion: v1
-            kind: Service
-            metadata:
-              labels:
-                app: spring-petclinic
-              name: spring-petclinic
-            spec:
-              ports:
-                - name: 8080-tcp
-                  port: 8080
-                  protocol: TCP
-                  targetPort: 8080
-                - name: 8443-tcp
-                  port: 8443
-                  protocol: TCP
-                  targetPort: 8443
-                - name: 8778-tcp
-                  port: 8778
-                  protocol: TCP
-                  targetPort: 8778
-              selector:
-                app: spring-petclinic
-              sessionAffinity: None
-              type: ClusterIP
-        actionDataFilter:
-          toStateData: .createdService
-    transition: Create Route
-  - name: Create Route
-    type: operation
-    actions:
-      - functionRef:
-          refName: createRouteOpenshiftIoV1NamespacedRoute
-          arguments:
-            namespace: default
-            apiVersion: route.openshift.io/v1
-            kind: Route
-            metadata:
-              labels:
-                app: spring-petclinic
-              name: spring-petclinic
-            spec:
-              port:
-                targetPort: 8080-tcp
-              to:
-                kind: Service
-                name: spring-petclinic
-                weight: 100
-              tls:
-                termination: edge
-                insecureEdgeTerminationPolicy: Redirect
-              wildcardPolicy: None
+            namespace: .target_namespace
+            name: .artifactId
         actionDataFilter:
           toStateData: .createdRoute
     transition: SendSuccessNotification
@@ -373,7 +364,7 @@ states:
               link: ".launchedJob.outputUrl"
               severity: "high"
     end: true
-  - name: Notify Deployment no replicas available
+  - name: ArgoCD Application not synced
     type: operation
     actions:
       - functionRef:
@@ -383,8 +374,8 @@ states:
               type: "entity"
               entityRef: .recipients
             payload:
-              title: '"AAP DB Deploy workflow " + $WORKFLOW.instanceId + " failed on Deployment creation." '
-              description: '"AAP DB Deploy workflow ID: " + $WORKFLOW.instanceId + " failed to create the Deployment: " + .deployment.metadata.name '
+              title: '"AAP DB Deploy workflow " + $WORKFLOW.instanceId + " failed on ArgoCD Application is not synced." '
+              description: '"AAP DB Deploy workflow ID: " + $WORKFLOW.instanceId + " failed to sync ArgoCD application: " + .target_namespace + "/" + .artifactId'
               topic: "AAP DB Deploy"
               severity: "high"
     end: true
@@ -398,8 +389,8 @@ states:
               type: "entity"
               entityRef: .recipients
             payload:
-              title: '"AAP DB Deploy workflow " + $WORKFLOW.instanceId + " success." '
-              description: '"AAP DB Deploy workflow ID: " + $WORKFLOW.instanceId + " for job template id: 9 succeeded. Deployment is in ready state."'
+              title: '"AAP DB Deploy workflow " + $WORKFLOW.instanceId + " completed successfully." '
+              description: '"AAP DB Deploy workflow ID: " + $WORKFLOW.instanceId + " Application was deployed successfully using ArgoCD."'
               topic: "AAP DB Deploy"
               link: '"https://" + .createdRoute.status.ingress[0].host'
               severity: "normal"

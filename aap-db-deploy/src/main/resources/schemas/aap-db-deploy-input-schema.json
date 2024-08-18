@@ -25,6 +25,87 @@
         "pattern": "^(user|group):[a-z0-9]([-a-z0-9]*[a-z0-9])?/([a-z0-9]([-a-z0-9]*[a-z0-9])?)$"
       },
       "minItems": 1
+    },
+    "port": {
+      "title": "Application Port",
+      "description": "Override the port exposed for the application",
+      "type": "integer",
+      "default": 8080
+    },
+    "system": {
+      "title": "System",
+      "type": "string",
+      "description": "System",
+      "enum": ["system:default/janus-orchestrator"]
+    },
+    "orgName": {
+      "title": "Organization Name",
+      "type": "string",
+      "description": "GitHub Organization Name"
+    },
+    "repoName": {
+      "title": "Repository Name",
+      "type": "string",
+      "description": "GitHub Repository Name"
+    },
+    "description": {
+      "title": "Description",
+      "type": "string",
+      "description": "Help others understand what this component is for"
+    },
+    "owner": {
+      "title": "Owner",
+      "type": "string",
+      "description": "The owner of the component",
+      "pattern": "^(user|group):[a-z0-9]([-a-z0-9]*[a-z0-9])?/([a-z0-9]([-a-z0-9]*[a-z0-9])?)$"
+    },
+    "groupId": {
+      "title": "Group ID",
+      "type": "string",
+      "description": "Maven Group ID eg (io.janus)",
+      "default": "org.springframework.samples"
+    },
+    "artifactId": {
+      "title": "Artifact ID",
+      "type": "string",
+      "description": "Maven Artifact ID",
+      "default": "spring-petclinic"
+    },
+    "javaPackageName": {
+      "title": "Java Package Namespace",
+      "type": "string",
+      "description": "Name for the Java Package (ensure to use the / character as this is used for folder structure) should match Group ID and Artifact ID",
+      "default": "org/springframework/samples/petclinic"
+    },
+    "ci": {
+      "title": "Select a CI method",
+      "type": "string",
+      "description": "This action will create a CI pipeline for your application based on chosen method",
+      "enum": ["GitHub Action", "Tekton"],
+      "default": "GitHub Action"
+    },
+    "imageRepository": {
+      "title": "Select a registry",
+      "type": "string",
+      "enum": ["quay.io", "image-registry.openshift-image-registry.svc:5000"],
+      "default": "quay.io"
+    },
+    "imageNamespace": {
+      "title": "Quay.io Namespace",
+      "type": "string",
+      "description": "The Quay.io namespace or organization"
+    },
+    "quayUserName": {
+      "title": "Quay.io username",
+      "type": "string",
+      "description": "The Quay.io username",
+      "format": "password"
+    },
+    "quayPassword": {
+      "title": "Quay password",
+      "type": "string",
+      "description": "The Quay.io password / token",
+      "format": "password"
     }
   },
   "required": [
