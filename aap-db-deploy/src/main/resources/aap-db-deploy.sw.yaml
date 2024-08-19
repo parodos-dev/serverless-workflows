@@ -15,7 +15,7 @@ functions:
   - name: LaunchSoftwareTemplate
     operation: specs/scaffolder-openapi.yaml#createTask
   - name: GetSoftwareTemplateTask
-    operation: "specs/scaffolder-openapi.yaml#getTaskDetails"
+    operation: specs/scaffolder-openapi.yaml#getTaskDetails
   - name: LaunchAAPJob
     operation: specs/aap-openapi.yaml#launchJob
   - name: GetAAPJob
@@ -29,7 +29,7 @@ functions:
   - name: readArgoprojIoV1alpha1NamespacedApplication
     operation: specs/argocd-openapi.yaml#readArgoprojIoV1alpha1NamespacedApplication
   - name: readRouteOpenshiftIoV1NamespacedRoute
-    operation: "specs/ocp-openapi.yaml#readRouteOpenshiftIoV1NamespacedRoute"
+    operation: specs/ocp-openapi.yaml#readRouteOpenshiftIoV1NamespacedRoute
   - name: createNotification
     operation: notifications#createNotification
   - name: logInfo
@@ -76,7 +76,7 @@ states:
       - functionRef:
           refName: logInfo
           arguments:
-            message: "\"Sleeping before checking the software template \\(.launchedTemplate)\""
+            message: '"Sleeping before checking the software template " + .launchedTemplate'
         sleep:
           after: PT10S
       - functionRef:

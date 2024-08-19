@@ -4,11 +4,12 @@ info:
   version: 1.0.0
   description: API for managing scaffolding tasks and templates.
 servers:
-  - url: http://localhost:7000
-    description: Local server
+  - url: /
+security:
+  - BearerToken: []
 
 paths:
-  /v2/templates/{namespace}/{kind}/{name}/parameter-schema:
+  /api/scaffolder/v2/templates/{namespace}/{kind}/{name}/parameter-schema:
     get:
       summary: Get Template Parameter Schema
       operationId: getTemplateParameterSchema
@@ -42,7 +43,7 @@ paths:
         "500":
           description: Internal server error
 
-  /v2/actions:
+  /api/scaffolder/v2/actions:
     get:
       summary: List Available Actions
       operationId: listAvailableActions
@@ -72,7 +73,7 @@ paths:
         "500":
           description: Internal server error
 
-  /v2/tasks:
+  /api/scaffolder/v2/tasks:
     post:
       summary: Create a New Task
       operationId: createTask
@@ -128,7 +129,7 @@ paths:
         "500":
           description: Internal server error
 
-  /v2/tasks/{taskId}:
+  /api/scaffolder/v2/tasks/{taskId}:
     get:
       summary: Get Task Details
       operationId: getTaskDetails
@@ -253,7 +254,6 @@ components:
           description: A collection of log entries related to the task's execution, useful for debugging or auditing.
 
   securitySchemes:
-    bearerAuth:
+    BearerToken:
       type: http
       scheme: bearer
-      bearerFormat: JWT

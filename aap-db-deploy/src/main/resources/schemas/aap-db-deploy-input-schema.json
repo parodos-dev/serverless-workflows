@@ -81,8 +81,8 @@
       "title": "Select a CI method",
       "type": "string",
       "description": "This action will create a CI pipeline for your application based on chosen method",
-      "enum": ["GitHub Action", "Tekton"],
-      "default": "GitHub Action"
+      "enum": ["./github-actions/", "../../../skeletons/tekton/"],
+      "default": "./github-actions/"
     },
     "imageRepository": {
       "title": "Select a registry",
