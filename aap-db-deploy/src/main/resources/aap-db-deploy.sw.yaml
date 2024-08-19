@@ -67,8 +67,6 @@ states:
               quayPassword: .quayPassword
         actionDataFilter:
           toStateData: .launchedTemplate
-    stateDataFilter:
-      output: ".launchedTemplate.id"
     transition: GetSoftwareTemplate
   - name: GetSoftwareTemplate
     type: operation
