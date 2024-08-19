@@ -2,7 +2,9 @@ openapi: 3.0.3
 info:
   version: 1.1.4
   title: GitHub v3 REST API
-  description: GitHub's v3 REST API.
+  description: |-
+    |
+    GitHub's v3 REST API.
   license:
     name: MIT
     url: https://spdx.org/licenses/MIT
@@ -17,14 +19,15 @@ paths:
   /repos/{owner}/{repo}/actions/workflows:
     get:
       summary: List repository workflows
-      description: "Lists the workflows in a repository.
+      description: |
+        Lists the workflows in a repository.
 
 
         Anyone with read access to the repository can use this endpoint.
 
 
         OAuth app tokens and personal access tokens (classic) need the `repo` scope
-        to use this endpoint with a private repository."
+        to use this endpoint with a private repository.
       tags:
         - actions
       operationId: actions/list-repo-workflows
@@ -64,7 +67,7 @@ paths:
   /repos/{owner}/{repo}/actions/workflows/{workflow_id}/runs:
     get:
       summary: List workflow runs for a workflow
-      description:
+      description: |
         "List all workflow runs for a workflow. You can replace `workflow_id`
         with the workflow file name. For example, you could use `main.yaml`. You can
         use parameters to narrow the list of results. For more information about using
@@ -437,7 +440,7 @@ components:
           nullable: true
           example: master
         head_sha:
-          description:
+          description: |
             The SHA of the head commit that points to the version of the
             workflow being run.
           example: "009b8a3a9ccbb128af87f9b1c0f4c62e8a304f6d"
@@ -452,7 +455,7 @@ components:
           example: 106
         run_attempt:
           type: integer
-          description:
+          description: |
             Attempt number of the run, 1 for first attempt and higher if
             the workflow was re-run.
           example: 1
@@ -484,10 +487,7 @@ components:
           type: string
           example: https://github.com/github/hello-world/suites/4
         pull_requests:
-          description:
-            Pull requests that are open with a `head_sha` or `head_branch`
-            that matches the workflow run. The returned pull requests do not necessarily
-            indicate pull requests that triggered the run.
+          description: Pull requests that are open with a `head_sha` or `head_branch` that matches the workflow run. The returned pull requests do not necessarily indicate pull requests that triggered the run.
           type: array
           nullable: true
           items:
@@ -532,9 +532,7 @@ components:
           example: https://api.github.com/repos/github/hello-world/actions/runs/5/rerun
         previous_attempt_url:
           nullable: true
-          description:
-            The URL to the previous attempted run of this workflow, if
-            one exists.
+          description: The URL to the previous attempted run of this workflow, if one exists.
           type: string
           example: https://api.github.com/repos/github/hello-world/actions/runs/5/attempts/3
         workflow_url:
@@ -553,7 +551,7 @@ components:
         display_title:
           type: string
           example: Simple Workflow
-          description:
+          description: |
             The event-specific title associated with the run or the run-name
             if set, or the value of `run-name` if it is set in the workflow.
       required:
@@ -778,9 +776,7 @@ components:
         watchers_count:
           type: integer
         size:
-          description:
-            The size of the repository, in kilobytes. Size is calculated
-            hourly. When a repository is initially created, the size is 0.
+          description: The size of the repository, in kilobytes. Size is calculated hourly. When a repository is initially created, the size is 0.
           type: integer
         default_branch:
           type: string
@@ -945,9 +941,7 @@ components:
           type: object
           properties:
             status:
-              description:
-                The enablement status of Dependabot security updates for
-                the repository.
+              description: The enablement status of Dependabot security updates for the repository.
               type: string
               enum:
                 - enabled
@@ -1048,7 +1042,6 @@ components:
         - html_url
         - key
         - name
-
   parameters:
     owner:
       name: owner
@@ -1059,27 +1052,21 @@ components:
         type: string
     repo:
       name: repo
-      description:
-        The name of the repository without the `.git` extension. The name
-        is not case sensitive.
+      description: The name of the repository without the `.git` extension. The name is not case sensitive.
       in: path
       required: true
       schema:
         type: string
     per-page:
       name: per_page
-      description:
-        The number of results per page (max 100). For more information,
-        see "[Using pagination in the REST API](https://docs.github.com/rest/using-the-rest-api/using-pagination-in-the-rest-api)."
+      description: The number of results per page (max 100). For more information, see "[Using pagination in the REST API](https://docs.github.com/rest/using-the-rest-api/using-pagination-in-the-rest-api)."
       in: query
       schema:
         type: integer
         default: 30
     page:
       name: page
-      description:
-        The page number of the results to fetch. For more information,
-        see "[Using pagination in the REST API](https://docs.github.com/rest/using-the-rest-api/using-pagination-in-the-rest-api)."
+      description: The page number of the results to fetch. For more information, see "[Using pagination in the REST API](https://docs.github.com/rest/using-the-rest-api/using-pagination-in-the-rest-api)."
       in: query
       schema:
         type: integer
@@ -1087,9 +1074,7 @@ components:
     workflow-id:
       name: workflow_id
       in: path
-      description:
-        The ID of the workflow. You can also pass the workflow file name
-        as a string.
+      description: The ID of the workflow. You can also pass the workflow file name as a string.
       required: true
       schema:
         oneOf:
@@ -1097,39 +1082,28 @@ components:
           - type: string
     actor:
       name: actor
-      description:
-        Returns someone's workflow runs. Use the login for the user who
-        created the `push` associated with the check suite or workflow run.
+      description: Returns someone's workflow runs. Use the login for the user who created the `push` associated with the check suite or workflow run.
       in: query
       required: false
       schema:
         type: string
     workflow-run-branch:
       name: branch
-      description:
-        Returns workflow runs associated with a branch. Use the name of
-        the branch of the `push`.
+      description: Returns workflow runs associated with a branch. Use the name of the branch of the `push`.
       in: query
       required: false
       schema:
         type: string
     event:
       name: event
-      description:
-        Returns workflow run triggered by the event you specify. For example,
-        `push`, `pull_request` or `issue`. For more information, see "[Events that
-        trigger workflows](https://docs.github.com/actions/automating-your-workflow-with-github-actions/events-that-trigger-workflows)."
+      description: Returns workflow run triggered by the event you specify. For example, `push`, `pull_request` or `issue`. For more information, see "[Events that trigger workflows](https://docs.github.com/actions/automating-your-workflow-with-github-actions/events-that-trigger-workflows)."
       in: query
       required: false
       schema:
         type: string
     workflow-run-status:
       name: status
-      description:
-        Returns workflow runs with the check run `status` or `conclusion`
-        that you specify. For example, a conclusion can be `success` or a status can
-        be `in_progress`. Only GitHub Actions can set a status of `waiting`, `pending`,
-        or `requested`.
+      description: Returns workflow runs with the check run `status` or `conclusion` that you specify. For example, a conclusion can be `success` or a status can be `in_progress`. Only GitHub Actions can set a status of `waiting`, `pending`, or `requested`.
       in: query
       required: false
       schema:
@@ -1151,9 +1125,7 @@ components:
           - pending
     created:
       name: created
-      description:
-        Returns workflow runs created within the given date-time range.
-        For more information on the syntax, see "[Understanding the search syntax](https://docs.github.com/search-github/getting-started-with-searching-on-github/understanding-the-search-syntax#query-for-dates)."
+      description: Returns workflow runs created within the given date-time range. For more information on the syntax, see "[Understanding the search syntax](https://docs.github.com/search-github/getting-started-with-searching-on-github/understanding-the-search-syntax#query-for-dates)."
       in: query
       required: false
       schema:
@@ -1175,19 +1147,14 @@ components:
         type: integer
     workflow-run-head-sha:
       name: head_sha
-      description:
-        Only returns workflow runs that are associated with the specified
-        `head_sha`.
+      description: Only returns workflow runs that are associated with the specified `head_sha`.
       in: query
       required: false
       schema:
         type: string
-
   headers:
     link:
-      example:
-        <https://api.github.com/resource?page=2>; rel="next", <https://api.github.com/resource?page=5>;
-        rel="last"
+      example: <https://api.github.com/resource?page=2>; rel="next", <https://api.github.com/resource?page=5>; rel="last"
       schema:
         type: string
     content-type:
@@ -1215,7 +1182,6 @@ components:
       example: https://pipelines.actions.githubusercontent.com/OhgS4QRKqmgx7bKC27GKU83jnQjyeqG8oIMTge8eqtheppcmw8/_apis/pipelines/1/runs/176/signedlogcontent?urlExpires=2020-01-24T18%3A10%3A31.5729946Z&urlSigningMethod=HMACV1&urlSignature=agG73JakPYkHrh06seAkvmH7rBR4Ji4c2%2B6a2ejYh3E%3D
       schema:
         type: string
-
   securitySchemes:
     BearerToken:
       type: http
