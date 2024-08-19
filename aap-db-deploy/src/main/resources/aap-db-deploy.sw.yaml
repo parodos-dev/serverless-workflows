@@ -47,24 +47,24 @@ states:
           arguments:
             templateRef: template:default/my-spring-petclinic-template
             values:
-              port: 8080
-              system: system:default/janus-orchestrator
-              orgName: test-workflows
-              repoName: petclinic-take2
-              description: petclinic-take2 for automating the process
-              owner: user:default/masayag
-              groupId: org.springframework.samples
-              artifactId: spring-petclinic
-              javaPackageName: org/springframework/samples/petclinic
-              ci: ./github-actions/
-              imageRepository: quay.io
-              imageNamespace: "********************"
-              quayUserName: "*******"
-              quayPassword: "********"
+              port: .port
+              system: .system
+              orgName: .orgName
+              repoName: .repoName
+              description: .description
+              owner: .owner
+              groupId: .groupId
+              artifactId: .artifactId
+              javaPackageName: .javaPackageName
+              ci: .ci
+              imageRepository: .imageRepository
+              imageNamespace: '["*" * (.imageNamespace | length)] | add'
+              quayUserName: '["*" * (.quayUserName | length)] | add'
+              quayPassword: '["*" * (.quayPassword | length)] | add'
             secrets:
-              imageNamespace: orchestrator-testing
-              quayUserName: masayag
-              quayPassword:
+              imageNamespace: .imageNamespace
+              quayUserName: .quayUserName
+              quayPassword: .quayPassword
         actionDataFilter:
           toStateData: .launchedTemplate
     stateDataFilter:
@@ -137,7 +137,7 @@ states:
       - functionRef:
           refName: LaunchAAPJob
           arguments:
-            job_template_id: 9
+            job_template_id: $SECRET.aap_template_id
             limit: .limit
             extra_vars:
               rhel_inventory_group: .inventoryGroup
@@ -184,7 +184,7 @@ states:
               entityRef: .recipients
             payload:
               title: '"AAP DB Deploy workflow " + $WORKFLOW.instanceId + " completed AAP Job to create DB." '
-              description: '"AAP DB Deploy workflow ID: " + $WORKFLOW.instanceId + " for job template id: 9 completed."'
+              description: '"AAP DB Deploy workflow ID: " + $WORKFLOW.instanceId + " for job template id: " + $SECRET.aap_template_id + " completed."'
               topic: "AAP DB Deploy"
               link: ".launchedJob.outputUrl"
               severity: "normal"
@@ -277,19 +277,19 @@ states:
             kind: Application
             metadata:
               name: .artifactId + "-dev"
-              namespace: .target_namespace
+              namespace: $SECRET.target_namespace
               labels:
                 argocd/app-selector: rht-gitops.com/janus-argocd=.artifactId
             spec:
               destination:
-                namespace: .target_namespace
+                namespace: $SECRET.target_namespace
                 server: https://kubernetes.default.svc
               project: janus
               source:
                 directory:
                   recurse: true
                 path: app
-                repoURL: https://github.com/test-workflows/petclinict-take1-gitops.git
+                repoURL: '"https://github.com/" + .orgName + "/" + .repoName + "-gitops.git"'
                 targetRevision: main
               syncPolicy:
                 syncOptions:
@@ -314,7 +314,7 @@ states:
         functionRef:
           refName: readArgoprojIoV1alpha1NamespacedApplication
           arguments:
-            namespace: .target_namespace
+            namespace: $SECRET.target_namespace
             name: .artifactId + "-dev"
         sleep:
           before: PT10S
@@ -343,7 +343,7 @@ states:
       - functionRef:
           refName: readRouteOpenshiftIoV1NamespacedRoute
           arguments:
-            namespace: .target_namespace
+            namespace: $SECRET.target_namespace
             name: .artifactId
         actionDataFilter:
           toStateData: .createdRoute
@@ -359,7 +359,7 @@ states:
               entityRef: .recipients
             payload:
               title: '"AAP DB Deploy workflow " + $WORKFLOW.instanceId + " failed on AAP Job." '
-              description: '"AAP DB Deploy workflow ID: " + $WORKFLOW.instanceId + " for job template id: 9 failed."'
+              description: '"AAP DB Deploy workflow ID: " + $WORKFLOW.instanceId + " for job template id: " + $SECRET.aap_template_id + " failed."'
               topic: "AAP DB Deploy"
               link: ".launchedJob.outputUrl"
               severity: "high"
@@ -375,7 +375,7 @@ states:
               entityRef: .recipients
             payload:
               title: '"AAP DB Deploy workflow " + $WORKFLOW.instanceId + " failed on ArgoCD Application is not synced." '
-              description: '"AAP DB Deploy workflow ID: " + $WORKFLOW.instanceId + " failed to sync ArgoCD application: " + .target_namespace + "/" + .artifactId'
+              description: '"AAP DB Deploy workflow ID: " + $WORKFLOW.instanceId + " failed to sync ArgoCD application: " + $SECRET.target_namespace + "/" + .artifactId'
               topic: "AAP DB Deploy"
               severity: "high"
     end: true
