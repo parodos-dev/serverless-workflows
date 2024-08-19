@@ -76,7 +76,7 @@ states:
       - functionRef:
           refName: logInfo
           arguments:
-            message: '"Sleeping before checking the software template " + .launchedTemplate'
+            message: '"Sleeping before checking the software template "'
         sleep:
           after: PT10S
       - functionRef:
