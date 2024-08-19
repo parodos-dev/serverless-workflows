@@ -29,6 +29,11 @@
   </dependencyManagement>
   <dependencies>
     <dependency>
+      <groupId>org.apache.kie.sonataflow</groupId>
+      <artifactId>sonataflow-quarkus-devui</artifactId>
+      <version>9.100.0.redhat-00004</version>
+    </dependency>  
+    <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-kubernetes</artifactId>
     </dependency>
