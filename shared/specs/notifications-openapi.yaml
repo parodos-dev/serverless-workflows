@@ -182,7 +182,6 @@ components:
         totalCount:
           type: number
         notifications:
-          type: object
           $ref: "#/components/schemas/Notifications"
   securitySchemes:
     BearerToken:
