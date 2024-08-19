@@ -193,8 +193,8 @@ states:
       - functionRef:
           refName: GetActionWorkflows
           arguments:
-            owner: .organization
-            repo: .repository
+            owner: .orgName
+            repo: .repoName
         actionDataFilter:
           toStateData: .actionWorkflows
     transition: GetWorkflowID
@@ -215,9 +215,9 @@ states:
       - functionRef:
           refName: GetActionWorkflowRuns
           arguments:
-            owner: .organization
-            repo: .repository
-            workflow_id: .githubWorkflowID
+            owner: .orgName
+            repo: .repoName
+            workflow_id: (.githubWorkflowID |tonumber)
         actionDataFilter:
           toStateData: .actionWorkflowRuns
     transition: IsGitHubActionDone
