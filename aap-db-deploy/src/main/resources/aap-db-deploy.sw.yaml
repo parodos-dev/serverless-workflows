@@ -135,10 +135,10 @@ states:
       - functionRef:
           refName: LaunchAAPJob
           arguments:
-            job_template_id: $SECRET.aap_template_id
-            limit: .limit
+            job_template_id: ($SECRET.aap_template_id | tonumber)
+            limit: (.limit | tonumber)
             extra_vars:
-              rhel_inventory_group: .inventoryGroup
+              rhel_inventory_group: (.inventoryGroup | tonumber)
         actionDataFilter:
           toStateData: .launchedJob
     stateDataFilter:
