@@ -1,0 +1,259 @@
+openapi: 3.0.3
+info:
+  title: Scaffolder API
+  version: 1.0.0
+  description: API for managing scaffolding tasks and templates.
+servers:
+  - url: /
+security:
+  - BearerToken: []
+
+paths:
+  /api/scaffolder/v2/templates/{namespace}/{kind}/{name}/parameter-schema:
+    get:
+      summary: Get Template Parameter Schema
+      operationId: getTemplateParameterSchema
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: namespace
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: kind
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Template parameter schema returned successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Template"
+        "404":
+          description: Template not found
+        "500":
+          description: Internal server error
+
+  /api/scaffolder/v2/actions:
+    get:
+      summary: List Available Actions
+      operationId: listAvailableActions
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: List of available actions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    description:
+                      type: string
+                      description: A brief explanation of the action, its purpose, and how it is used.
+                    examples:
+                      type: array
+                      items:
+                        type: object
+                    schema:
+                      type: object
+        "500":
+          description: Internal server error
+
+  /api/scaffolder/v2/tasks:
+    post:
+      summary: Create a New Task
+      operationId: createTask
+      security:
+        - bearerAuth: []
+      requestBody:
+        description: Task creation parameters
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Task"
+      responses:
+        "201":
+          description: Task created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+        "400":
+          description: Bad request
+        "500":
+          description: Internal server error
+
+    get:
+      summary: List Tasks
+      operationId: listTasks
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: createdBy
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of tasks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Task"
+        "400":
+          description: Bad request
+        "500":
+          description: Internal server error
+
+  /api/scaffolder/v2/tasks/{taskId}:
+    get:
+      summary: Get Task Details
+      operationId: getTaskDetails
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Task details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Task"
+        "404":
+          description: Task not found
+        "500":
+          description: Internal server error
+
+    patch:
+      summary: Update Task
+      operationId: updateTask
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Task update parameters
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Task"
+      responses:
+        "200":
+          description: Task updated successfully
+        "400":
+          description: Bad request
+        "404":
+          description: Task not found
+        "500":
+          description: Internal server error
+
+    delete:
+      summary: Delete Task
+      operationId: deleteTask
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: taskId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Task deleted successfully
+        "404":
+          description: Task not found
+        "500":
+          description: Internal server error
+
+components:
+  schemas:
+    Template:
+      type: object
+      properties:
+        title:
+          type: string
+          description: The title of the template, summarizing its purpose.
+        description:
+          type: string
+          description: A detailed explanation of what the template does, its intended use case, and any special considerations.
+        steps:
+          type: array
+          items:
+            type: object
+            properties:
+              title:
+                type: string
+                description: The title of the step, indicating its role in the template.
+              description:
+                type: string
+                description: A description of what the step accomplishes and any relevant details for its execution.
+              schema:
+                type: object
+                description: The schema that defines the parameters and data structure required for the step.
+
+    Task:
+      type: object
+      properties:
+        id:
+          type: string
+          description: A unique identifier for the task.
+        status:
+          type: string
+          description: The current status of the task (e.g., pending, in progress, completed).
+        createdBy:
+          type: string
+          description: The identifier of the user or system that created the task.
+        templateRef:
+          type: string
+          description: A reference to the template used to create the task.
+        values:
+          type: object
+          description: The specific values provided when the task was created, based on the template's schema.
+        secrets:
+          type: object
+          description: Sensitive data associated with the task, such as API keys or credentials, handled securely.
+        logs:
+          type: array
+          items:
+            type: string
+          description: A collection of log entries related to the task's execution, useful for debugging or auditing.
+
+  securitySchemes:
+    BearerToken:
+      type: http
+      scheme: bearer

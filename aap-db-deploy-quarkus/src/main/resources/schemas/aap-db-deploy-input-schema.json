@@ -1,0 +1,123 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "jobTemplate": {
+      "type": "string",
+      "description": "Job template",
+      "enum": ["postgres_rhel"]
+    },
+    "inventoryGroup": {
+      "type": "string",
+      "description": "A integer value for the foreign key of an inventory to use in this job run"
+    },
+    "limit": {
+      "type": "string",
+      "description": "A string that represents a comma-separated list of hosts or groups to operate on"
+    },
+    "recipients": {
+      "title": "Recipients",
+      "type": "array",
+      "description": "A list of recipients for the notification in the format of 'user:<namespace>/<username>' or 'group:<namespace>/<groupname>', i.e. 'user:default/jsmith'",
+      "items": {
+        "title": "Recipient",
+        "type": "string",
+        "pattern": "^(user|group):[a-z0-9]([-a-z0-9]*[a-z0-9])?/([a-z0-9]([-a-z0-9]*[a-z0-9])?)$"
+      },
+      "minItems": 1
+    },
+    "port": {
+      "title": "Application Port",
+      "description": "Override the port exposed for the application",
+      "type": "integer",
+      "default": 8080
+    },
+    "system": {
+      "title": "System",
+      "type": "string",
+      "description": "System",
+      "enum": ["system:default/janus-orchestrator"]
+    },
+    "orgName": {
+      "title": "Organization Name",
+      "type": "string",
+      "description": "GitHub Organization Name"
+    },
+    "repoName": {
+      "title": "Repository Name",
+      "type": "string",
+      "description": "GitHub Repository Name"
+    },
+    "description": {
+      "title": "Description",
+      "type": "string",
+      "description": "Help others understand what this component is for"
+    },
+    "owner": {
+      "title": "Owner",
+      "type": "string",
+      "description": "The owner of the component",
+      "pattern": "^(user|group):[a-z0-9]([-a-z0-9]*[a-z0-9])?/([a-z0-9]([-a-z0-9]*[a-z0-9])?)$"
+    },
+    "groupId": {
+      "title": "Group ID",
+      "type": "string",
+      "description": "Maven Group ID eg (io.janus)",
+      "default": "org.springframework.samples"
+    },
+    "artifactId": {
+      "title": "Artifact ID",
+      "type": "string",
+      "description": "Maven Artifact ID",
+      "default": "spring-petclinic"
+    },
+    "javaPackageName": {
+      "title": "Java Package Namespace",
+      "type": "string",
+      "description": "Name for the Java Package (ensure to use the / character as this is used for folder structure) should match Group ID and Artifact ID",
+      "default": "org/springframework/samples/petclinic"
+    },
+    "ci": {
+      "title": "Select a CI method",
+      "type": "string",
+      "description": "This action will create a CI pipeline for your application based on chosen method",
+      "enum": ["./github-actions/", "../../../skeletons/tekton/"],
+      "default": "./github-actions/"
+    },
+    "imageRepository": {
+      "title": "Select a registry",
+      "type": "string",
+      "enum": ["quay.io", "image-registry.openshift-image-registry.svc:5000"],
+      "default": "quay.io"
+    },
+    "imageNamespace": {
+      "title": "Quay.io Namespace",
+      "type": "string",
+      "description": "The Quay.io namespace or organization"
+    },
+    "quayUserName": {
+      "title": "Quay.io username",
+      "type": "string",
+      "description": "The Quay.io username",
+      "format": "password"
+    },
+    "quayPassword": {
+      "title": "Quay password",
+      "type": "string",
+      "description": "The Quay.io password / token",
+      "format": "password"
+    }
+  },
+  "required": [
+    "jobTemplate",
+    "inventoryGroup",
+    "recipients"
+  ],
+  "examples": [
+    {
+        "jobTemplate": "postgres_rhel",
+        "limit": "fancy-seal",
+        "inventoryGroup": "ALL_rhel"
+    }
+  ]
+}

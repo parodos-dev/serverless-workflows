@@ -1,0 +1,322 @@
+specVersion: "0.8"
+id: aap-db-deploy
+version: 0.0.1
+name: aap-db-deploy
+description: Workflow to launch AAP DB Deploy
+annotations:
+  - "workflow-type/infrastructure"
+dataInputSchema: schemas/aap-db-deploy-input-schema.json
+start: LaunchSoftwareTemplate
+extensions:
+  - extensionid: workflow-uri-definitions
+    definitions:
+      notifications: "https://raw.githubusercontent.com/parodos-dev/serverless-workflows/main/shared/specs/notifications-openapi.yaml"
+functions:
+  - name: LaunchSoftwareTemplate
+    operation: specs/scaffolder-openapi.yaml#createTask
+  - name: GetSoftwareTemplateTask
+    operation: specs/scaffolder-openapi.yaml#getTaskDetails
+  - name: LaunchAAPJob
+    operation: specs/aap-openapi.yaml#launchJob
+  - name: GetAAPJob
+    operation: specs/aap-openapi.yaml#getJob
+  - name: GetActionWorkflows
+    operation: specs/github-openapi.yaml#actions/list-repo-workflows
+  - name: GetActionWorkflowRuns
+    operation: specs/github-openapi.yaml#actions/list-workflow-runs
+  - name: createArgoprojIoV1alpha1NamespacedApplication
+    operation: specs/argocd-openapi.yaml#createArgoprojIoV1alpha1NamespacedApplication
+  - name: readArgoprojIoV1alpha1NamespacedApplication
+    operation: specs/argocd-openapi.yaml#readArgoprojIoV1alpha1NamespacedApplication
+  - name: createNotification
+    operation: notifications#createNotification
+  - name: logInfo
+    type: custom
+    operation: "sysout:INFO"
+  - name: increaseApplicationStatusSyncedRetries
+    type: expression
+    operation: ".applicationStatusSyncedRetries=.applicationStatusSyncedRetries + 1"
+states:
+  - name: LaunchSoftwareTemplate
+    type: operation
+    actions:
+      - functionRef:
+          refName: LaunchSoftwareTemplate
+          arguments:
+            templateRef: template:default/my-spring-petclinic-template
+            values:
+              port: .port
+              system: .system
+              orgName: .orgName
+              repoName: .repoName
+              description: .description
+              owner: .owner
+              groupId: .groupId
+              artifactId: .artifactId
+              javaPackageName: .javaPackageName
+              ci: .ci
+              imageRepository: .imageRepository
+              imageNamespace: '["*" * (.imageNamespace | length)] | add'
+              quayUserName: '["*" * (.quayUserName | length)] | add'
+              quayPassword: '["*" * (.quayPassword | length)] | add'
+            secrets:
+              imageNamespace: .imageNamespace
+              quayUserName: .quayUserName
+              quayPassword: .quayPassword
+        actionDataFilter:
+          toStateData: .launchedTemplate
+    transition: GetSoftwareTemplate
+  - name: GetSoftwareTemplate
+    type: operation
+    actions:
+      - functionRef:
+          refName: logInfo
+          arguments:
+            message: '"Sleeping before checking the software template "'
+        sleep:
+          after: PT15S
+      - functionRef:
+          refName: GetSoftwareTemplateTask
+          arguments:
+            taskId: .launchedTemplate.id
+        actionDataFilter:
+          toStateData: .readTask
+    transition: IsTaskDone
+  - name: IsTaskDone
+    type: switch
+    dataConditions:
+      - condition: (.readTask.status == "processing")
+        transition:
+          nextState: GetSoftwareTemplate
+      - condition: (.readTask.status == "completed")
+        transition:
+          nextState: SendTaskCompletedNotification
+      - condition: (.readTask.status == "failed")
+        transition:
+          nextState: SendTaskFailureNotification
+    defaultCondition:
+      transition: GetSoftwareTemplate
+  - name: SendTaskCompletedNotification
+    type: operation
+    actions:
+      - functionRef:
+          refName: createNotification
+          arguments:
+            recipients:
+              type: "entity"
+              entityRef: .recipients
+            payload:
+              title: '"AAP DB Deploy workflow " + $WORKFLOW.instanceId + " completed software template creation." + .templateName '
+              description: '"AAP DB Deploy workflow " + $WORKFLOW.instanceId + " completed software template creation." + .templateName'
+              topic: "AAP DB Deploy"
+              link: '$SECRET.rhdh_url + "/catalog/default/component/" + .repoName'
+              severity: "normal"
+    transition: LaunchAAPJob
+  - name: SendTaskFailureNotification
+    type: operation
+    actions:
+      - functionRef:
+          refName: createNotification
+          arguments:
+            recipients:
+              type: "entity"
+              entityRef: .recipients
+            payload:
+              title: '"AAP DB Deploy workflow " + $WORKFLOW.instanceId + " failed on software template creation for repository " + .repoName'
+              description: '"AAP DB Deploy workflow ID: " + $WORKFLOW.instanceId + " for software template " + .templateName '
+              topic: "AAP DB Deploy"
+              severity: "high"
+    end: true
+  - name: LaunchAAPJob
+    type: operation
+    actions:
+      - functionRef:
+          refName: LaunchAAPJob
+          arguments:
+            job_template_id: ($SECRET.aap_template_id | tonumber)
+            limit: (.limit | tonumber)
+            extra_vars:
+              rhel_inventory_group: (.inventoryGroup | tonumber)
+        actionDataFilter:
+          toStateData: .launchedJob
+    stateDataFilter:
+      output: '.launchedJob += { outputUrl: $SECRET.app_url +  "/#/jobs/playbook/" + (.launchedJob.id|tostring) + "/output" }'
+    transition: GetAAPJob
+  - name: GetAAPJob
+    type: operation
+    actions:
+      - functionRef:
+          refName: logInfo
+          arguments:
+            message: '"Sleeping before checking the aap job " + (.launchedJob|tostring)'
+        sleep:
+          after: PT15S
+      - functionRef:
+          refName: GetAAPJob
+          arguments:
+            job_id: .launchedJob.id
+        actionDataFilter:
+          toStateData: .readJob
+    transition: IsJobDone
+  - name: IsJobDone
+    type: switch
+    dataConditions:
+      - condition: (.readJob.status == "successful")
+        transition:
+          nextState: SendAAPJobCompletedNotification
+      - condition: (.readJob.failed == true)
+        transition:
+          nextState: SendAAPJobFailureNotification
+    defaultCondition:
+      transition: SendAAPJobCompletedNotification
+  - name: SendAAPJobFailureNotification
+    type: operation
+    actions:
+      - functionRef:
+          refName: createNotification
+          arguments:
+            recipients:
+              type: "entity"
+              entityRef: .recipients
+            payload:
+              title: '"AAP DB Deploy workflow " + $WORKFLOW.instanceId + " failed on AAP Job." '
+              description: '"AAP DB Deploy workflow ID: " + $WORKFLOW.instanceId + " for job template id: " + $SECRET.aap_template_id + " failed."'
+              topic: "AAP DB Deploy"
+              link: ".launchedJob.outputUrl"
+              severity: "high"
+    end: true
+  - name: SendAAPJobCompletedNotification
+    type: operation
+    actions:
+      - functionRef:
+          refName: createNotification
+          arguments:
+            recipients:
+              type: "entity"
+              entityRef: .recipients
+            payload:
+              title: '"AAP DB Deploy workflow " + $WORKFLOW.instanceId + " completed AAP Job to create DB." '
+              description: '"AAP DB Deploy workflow ID: " + $WORKFLOW.instanceId + " for job template id: " + $SECRET.aap_template_id + " completed."'
+              topic: "AAP DB Deploy"
+              link: ".launchedJob.outputUrl"
+              severity: "normal"
+    transition: GetActionWorkflows
+  - name: GetActionWorkflows
+    type: operation
+    actions:
+      - functionRef:
+          refName: GetActionWorkflows
+          arguments:
+            owner: .orgName
+            repo: .repoName
+        actionDataFilter:
+          toStateData: .actionWorkflows
+    transition: GetActionWorkflowRuns
+  - name: GetActionWorkflowRuns
+    type: operation
+    actions:
+      - functionRef:
+          refName: logInfo
+          arguments:
+            message: '"Sleeping before checking the CI action " + (.actionWorkflows.workflows[] | select(.name == "CI") | .id | tostring) + " in GitHub"'
+        sleep:
+          after: PT15S
+      - functionRef:
+          refName: GetActionWorkflowRuns
+          arguments:
+            owner: .orgName
+            repo: .repoName
+            workflow_id: .actionWorkflows.workflows[] | select(.name == "CI") | .id
+        actionDataFilter:
+          toStateData: .actionWorkflowRuns
+    transition: IsGitHubActionDone
+  - name: IsGitHubActionDone
+    type: switch
+    dataConditions:
+      - condition: (.actionWorkflowRuns.workflow_runs[0].status == "completed" and .actionWorkflowRuns.workflow_runs[0].conclusion == "success")
+        transition:
+          nextState: SendGithubActionCompletedNotification
+      - condition: (.actionWorkflowRuns.workflow_runs[0].status == "in_progress" or .actionWorkflowRuns.workflow_runs[0].status == "queued")
+        transition: GetActionWorkflowRuns
+      - condition: (.actionWorkflowRuns.workflow_runs[0].status == "completed" and .actionWorkflowRuns.workflow_runs[0].conclusion == "failure")
+        transition: SendGithubActionFailureNotification
+    defaultCondition:
+      transition: GetActionWorkflowRuns
+  - name: SendGithubActionFailureNotification
+    type: operation
+    actions:
+      - functionRef:
+          refName: createNotification
+          arguments:
+            recipients:
+              type: "entity"
+              entityRef: .recipients
+            payload:
+              title: '"AAP DB Deploy workflow " + $WORKFLOW.instanceId + " failed on GitHub CI workflow."'
+              description: '"AAP DB Deploy workflow ID: " + $WORKFLOW.instanceId + " failed on GitHub CI workflow."'
+              topic: "AAP DB Deploy"
+              link: ".actionWorkflowRuns.workflow_runs[0].html_url"
+              severity: "high"
+    end: true
+  - name: SendGithubActionCompletedNotification
+    type: operation
+    actions:
+      - functionRef:
+          refName: createNotification
+          arguments:
+            recipients:
+              type: "entity"
+              entityRef: .recipients
+            payload:
+              title: '"AAP DB Deploy workflow " + $WORKFLOW.instanceId + " completed GitHub CI workflow."'
+              description: '"AAP DB Deploy workflow ID: " + $WORKFLOW.instanceId + " successfully completed the GitHub CI workflow."'
+              topic: "AAP DB Deploy"
+              link: ".actionWorkflowRuns.workflow_runs[0].html_url"
+              severity: "normal"
+    transition: Create ArgoCD Application
+  - name: Create ArgoCD Application
+    type: operation
+    actions:
+      - functionRef:
+          refName: createArgoprojIoV1alpha1NamespacedApplication
+          arguments:
+            namespace: $SECRET.target_application_namespace
+            apiVersion: argoproj.io/v1alpha1
+            kind: Application
+            metadata:
+              name: .artifactId + "-dev"
+              labels:
+                rht-gitops.com/janus-argocd: .repoName
+            spec:
+              destination:
+                namespace: $SECRET.target_namespace
+                server: https://kubernetes.default.svc
+              project: $SECRET.target_argocd_project
+              source:
+                repoURL: '"https://github.com/" + .orgName + "/" + .repoName + "-gitops.git"'
+                path: helm/
+                targetRevision: main
+              syncPolicy:
+                syncOptions:
+                  - CreateNamespace=true
+                  - ServerSideApply=true
+                automated:
+                  prune: true
+                  selfHeal: true
+    transition: SendSuccessNotification
+  - name: SendSuccessNotification
+    type: operation
+    actions:
+      - functionRef:
+          refName: createNotification
+          arguments:
+            recipients:
+              type: "entity"
+              entityRef: .recipients
+            payload:
+              title: '"AAP DB Deploy workflow " + $WORKFLOW.instanceId + " completed successfully." '
+              description: "The application was deployed using ArgoCD. Watch CD tab in the component page for deployment progress."
+              topic: "AAP DB Deploy"
+              link: '$SECRET.rhdh_url + "/catalog/default/component/" + .repoName + "/cd"'
+              severity: "normal"
+    end: true

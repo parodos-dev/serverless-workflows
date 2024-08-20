@@ -28,8 +28,6 @@ functions:
     operation: specs/argocd-openapi.yaml#createArgoprojIoV1alpha1NamespacedApplication
   - name: readArgoprojIoV1alpha1NamespacedApplication
     operation: specs/argocd-openapi.yaml#readArgoprojIoV1alpha1NamespacedApplication
-  - name: readRouteOpenshiftIoV1NamespacedRoute
-    operation: specs/ocp-openapi.yaml#readRouteOpenshiftIoV1NamespacedRoute
   - name: createNotification
     operation: notifications#createNotification
   - name: logInfo
@@ -111,7 +109,7 @@ states:
               title: '"AAP DB Deploy workflow " + $WORKFLOW.instanceId + " completed software template creation." + .templateName '
               description: '"AAP DB Deploy workflow " + $WORKFLOW.instanceId + " completed software template creation." + .templateName'
               topic: "AAP DB Deploy"
-              link: ".launchedJob.outputUrl"
+              link: '$SECRET.rhdh_url + "/catalog/default/component/" + .repoName'
               severity: "normal"
     transition: LaunchAAPJob
   - name: SendTaskFailureNotification
@@ -124,7 +122,7 @@ states:
               type: "entity"
               entityRef: .recipients
             payload:
-              title: '"AAP DB Deploy workflow " + $WORKFLOW.instanceId + " failed on software template creation." '
+              title: '"AAP DB Deploy workflow " + $WORKFLOW.instanceId + " failed on software template creation for repository " + .repoName'
               description: '"AAP DB Deploy workflow ID: " + $WORKFLOW.instanceId + " for software template " + .templateName '
               topic: "AAP DB Deploy"
               severity: "high"
@@ -171,6 +169,22 @@ states:
           nextState: SendAAPJobFailureNotification
     defaultCondition:
       transition: SendAAPJobCompletedNotification
+  - name: SendAAPJobFailureNotification
+    type: operation
+    actions:
+      - functionRef:
+          refName: createNotification
+          arguments:
+            recipients:
+              type: "entity"
+              entityRef: .recipients
+            payload:
+              title: '"AAP DB Deploy workflow " + $WORKFLOW.instanceId + " failed on AAP Job." '
+              description: '"AAP DB Deploy workflow ID: " + $WORKFLOW.instanceId + " for job template id: " + $SECRET.aap_template_id + " failed."'
+              topic: "AAP DB Deploy"
+              link: ".launchedJob.outputUrl"
+              severity: "high"
+    end: true
   - name: SendAAPJobCompletedNotification
     type: operation
     actions:
@@ -272,7 +286,7 @@ states:
             metadata:
               name: .artifactId + "-dev"
               labels:
-                rht-gitops.com/janus-argocd: .artifactId
+                rht-gitops.com/janus-argocd: .repoName
             spec:
               destination:
                 namespace: $SECRET.target_namespace
@@ -289,88 +303,7 @@ states:
                 automated:
                   prune: true
                   selfHeal: true
-        actionDataFilter:
-          toStateData: .createdDeployment
-    transition: InitArgoCDApplicationStatusSyncedRetry
-  - name: InitArgoCDApplicationStatusSyncedRetry
-    type: inject
-    data:
-      applicationStatusSyncedRetries: 0
-    transition: Poll ArgoCD Application
-  - name: Poll ArgoCD Application
-    type: operation
-    actions:
-      - name: Get ArgoCD Application
-        actionDataFilter:
-          toStateData: .application
-        functionRef:
-          refName: readArgoprojIoV1alpha1NamespacedApplication
-          arguments:
-            namespace: $SECRET.target_namespace
-            name: .artifactId + "-dev"
-        sleep:
-          before: PT10S
-    transition: increaseApplicationStatusSyncedRetriesRetry
-  - name: increaseApplicationStatusSyncedRetriesRetry
-    type: operation
-    actions:
-      - functionRef:
-          refName: increaseApplicationStatusSyncedRetries
-    transition: Check ArgoCD Application
-  - name: Check ArgoCD Application
-    type: switch
-    dataConditions:
-      - name: ArgoCD Application Synced
-        condition: (.application.status.status == "Synced" and .application.status.phase == "Succeeded")
-        transition: Read Application Route
-      - name: ArgoCD Application Not Synced
-        condition: (.applicationStatusSyncedRetries > ($SECRET.deployment_check_running_max_retries | tonumber))
-        transition: ArgoCD Application not synced
-    defaultCondition:
-      transition:
-        nextState: Poll ArgoCD Application
-  - name: Read Application Route
-    type: operation
-    actions:
-      - functionRef:
-          refName: readRouteOpenshiftIoV1NamespacedRoute
-          arguments:
-            namespace: $SECRET.target_namespace
-            name: .artifactId
-        actionDataFilter:
-          toStateData: .createdRoute
     transition: SendSuccessNotification
-  - name: SendAAPJobFailureNotification
-    type: operation
-    actions:
-      - functionRef:
-          refName: createNotification
-          arguments:
-            recipients:
-              type: "entity"
-              entityRef: .recipients
-            payload:
-              title: '"AAP DB Deploy workflow " + $WORKFLOW.instanceId + " failed on AAP Job." '
-              description: '"AAP DB Deploy workflow ID: " + $WORKFLOW.instanceId + " for job template id: " + $SECRET.aap_template_id + " failed."'
-              topic: "AAP DB Deploy"
-              link: ".launchedJob.outputUrl"
-              severity: "high"
-    end: true
-  - name: ArgoCD Application not synced
-    type: operation
-    actions:
-      - functionRef:
-          refName: createNotification
-          arguments:
-            recipients:
-              type: "entity"
-              entityRef: .recipients
-            payload:
-              title: '"AAP DB Deploy workflow " + $WORKFLOW.instanceId + " failed on ArgoCD Application is not synced." '
-              description: '"AAP DB Deploy workflow ID: " + $WORKFLOW.instanceId + " failed to sync ArgoCD application: " + $SECRET.target_namespace + "/" + .artifactId'
-              topic: "AAP DB Deploy"
-              severity: "high"
-    end: true
   - name: SendSuccessNotification
     type: operation
     actions:
@@ -382,8 +315,8 @@ states:
               entityRef: .recipients
             payload:
               title: '"AAP DB Deploy workflow " + $WORKFLOW.instanceId + " completed successfully." '
-              description: '"AAP DB Deploy workflow ID: " + $WORKFLOW.instanceId + " Application was deployed successfully using ArgoCD."'
+              description: "The application was deployed using ArgoCD. Watch CD tab in the component page for deployment progress."
               topic: "AAP DB Deploy"
-              link: '"https://" + .createdRoute.status.ingress[0].host'
+              link: '$SECRET.rhdh_url + "/catalog/default/component/" + .repoName + "/cd"'
               severity: "normal"
     end: true
