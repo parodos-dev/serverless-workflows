@@ -272,21 +272,23 @@ states:
             metadata:
               name: .artifactId + "-dev"
               labels:
-                argocd/app-selector: '"rht-gitops.com/janus-argocd=" + .artifactId'
+                rht-gitops.com/janus-argocd: .artifactId
             spec:
               destination:
                 namespace: $SECRET.target_namespace
                 server: https://kubernetes.default.svc
-              project: janus
+              project: $SECRET.target_argocd_project
               source:
-                directory:
-                  recurse: true
-                path: app
+                helm:
+                  valueFiles:
+                    - values.yaml
                 repoURL: '"https://github.com/" + .orgName + "/" + .repoName + "-gitops.git"'
+                path: helm/
                 targetRevision: main
               syncPolicy:
                 syncOptions:
                   - CreateNamespace=true
+                  - ServerSideApply=true
                 automated:
                   prune: true
                   selfHeal: true
@@ -322,7 +324,7 @@ states:
     type: switch
     dataConditions:
       - name: ArgoCD Application Synced
-        condition: ().application.status.status == "Synced" and .application.status.phase == "Succeeded")
+        condition: (.application.status.status == "Synced" and .application.status.phase == "Succeeded")
         transition: Read Application Route
       - name: ArgoCD Application Not Synced
         condition: (.applicationStatusSyncedRetries > ($SECRET.deployment_check_running_max_retries | tonumber))
