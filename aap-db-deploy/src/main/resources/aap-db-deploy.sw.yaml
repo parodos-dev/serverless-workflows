@@ -266,7 +266,7 @@ states:
       - functionRef:
           refName: createArgoprojIoV1alpha1NamespacedApplication
           arguments:
-            namespace: $SECRET.target_namespace
+            namespace: $SECRET.target_application_namespace
             apiVersion: argoproj.io/v1alpha1
             kind: Application
             metadata:
@@ -279,9 +279,6 @@ states:
                 server: https://kubernetes.default.svc
               project: $SECRET.target_argocd_project
               source:
-                helm:
-                  valueFiles:
-                    - values.yaml
                 repoURL: '"https://github.com/" + .orgName + "/" + .repoName + "-gitops.git"'
                 path: helm/
                 targetRevision: main
