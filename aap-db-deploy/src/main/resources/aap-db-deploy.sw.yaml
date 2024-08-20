@@ -266,13 +266,13 @@ states:
       - functionRef:
           refName: createArgoprojIoV1alpha1NamespacedApplication
           arguments:
+            namespace: $SECRET.target_namespace
             apiVersion: argoproj.io/v1alpha1
             kind: Application
             metadata:
               name: .artifactId + "-dev"
-              namespace: $SECRET.target_namespace
               labels:
-                argocd/app-selector: rht-gitops.com/janus-argocd=.artifactId
+                argocd/app-selector: '"rht-gitops.com/janus-argocd=" + .artifactId'
             spec:
               destination:
                 namespace: $SECRET.target_namespace
