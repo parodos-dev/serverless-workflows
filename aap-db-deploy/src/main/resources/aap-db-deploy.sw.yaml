@@ -76,7 +76,7 @@ states:
           arguments:
             message: '"Sleeping before checking the software template "'
         sleep:
-          after: PT10S
+          after: PT15S
       - functionRef:
           refName: GetSoftwareTemplateTask
           arguments:
@@ -150,9 +150,9 @@ states:
       - functionRef:
           refName: logInfo
           arguments:
-            message: "Sleeping before checking the aap job (.launchedJob|tostring)"
+            message: '"Sleeping before checking the aap job " + (.launchedJob|tostring)'
         sleep:
-          after: PT30S
+          after: PT15S
       - functionRef:
           refName: GetAAPJob
           arguments:
@@ -206,7 +206,7 @@ states:
           arguments:
             message: '"Sleeping before checking the CI action " + (.actionWorkflows.workflows[] | select(.name == "CI") | .id | tostring) + " in GitHub"'
         sleep:
-          after: PT30S
+          after: PT15S
       - functionRef:
           refName: GetActionWorkflowRuns
           arguments:
