@@ -20,25 +20,11 @@
       "title": "Quay.io Namespace",
       "type": "string",
       "description": "The Quay.io namespace or organization"
-    },
-    "quayUserName": {
-      "title": "Quay.io username",
-      "type": "string",
-      "description": "The Quay.io username",
-      "format": "password"
-    },
-    "quayPassword": {
-      "title": "Quay password",
-      "type": "string",
-      "description": "The Quay.io password / token",
-      "format": "password"
     }
   },
   "required": [
     "ciMethod",
     "imageRepository",
-    "imageNamespace",
-    "quayUserName",
-    "quayPassword"
+    "imageNamespace"
   ]
 }

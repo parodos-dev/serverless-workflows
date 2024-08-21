@@ -1,8 +1,10 @@
 specVersion: "0.8"
 id: aap-db-deploy
 version: 0.0.1
-name: Bootstrap Java project
-description: Workflow to launch AAP DB Deploy
+name: Spring Pet Clinic application with GitHub Action & Argo CD
+description: |
+  Workflow to create Spring Pet Clinic application with GitHub Action & Argo CD,
+  running against a PostgreSQL DB created by running Ansible job.
 annotations:
   - "workflow-type/infrastructure"
 dataInputSchema: schemas/aap-db-deploy-input-schema.json
@@ -43,7 +45,7 @@ states:
       - functionRef:
           refName: LaunchSoftwareTemplate
           arguments:
-            templateRef: template:default/my-spring-petclinic-template
+            templateRef: $SECRET.software_template_ref
             values:
               port: .component.port
               system: .component.system
@@ -57,11 +59,11 @@ states:
               ci: .ci.ciMethod
               imageRepository: .ci.imageRepository
               imageNamespace: .ci.imageNamespace
-              quayUserName: '["*" * (.ci.quayUserName | length)] | add'
-              quayPassword: '["*" * (.ci.quayPassword | length)] | add'
+              quayUserName: '["*" * ($SECRET.quay_username | length)] | add'
+              quayPassword: '["*" * ($SECRET.quay_password | length)] | add'
             secrets:
-              quayUserName: .ci.quayUserName
-              quayPassword: .ci.quayPassword
+              quayUserName: $SECRET.quay_username
+              quayPassword: $SECRET.quay_password
         actionDataFilter:
           toStateData: .launchedTemplate
     transition: GetSoftwareTemplate
@@ -106,7 +108,7 @@ states:
               entityRef: .aap.recipients
             payload:
               title: '"AAP DB Deploy workflow " + $WORKFLOW.instanceId + " completed software template creation." '
-              description: '"AAP DB Deploy workflow " + $WORKFLOW.instanceId + " completed software template creation." '
+              description: '"AAP DB Deploy workflow " + $WORKFLOW.instanceId + " completed software template creation based on " + $SECRET.software_template_ref'
               topic: "AAP DB Deploy"
               link: '$SECRET.rhdh_url + "/catalog/default/component/" + .component.repoName'
               severity: "normal"
