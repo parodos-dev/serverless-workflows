@@ -264,7 +264,8 @@ components:
       type: object
       properties:
         id:
-          type: number
+          type: integer
+          format: int64
           example: 5
         node_id:
           type: string
@@ -418,7 +419,8 @@ components:
       type: object
       properties:
         id:
-          type: number
+          type: integer
+          format: int64
           description: The ID of the workflow run.
           example: 5
         name:
@@ -430,7 +432,8 @@ components:
           type: string
           example: MDEwOkNoZWNrU3VpdGU1
         check_suite_id:
-          type: number
+          type: integer
+          format: int64
           description: The ID of the associated check suite.
           example: 42
         check_suite_node_id:
