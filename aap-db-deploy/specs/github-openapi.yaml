@@ -1083,6 +1083,7 @@ components:
       required: true
       schema:
         type: integer
+        format: int64
     actor:
       name: actor
       description: Returns someone's workflow runs. Use the login for the user who created the `push` associated with the check suite or workflow run.
