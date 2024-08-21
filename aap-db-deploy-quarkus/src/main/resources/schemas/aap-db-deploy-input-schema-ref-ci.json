@@ -1,0 +1,44 @@
+{
+  "$id": "classpath:/schemas/aap-db-deploy-input-schema-ref-ci.json",
+  "title": "Provide information about the CI method",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "properties": {
+    "ciMethod": {
+      "title": "Select a CI method",
+      "type": "string",
+      "description": "This action will create a CI pipeline for your application based on chosen method",
+      "enum": ["./github-actions/", "../../../skeletons/tekton/"],
+      "default": "./github-actions/"
+    },
+    "imageRepository": {
+      "title": "Select a registry",
+      "type": "string",
+      "enum": ["quay-lzh25.apps.cluster-lzh25.sandbox662.opentlc.com", "image-registry.openshift-image-registry.svc:5000"],
+      "default": "quay-lzh25.apps.cluster-lzh25.sandbox662.opentlc.com"
+    },
+    "imageNamespace": {
+      "title": "Quay.io Namespace",
+      "type": "string",
+      "description": "The Quay.io namespace or organization"
+    },
+    "quayUserName": {
+      "title": "Quay.io username",
+      "type": "string",
+      "description": "The Quay.io username",
+      "format": "password"
+    },
+    "quayPassword": {
+      "title": "Quay password",
+      "type": "string",
+      "description": "The Quay.io password / token",
+      "format": "password"
+    }
+  },
+  "required": [
+    "ciMethod",
+    "imageRepository",
+    "imageNamespace",
+    "quayUserName",
+    "quayPassword"
+  ]
+}

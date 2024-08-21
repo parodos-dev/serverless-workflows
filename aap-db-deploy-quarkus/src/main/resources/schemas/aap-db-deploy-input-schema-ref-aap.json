@@ -1,0 +1,44 @@
+{
+  "$id": "classpath:/schemas/aap-db-deploy-input-schema-ref-aap.json",
+  "title": "AAP Job Definition",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "jobTemplate": {
+      "type": "string",
+      "description": "Job template",
+      "enum": ["postgres_rhel"]
+    },
+    "inventoryGroup": {
+      "type": "string",
+      "description": "A integer value for the foreign key of an inventory to use in this job run"
+    },
+    "limit": {
+      "type": "string",
+      "description": "A string that represents a comma-separated list of hosts or groups to operate on"
+    },
+    "recipients": {
+      "title": "Recipients",
+      "type": "array",
+      "description": "A list of recipients for the notification in the format of 'user:<namespace>/<username>' or 'group:<namespace>/<groupname>', i.e. 'user:default/jsmith'",
+      "items": {
+        "title": "Recipient",
+        "type": "string",
+        "pattern": "^(user|group):[a-z0-9]([-a-z0-9]*[a-z0-9])?/([a-z0-9]([-a-z0-9]*[a-z0-9])?)$"
+      },
+      "minItems": 1
+    }
+  },
+  "required": [
+    "jobTemplate",
+    "inventoryGroup",
+    "recipients"
+  ],
+  "examples": [
+    {
+        "jobTemplate": "postgres_rhel",
+        "limit": "1",
+        "inventoryGroup": "2"
+    }
+  ]
+}

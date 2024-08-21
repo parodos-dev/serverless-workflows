@@ -1,0 +1,30 @@
+{
+  "$id": "classpath:/schemas/aap-db-deploy-input-schema-ref-java.json",
+  "title": "Provide information about the Java metadata",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "properties": {
+    "groupId": {
+      "title": "Group ID",
+      "type": "string",
+      "description": "Maven Group ID eg (io.janus)",
+      "default": "org.springframework.samples"
+    },
+    "artifactId": {
+      "title": "Artifact ID",
+      "type": "string",
+      "description": "Maven Artifact ID",
+      "default": "spring-petclinic"
+    },
+    "javaPackageName": {
+      "title": "Java Package Namespace",
+      "type": "string",
+      "description": "Name for the Java Package (ensure to use the / character as this is used for folder structure) should match Group ID and Artifact ID",
+      "default": "org/springframework/samples/petclinic"
+    }
+  },
+  "required": [
+    "groupId",
+    "artifactId",
+    "javaPackageName"
+  ]
+}

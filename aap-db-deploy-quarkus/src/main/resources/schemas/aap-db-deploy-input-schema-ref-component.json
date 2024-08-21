@@ -1,0 +1,47 @@
+{
+  "$id": "classpath:/schemas/aap-db-deploy-input-schema-ref-component.json",
+  "title": "Provide information about the new component",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "properties": {
+    "orgName": {
+      "title": "Organization Name",
+      "type": "string",
+      "description": "GitHub Organization Name"
+    },
+    "repoName": {
+      "title": "Repository Name",
+      "type": "string",
+      "description": "GitHub Repository Name"
+    },
+    "description": {
+      "title": "Description",
+      "type": "string",
+      "description": "Help others understand what this component is for"
+    },
+    "owner": {
+      "title": "Owner",
+      "type": "string",
+      "description": "The owner of the component",
+      "pattern": "^(user|group):[a-z0-9]([-a-z0-9]*[a-z0-9])?/([a-z0-9]([-a-z0-9]*[a-z0-9])?)$"
+    },
+    "system": {
+      "title": "System",
+      "type": "string",
+      "description": "System",
+      "enum": ["system:default/janus-orchestrator"]
+    },
+    "port": {
+      "title": "Application Port",
+      "description": "Override the port exposed for the application",
+      "type": "integer",
+      "default": 8080
+    }
+  },
+  "required": [
+    "orgName",
+    "repoName",
+    "owner",
+    "system",
+    "port"
+  ]
+}

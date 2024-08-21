@@ -265,7 +265,6 @@ components:
       properties:
         id:
           type: integer
-          format: int64
           example: 5
         node_id:
           type: string
@@ -1083,7 +1082,6 @@ components:
       required: true
       schema:
         type: integer
-        format: int64
     actor:
       name: actor
       description: Returns someone's workflow runs. Use the login for the user who created the `push` associated with the check suite or workflow run.
@@ -1149,6 +1147,7 @@ components:
       in: query
       schema:
         type: integer
+        format: int64
     workflow-run-head-sha:
       name: head_sha
       description: Only returns workflow runs that are associated with the specified `head_sha`.

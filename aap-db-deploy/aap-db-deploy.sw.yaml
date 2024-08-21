@@ -1,7 +1,7 @@
 specVersion: "0.8"
 id: aap-db-deploy
 version: 0.0.1
-name: aap-db-deploy
+name: Bootstrap Java project
 description: Workflow to launch AAP DB Deploy
 annotations:
   - "workflow-type/infrastructure"
@@ -45,24 +45,23 @@ states:
           arguments:
             templateRef: template:default/my-spring-petclinic-template
             values:
-              port: .port
-              system: .system
-              orgName: .orgName
-              repoName: .repoName
-              description: .description
-              owner: .owner
-              groupId: .groupId
-              artifactId: .artifactId
-              javaPackageName: .javaPackageName
-              ci: .ci
-              imageRepository: .imageRepository
-              imageNamespace: '["*" * (.imageNamespace | length)] | add'
-              quayUserName: '["*" * (.quayUserName | length)] | add'
-              quayPassword: '["*" * (.quayPassword | length)] | add'
+              port: .component.port
+              system: .component.system
+              orgName: .component.orgName
+              repoName: .component.repoName
+              description: .repositoryInfo.description
+              owner: .component.owner
+              groupId: .java.groupId
+              artifactId: .java.artifactId
+              javaPackageName: .java.javaPackageName
+              ci: .ci.ciMethod
+              imageRepository: .ci.imageRepository
+              imageNamespace: .ci.imageNamespace
+              quayUserName: '["*" * (.ci.quayUserName | length)] | add'
+              quayPassword: '["*" * (.ci.quayPassword | length)] | add'
             secrets:
-              imageNamespace: .imageNamespace
-              quayUserName: .quayUserName
-              quayPassword: .quayPassword
+              quayUserName: .ci.quayUserName
+              quayPassword: .ci.quayPassword
         actionDataFilter:
           toStateData: .launchedTemplate
     transition: GetSoftwareTemplate
@@ -104,12 +103,12 @@ states:
           arguments:
             recipients:
               type: "entity"
-              entityRef: .recipients
+              entityRef: .aap.recipients
             payload:
-              title: '"AAP DB Deploy workflow " + $WORKFLOW.instanceId + " completed software template creation." + .templateName '
-              description: '"AAP DB Deploy workflow " + $WORKFLOW.instanceId + " completed software template creation." + .templateName'
+              title: '"AAP DB Deploy workflow " + $WORKFLOW.instanceId + " completed software template creation." '
+              description: '"AAP DB Deploy workflow " + $WORKFLOW.instanceId + " completed software template creation." '
               topic: "AAP DB Deploy"
-              link: '$SECRET.rhdh_url + "/catalog/default/component/" + .repoName'
+              link: '$SECRET.rhdh_url + "/catalog/default/component/" + .component.repoName'
               severity: "normal"
     transition: LaunchAAPJob
   - name: SendTaskFailureNotification
@@ -120,10 +119,10 @@ states:
           arguments:
             recipients:
               type: "entity"
-              entityRef: .recipients
+              entityRef: .aap.recipients
             payload:
-              title: '"AAP DB Deploy workflow " + $WORKFLOW.instanceId + " failed on software template creation for repository " + .repoName'
-              description: '"AAP DB Deploy workflow ID: " + $WORKFLOW.instanceId + " for software template " + .templateName '
+              title: '"AAP DB Deploy workflow " + $WORKFLOW.instanceId + " failed on software template creation for repository " + .component.repoName'
+              description: '"AAP DB Deploy workflow ID: " + $WORKFLOW.instanceId + " for software template " '
               topic: "AAP DB Deploy"
               severity: "high"
     end: true
@@ -134,9 +133,9 @@ states:
           refName: LaunchAAPJob
           arguments:
             job_template_id: ($SECRET.aap_template_id | tonumber)
-            limit: (.limit | tonumber)
+            limit: (.aap.limit | tonumber)
             extra_vars:
-              rhel_inventory_group: (.inventoryGroup | tonumber)
+              rhel_inventory_group: (.aap.inventoryGroup | tonumber)
         actionDataFilter:
           toStateData: .launchedJob
     stateDataFilter:
@@ -177,7 +176,7 @@ states:
           arguments:
             recipients:
               type: "entity"
-              entityRef: .recipients
+              entityRef: .aap.recipients
             payload:
               title: '"AAP DB Deploy workflow " + $WORKFLOW.instanceId + " failed on AAP Job." '
               description: '"AAP DB Deploy workflow ID: " + $WORKFLOW.instanceId + " for job template id: " + $SECRET.aap_template_id + " failed."'
@@ -193,7 +192,7 @@ states:
           arguments:
             recipients:
               type: "entity"
-              entityRef: .recipients
+              entityRef: .aap.recipients
             payload:
               title: '"AAP DB Deploy workflow " + $WORKFLOW.instanceId + " completed AAP Job to create DB." '
               description: '"AAP DB Deploy workflow ID: " + $WORKFLOW.instanceId + " for job template id: " + $SECRET.aap_template_id + " completed."'
@@ -207,8 +206,8 @@ states:
       - functionRef:
           refName: GetActionWorkflows
           arguments:
-            owner: .orgName
-            repo: .repoName
+            owner: .component.orgName
+            repo: .component.repoName
         actionDataFilter:
           toStateData: .actionWorkflows
     transition: GetActionWorkflowRuns
@@ -224,9 +223,9 @@ states:
       - functionRef:
           refName: GetActionWorkflowRuns
           arguments:
-            owner: .orgName
-            repo: .repoName
-            workflow_id: .actionWorkflows.workflows[] | select(.name == "CI") | .id
+            owner: .component.orgName
+            repo: .component.repoName
+            workflow_id: .actionWorkflows.workflows[] | select(.name == "CI") | .id | tonumber
         actionDataFilter:
           toStateData: .actionWorkflowRuns
     transition: IsGitHubActionDone
@@ -250,7 +249,7 @@ states:
           arguments:
             recipients:
               type: "entity"
-              entityRef: .recipients
+              entityRef: .aap.recipients
             payload:
               title: '"AAP DB Deploy workflow " + $WORKFLOW.instanceId + " failed on GitHub CI workflow."'
               description: '"AAP DB Deploy workflow ID: " + $WORKFLOW.instanceId + " failed on GitHub CI workflow."'
@@ -266,7 +265,7 @@ states:
           arguments:
             recipients:
               type: "entity"
-              entityRef: .recipients
+              entityRef: .aap.recipients
             payload:
               title: '"AAP DB Deploy workflow " + $WORKFLOW.instanceId + " completed GitHub CI workflow."'
               description: '"AAP DB Deploy workflow ID: " + $WORKFLOW.instanceId + " successfully completed the GitHub CI workflow."'
@@ -284,16 +283,16 @@ states:
             apiVersion: argoproj.io/v1alpha1
             kind: Application
             metadata:
-              name: .artifactId + "-dev"
+              name: .java.artifactId + "-dev"
               labels:
-                rht-gitops.com/janus-argocd: .repoName
+                rht-gitops.com/janus-argocd: .component.repoName
             spec:
               destination:
                 namespace: $SECRET.target_namespace
                 server: https://kubernetes.default.svc
               project: $SECRET.target_argocd_project
               source:
-                repoURL: '"https://github.com/" + .orgName + "/" + .repoName + "-gitops.git"'
+                repoURL: '"https://github.com/" + .component.orgName + "/" + .component.repoName + "-gitops.git"'
                 path: helm/
                 targetRevision: main
               syncPolicy:
@@ -312,11 +311,11 @@ states:
           arguments:
             recipients:
               type: "entity"
-              entityRef: .recipients
+              entityRef: .aap.recipients
             payload:
               title: '"AAP DB Deploy workflow " + $WORKFLOW.instanceId + " completed successfully." '
               description: "The application was deployed using ArgoCD. Watch CD tab in the component page for deployment progress."
               topic: "AAP DB Deploy"
-              link: '$SECRET.rhdh_url + "/catalog/default/component/" + .repoName + "/cd"'
+              link: '$SECRET.rhdh_url + "/catalog/default/component/" + .component.repoName + "/cd"'
               severity: "normal"
     end: true
