@@ -36,7 +36,8 @@
           "name",
           "id"
         ]
-      }
+      },
+      "minItems": 1
     },
     "recipients": {
       "type": "array",
