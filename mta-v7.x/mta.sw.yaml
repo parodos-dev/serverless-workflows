@@ -397,7 +397,7 @@ states:
               entityRef: .recipients
             payload:
               title: "MTA analysis completed with incidents in mandatory issues."
-              description: '"MTA analysis for " + .application.repository.url + " completed with " + (.application.mandatoriesIncidents|tostring) +" incidents in mandatory issues. Check the analysis report. " + (if .migrationWaveJiraTicket != null then " Application was exported to issue manager." else "" end)'
+              description: '"MTA analysis for " + .application.repository.url + " completed with " + (.application.mandatoriesIncidents|tostring) +" incidents in mandatory issues. Check the analysis report." + (if .migrationWaveJiraTicket != null then " Application was exported to issue manager." else "" end)'
               topic: "MTA Analysis Workflow"
               link: '$SECRET.mta.url + "/hub/applications/" + (.application.id|tostring) + "/analysis/report"'
               severity: "high"
