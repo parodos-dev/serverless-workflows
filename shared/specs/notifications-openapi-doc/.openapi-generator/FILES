@@ -1,0 +1,10 @@
+.openapi-generator-ignore
+Apis/NotificationsApi.md
+Models/Count.md
+Models/CreateBody.md
+Models/CreateBody_recipients.md
+Models/GetNotifications.md
+Models/Notification.md
+Models/NotificationPayload.md
+Models/SetReadRequest.md
+README.md
