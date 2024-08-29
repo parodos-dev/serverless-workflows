@@ -1,0 +1,8 @@
+.openapi-generator-ignore
+Apis/DefaultApi.md
+Models/Task.md
+Models/Template.md
+Models/Template_steps_inner.md
+Models/createTask_201_response.md
+Models/listAvailableActions_200_response_inner.md
+README.md
