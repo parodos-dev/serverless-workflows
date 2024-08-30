@@ -16,7 +16,7 @@ on the specific git service provider (e.g. GitHub rather than Bitbucket).
 * Linux OS
 * Container registry credentials to publish the generated image
 
-The actuall implementation is delegated to shell scripts localted under the [scripts](./scripts/) folder that run
+The actual implementation is delegated to shell scripts located under the [scripts](./scripts/) folder that run
 in a containerized image including all the required dependencies: there's no need to install any other 
 tool in the local environment. 
 
