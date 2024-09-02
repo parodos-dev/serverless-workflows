@@ -34,7 +34,7 @@ sleep 3
 echo "Proxy Janus-idp port ✅"
 
 echo "Proxy move2kube instance port ⏳"
-kubectl port-forward  svc/move2kube-instance-svc 8080:8080 &
+kubectl port-forward svc/move2kube-instance-svc 8080:8080 &
 move2kube_port_forward_pid="$!"
 sleep 3
 echo "Proxy move2kube instance port ✅"
