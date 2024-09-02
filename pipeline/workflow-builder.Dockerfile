@@ -4,7 +4,7 @@
 ARG BUILDER_IMAGE
 
 # The default builder image is the released OSL 1.33 https://catalog.redhat.com/software/containers/openshift-serverless-1/logic-swf-builder-rhel8/6614edd826a5be569c111884?container-tabs=gti
-FROM ${BUILDER_IMAGE:-registry.redhat.io/openshift-serverless-1/logic-swf-builder-rhel8@sha256:6defe106ef355b2d0bd55224564ae6eafb4bb3ac081f8dc9ee410fb05216112d} AS builder
+FROM ${BUILDER_IMAGE:-registry.redhat.io/openshift-serverless-1/logic-swf-builder-rhel8@sha256:5c624eff9780d08409a446d76a1bbe88c91ea98a6428883a170303e8de40c78a} AS builder
 
 # Temp hack to provide persistence artifacts - with quay.io/kiegroup/kogito-swf-builder:9.99.1.CR1 those dependencies are included in the base image.
 #ENV MAVEN_REPO_URL=https://maven.repository.redhat.com/earlyaccess/all
@@ -36,7 +36,7 @@ RUN /home/kogito/launch/build-app.sh ./resources
 #=============================
 # Runtime Run
 #=============================
-FROM registry.access.redhat.com/ubi9/openjdk-17:1.20-2.1721752931
+FROM registry.access.redhat.com/ubi9/openjdk-17:1.20-2.1724037299
 
 
 ARG FLOW_NAME
