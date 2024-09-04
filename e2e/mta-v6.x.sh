@@ -15,7 +15,7 @@ function workflowDone() {
     if [[ -n "${1}" ]]; then 
         id=$1
         curl -s -H "Content-Type: application/json" -H "Authorization: Bearer ${BACKEND_SECRET}" \
-            localhost:9080/api/orchestrator/instances/"${id}" | jq -e '.state == "COMPLETED"'
+            localhost:9080/api/orchestrator/v2/workflows/instances/"${id}" | jq -e '.instance.state == "COMPLETED"'
     fi
 }
 
@@ -30,7 +30,7 @@ echo "Proxy Janus-idp port ✅"
 echo "End to end tests start ⏳"
 
 out=$(curl -XPOST -H "Content-Type: application/json" -H "Authorization: Bearer ${BACKEND_SECRET}" \
-    http://localhost:9080/api/orchestrator/workflows/mta-analysis-v6/execute -d '{"repositoryURL": "https://github.com/spring-projects/spring-petclinic", "recipients": ["user:default/guest"], "exportToIssueManager": "false", "migrationStartDatetime" : "2024-07-01T00:00:00Z", "migrationEndDatetime" : "2024-07-31T00:00:00Z"}')
+    http://localhost:9080/api/orchestrator/v2/workflows/mta-analysis-v6/execute -d '{"repositoryURL": "https://github.com/spring-projects/spring-petclinic", "recipients": ["user:default/guest"], "exportToIssueManager": "false", "migrationStartDatetime" : "2024-07-01T00:00:00Z", "migrationEndDatetime" : "2024-07-31T00:00:00Z"}')
 id=$(echo "$out" | jq -e .id)
 
 if [ -z "$id" ] || [ "$id" == "null" ]; then
