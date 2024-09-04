@@ -3,22 +3,28 @@
   "type": "object",
   "properties": {
     "migrationName": {
-      "type": "string"
+      "type": "string",
+      "pattern": "[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*"
     },
     "migrationNamespace": {
-      "type": "string"
+      "type": "string",
+      "pattern": "[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*"
     },
     "sourceProvider": {
-      "type": "string"
+      "type": "string",
+      "pattern": "[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*"
     },
     "destinationProvider": {
-      "type": "string"
+      "type": "string",
+      "pattern": "[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*"
     },
     "storageMap": {
-      "type": "string"
+      "type": "string",
+      "pattern": "[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*"
     },
     "networkMap": {
-      "type": "string"
+      "type": "string",
+      "pattern": "[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*"
     },
     "vms": {
       "type": "array",

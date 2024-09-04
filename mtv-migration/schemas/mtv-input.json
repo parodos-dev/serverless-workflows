@@ -3,10 +3,12 @@
   "type": "object",
   "properties": {
     "migrationName": {
-      "type": "string"
+      "type": "string",
+      "pattern": "[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*"
     },
     "migrationNamespace": {
-      "type": "string"
+      "type": "string",
+      "pattern": "[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*"
     },
     "recipients": {
       "type": "array",
