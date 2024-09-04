@@ -22,13 +22,8 @@ docker run --rm -it -p 8080:8080 quay.io/konveyor/move2kube-ui
 
 
 ## Install
-First, the `move2kube` API client has to be generated:
-```bash
-cd move2kubeAPI
-make install
-```
 
-Then, run the following command to execute tests and install the project:
+Run the following command to execute tests and install the project:
 ```bash
 mvn clean install
 ```
@@ -164,6 +159,11 @@ Should output
 NAME      URL                                                                    AGE    READY   REASON
 default   http://broker-ingress.knative-eventing.svc.cluster.local/m2k/default   107s   True    
 ```
+
+## Move2Kube API version
+
+Note that the client used in this function to call move2kube-api is generated from the openapi file under `src/main/resources/move2kube-openapi.yaml`
+To update or use a different version see https://raw.githubusercontent.com/konveyor/move2kube-api/main/assets/openapi.json
 
 ## Related Guides
 

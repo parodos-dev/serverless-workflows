@@ -9,7 +9,7 @@
   <version>1.0.0-SNAPSHOT</version>
   <properties>
     <failsafe.useModulePath>false</failsafe.useModulePath>
-    <move2kube.version>v2.0.0</move2kube.version>
+    <move2kube.version>v2.0.1</move2kube.version>
     <jgit-version>6.10.0.202406032230-r</jgit-version>
     <compiler-plugin.version>3.10.1</compiler-plugin.version>
     <maven.compiler.release>17</maven.compiler.release>
@@ -17,9 +17,15 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
     <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
-    <quarkus.platform.version>3.13.1</quarkus.platform.version>
+    <quarkus.platform.version>3.12.2</quarkus.platform.version>
     <skipITs>true</skipITs>
-    <surefire-plugin.version>3.5.0</surefire-plugin.version>
+    <surefire-plugin.version>3.4.0</surefire-plugin.version>
+    <httpclient-version>5.2.1</httpclient-version>
+    <jackson-version>2.17.1</jackson-version>
+    <jackson-databind-version>2.17.1</jackson-databind-version>
+    <jackson-databind-nullable-version>0.2.6</jackson-databind-nullable-version>
+    <jakarta-annotation-version>2.1.1</jakarta-annotation-version>
+
   </properties>
   <dependencyManagement>
     <dependencies>
@@ -61,11 +67,6 @@
       <groupId>org.eclipse.jgit</groupId>
       <artifactId>org.eclipse.jgit.ssh.apache</artifactId>
       <version>${jgit-version}</version>
-    </dependency>
-    <dependency>
-      <groupId>dev.parodos</groupId>
-      <artifactId>move2kube</artifactId>
-      <version>${move2kube.version}</version>
     </dependency>
     <dependency>
       <groupId>org.jboss.slf4j</groupId>
@@ -129,6 +130,74 @@
       <version>2.10.0</version>
       <scope>test</scope>
     </dependency>
+    <!--    
+    <dependency>
+      <groupId>dev.parodos</groupId>
+      <artifactId>move2kube</artifactId>
+      <version>${move2kube.version}</version>
+    </dependency>
+
+
+
+    move2kube client deps
+    -->
+
+        <!-- @Nullable annotation -->
+        <dependency>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>jsr305</artifactId>
+            <version>3.0.2</version>
+        </dependency>
+
+
+        <!-- HTTP client: apache client -->
+        <dependency>
+            <groupId>org.apache.httpcomponents.client5</groupId>
+            <artifactId>httpclient5</artifactId>
+            <version>${httpclient-version}</version>
+        </dependency>
+
+        <!-- JSON processing: jackson -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <version>${jackson-version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+            <version>${jackson-version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${jackson-databind-version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.jakarta.rs</groupId>
+            <artifactId>jackson-jakarta-rs-json-provider</artifactId>
+            <version>${jackson-version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+            <version>${jackson-version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.openapitools</groupId>
+            <artifactId>jackson-databind-nullable</artifactId>
+            <version>${jackson-databind-nullable-version}</version>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.annotation</groupId>
+            <artifactId>jakarta.annotation-api</artifactId>
+            <version>${jakarta-annotation-version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+
+
+
   </dependencies>
   <profiles>
     <profile>
@@ -159,6 +228,10 @@
               </execution>
             </executions>
           </plugin>
+
+
+
+
         </plugins>
       </build>
       <properties>
@@ -167,6 +240,7 @@
     </profile>
   </profiles>
   <build>
+
     <plugins>
       <plugin>
         <groupId>${quarkus.platform.group-id}</groupId>
@@ -221,6 +295,36 @@
           </execution>
         </executions>
       </plugin>
+
+      <plugin>
+          <groupId>org.openapitools</groupId>
+          <artifactId>openapi-generator-maven-plugin</artifactId>
+          <version>7.8.0</version>
+          <executions>
+              <execution>
+                  <phase>generate-sources</phase>
+                  <goals>
+                      <goal>generate</goal>
+                  </goals>
+                  <configuration>
+                    <output>${project.build.directory}/generated-sources/openapi</output>
+                    <inputSpec>${project.basedir}/src/main/resources/move2kube-openapi.yaml</inputSpec>
+                    <generatorName>java</generatorName>
+                    <invokerPackage>dev.parodos.move2kube</invokerPackage>
+                    <modelPackage>dev.parodos.move2kube.client.model</modelPackage>
+                    <apiPackage>dev.parodos.move2kube.api</apiPackage>
+                    <library>apache-httpclient</library>
+                    <artifactId>move2kube</artifactId>
+                    <artifactVersion>${move2kube.version}</artifactVersion>
+                    <configOptions>
+                      <library>apache-httpclient</library>
+                      <useJakartaEe>true</useJakartaEe>
+                    </configOptions>
+                  </configuration>
+              </execution>
+          </executions>
+      </plugin>
+
     </plugins>
   </build>
 
