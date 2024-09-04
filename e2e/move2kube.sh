@@ -16,7 +16,7 @@ function workflowDone() {
     if [[ -n "${1}" ]]; then
         id=$1
         curl -s -H "Content-Type: application/json" -H "Authorization: Bearer ${BACKEND_SECRET}" \
-            localhost:9080/api/orchestrator/instances/"${id}" | jq -e '.state == "COMPLETED"'
+            localhost:9080/api/orchestrator/v2/workflows/instances/"${id}" | jq -e '.instance.state == "COMPLETED"'
     fi
 }
 
@@ -53,11 +53,11 @@ WORKSPACE_ID=$(curl -X POST "${MOVE2KUBE_URL}/api/v1/workspaces" -H 'Content-Typ
 PROJECT_ID=$(curl -X POST "${MOVE2KUBE_URL}/api/v1/workspaces/${WORKSPACE_ID}/projects" -H 'Content-Type: application/json' --data '{"name": "e2e Project",  "description": "e2e tests"}' | jq -r .id)
 
 echo "Wait until M2K workflow is available in backstage..."
-M2K_STATUS=$(curl -XGET -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer ${BACKEND_SECRET}" ${BACKSTAGE_URL}/api/orchestrator/workflows/m2k)
+M2K_STATUS=$(curl -XGET -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer ${BACKEND_SECRET}" ${BACKSTAGE_URL}/api/orchestrator/v2/workflows/m2k/overview)
 until [ "$M2K_STATUS" -eq 200 ]
 do
 sleep 5
-M2K_STATUS=$(curl -XGET -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer ${BACKEND_SECRET}" ${BACKSTAGE_URL}/api/orchestrator/workflows/m2k)
+M2K_STATUS=$(curl -XGET -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer ${BACKEND_SECRET}" ${BACKSTAGE_URL}/api/orchestrator/v2/workflows/m2k/overview)
 done
 
 echo "M2K is available in backstage, sending execution request"
