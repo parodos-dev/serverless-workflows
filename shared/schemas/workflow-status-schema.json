@@ -1,0 +1,83 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "WorkflowStatus",
+    "description": "Status of workflow execution",
+    "type": "object",
+    "properties": {
+        "status": {
+            "description": "The current status of a workflow execution",
+            "type": "string",
+            "enum": [
+                "running",
+                "error",
+                "success"
+            ]
+        },
+        "description": {
+            "description": "High-level summary of the current status, free-form text, human readable.",
+            "type": "string"
+        },
+        "nextWorkflows": {
+            "description": "An array of workflows suggested to run next. Items at lower indexes are of higher priority.",
+            "type": "array",
+            "items": {
+                "description": "A next workflow to run.",
+                "type": "object",
+                "properties": {
+                    "title": {
+                        "description": "Human readable title describing the workflow, e.g. its name.",
+                        "type": "string"
+                    },
+                    "workflowId": {
+                        "description": "Identification of the workflow",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "title",
+                    "workflowId"
+                ]
+            }
+        },
+        "options": {
+            "description": "Additional structured output of workflow processing.",
+            "type": "array",
+            "items": {
+                "description": "An item is either key:value or key:link pair.",
+                "type": "object",
+                "properties": {
+                    "key": {
+                        "description": "Unique identifier of the option. Preferably human-readable.",
+                        "type": "string"
+                    },
+                    "value": {
+                        "description": "Free form value of the option.",
+                        "type": "string"
+                    },
+                    "link": {
+                        "description": "An URL.",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "key"
+                ],
+                "oneOf": [
+                    {
+                        "required": [
+                            "value"
+                        ]
+                    },
+                    {
+                        "required": [
+                            "link"
+                        ]
+                    }
+                ]
+            }
+        }
+    },
+    "required": [
+        "status"
+    ]
+}
