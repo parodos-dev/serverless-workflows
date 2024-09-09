@@ -1,48 +1,37 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
-    "title": "Workflow Options",
-    "description": "Workflow options",
+    "title": "Workflow Results",
+    "description": "Results of a workflow execution",
     "type": "object",
     "properties": {
-        "status": {
-            "description": "The current status of a workflow execution",
-            "$ref": "workflow-status-schema.json"
+        "completedWith": {
+            "description": "The state of workflow completion.",
+            "type": "string",
+            "enum": [
+                "error",
+                "success"
+            ]
         },
-        "currentVersion": {
-            "$ref": "${{ values.workflowId }}-workflow-option-output-schema.json"
+        "description": {
+            "description": "High-level summary of the current status, free-form text, human readable.",
+            "type": "string"
         },
-        "upgradeOptions": {
+        "nextWorkflows": {
+            "description": "List of workflows suggested to run next. Items at lower indexes are of higher priority.",
             "type": "array",
             "items": {
-                "$ref": "${{ values.workflowId }}-workflow-option-output-schema.json"
+                "$ref": "workflow-ref-schema.json"
             }
         },
-        "migrationOptions": {
+        "options": {
+            "description": "Additional structured output of workflow processing. This can contain identifiers of created resources, links to resources, logs or other output.",
             "type": "array",
             "items": {
-                "$ref": "${{ values.workflowId }}-workflow-option-output-schema.json"
-            }
-        },
-        "newOptions": {
-            "type": "array",
-            "items": {
-                "$ref": "${{ values.workflowId }}-workflow-option-output-schema.json"
-            }
-        },
-        "continuationOptions": {
-            "type": "array",
-            "items": {
-                "$ref": "${{ values.workflowId }}-workflow-option-output-schema.json"
-            }
-        },
-        "otherOptions": {
-            "type": "array",
-            "items": {
-                "$ref": "${{ values.workflowId }}-workflow-option-output-schema.json"
+                "$ref": "workflow-option-schema.json"
             }
         }
     },
     "required": [
-        "status"
+        "completedWith"
     ]
 }

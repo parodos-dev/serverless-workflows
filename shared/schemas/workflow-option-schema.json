@@ -1,0 +1,28 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "WorkflowOption",
+    "description": "Workflow result option, key:value pairs.",
+    "type": "object",
+    "properties": {
+        "key": {
+            "description": "Unique identifier of the option. Preferably human-readable.",
+            "type": "string"
+        },
+        "value": {
+            "description": "Free form value of the option.",
+            "type": "string"
+        },
+        "valueType": {
+            "description": "More detailed type of the 'value' property. Defaults to 'text'.",
+            "enum": [
+                "text",
+                "number",
+                "link"
+            ]
+        }
+    },
+    "required": [
+        "key",
+        "value"
+    ]
+}
