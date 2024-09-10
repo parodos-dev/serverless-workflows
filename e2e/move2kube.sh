@@ -12,14 +12,6 @@ function cleanup() {
     kill "$move2kube_port_forward_pid" || true
 }
 
-function workflowDone() {
-    if [[ -n "${1}" ]]; then
-        id=$1
-        curl -s -H "Content-Type: application/json" -H "Authorization: Bearer ${BACKEND_SECRET}" \
-            localhost:9080/api/orchestrator/v2/workflows/instances/"${id}" | jq -e '.instance.state == "COMPLETED"'
-    fi
-}
-
 function getAllNotifications() {
     GUEST_TOKEN=$(curl $BACKSTAGE_URL/api/auth/guest/refresh | jq -r .backstageIdentity.token)
     curl -s -H "Authorization: Bearer ${GUEST_TOKEN}" "${BACKSTAGE_NOTIFICATION_URL}" | jq ".notifications"
@@ -64,9 +56,11 @@ echo "M2K is available in backstage, sending execution request"
 out=$(curl -XPOST -H "Content-Type: application/json" -H "Authorization: Bearer ${BACKEND_SECRET}" \
     ${BACKSTAGE_URL}/api/orchestrator/v2/workflows/m2k/execute \
     -d "{\"inputData\": {\"repositoryURL\": \"ssh://${GIT_REPO}\", \"recipients\": [\"user:default/guest\"], \"sourceBranch\": \"${GIT_SOURCE_BRANCH}\", \"targetBranch\": \"${GIT_TARGET_BRANCH}\", \"workspaceId\": \"${WORKSPACE_ID}\", \"projectId\": \"${PROJECT_ID}\"}}")
-id=$(echo "$out" | jq -e .id)
+ID=$(echo "$out" | jq -r -e .id)
 
-if [ -z "$id" ] || [ "$id" == "null" ]; then
+echo "Workflow ID: ${ID}"
+
+if [ -z "$ID" ] || [ "$ID" == "null" ]; then
     echo "workflow instance id is null... exiting "
     exit 1
 fi
@@ -152,6 +146,24 @@ while [ "${question_id}" != "" ]; do
   default_answer=$(echo "${current_question}" | jq '.question | fromjson | .default' | sed -r -e 's/"/\\"/g' | tr '\n' ' ')
 done
 
+echo "Checking if workflow completed successfully"
+
+curl  -H "Content-Type: application/json" -H "Authorization: Bearer ${BACKEND_SECRET}"  "${BACKSTAGE_URL}/api/orchestrator/v2/workflows/instances/${ID}"
+
+state=$(curl  -H "Content-Type: application/json" -H "Authorization: Bearer ${BACKEND_SECRET}"  "${BACKSTAGE_URL}/api/orchestrator/v2/workflows/instances/${ID}" | jq -r .instance.state)
+retries=20
+while [[ ${retries} -ne 0 && "$state" != "COMPLETED" ]]; do
+  sleep 5
+  retries=$((retries-1))
+  curl  -H "Content-Type: application/json" -H "Authorization: Bearer ${BACKEND_SECRET}"  "${BACKSTAGE_URL}/api/orchestrator/v2/workflows/instances/${ID}"
+  state=$(curl  -H "Content-Type: application/json" -H "Authorization: Bearer ${BACKEND_SECRET}"  "${BACKSTAGE_URL}/api/orchestrator/v2/workflows/instances/${ID}" | jq -r .instance.state)
+done
+
+if [ "$state" != "COMPLETED" ]; then
+    echo "workflow instance state is '${state}', should be 'COMPLETED'... exiting "
+    exit 1
+fi
+
 echo "Checking if branch ${GIT_TARGET_BRANCH} created on git repo ${GIT_REPO}"
 
 http_status=$(curl -X GET -L -s -o /dev/null -w "%{http_code}" "https://api.bitbucket.org/2.0/repositories/${GIT_ORG}/refs/branches/${GIT_TARGET_BRANCH}")
@@ -193,6 +205,33 @@ then
 else
       printf "Notification has result high or critical severity in it: %s\n\nexiting " "${NOTIFICATION}"
       exit 1
+fi
+
+
+echo "Checking that when wrong inputs parameters, the workflows ends in error"
+out=$(curl -XPOST -H "Content-Type: application/json" -H "Authorization: Bearer ${BACKEND_SECRET}" \
+    ${BACKSTAGE_URL}/api/orchestrator/v2/workflows/m2k/execute \
+    -d "{\"inputData\": {\"repositoryURL\": \"ssh://${GIT_REPO}_WRONG\", \"recipients\": [\"user:default/guest\"], \"sourceBranch\": \"${GIT_SOURCE_BRANCH}\", \"targetBranch\": \"${GIT_TARGET_BRANCH}\", \"workspaceId\": \"${WORKSPACE_ID}\", \"projectId\": \"${PROJECT_ID}\"}}")
+ID=$(echo "$out" | jq -r -e .id)
+
+echo "Workflow ID: ${ID}"
+
+if [ -z "$ID" ] || [ "$ID" == "null" ]; then
+    echo "workflow instance id is null... exiting "
+    exit 1
+fi
+
+state=$(curl  -H "Content-Type: application/json" -H "Authorization: Bearer ${BACKEND_SECRET}"  "${BACKSTAGE_URL}/api/orchestrator/v2/workflows/instances/${ID}" | jq -r .instance.state)
+retries=20
+while [[ ${retries} -ne 0 && "$state" != "ERROR" ]]; do
+  sleep 5
+  retries=$((retries-1))
+  state=$(curl  -H "Content-Type: application/json" -H "Authorization: Bearer ${BACKEND_SECRET}"  "${BACKSTAGE_URL}/api/orchestrator/v2/workflows/instances/${ID}" | jq -r .instance.state)
+done
+
+if [ "$state" != "ERROR" ]; then
+    echo "workflow instance state is '${state}', should be 'ERROR'... exiting "
+    exit 1
 fi
 
 echo "End to end tests passed ✅"
