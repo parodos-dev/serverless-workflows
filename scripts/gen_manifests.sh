@@ -78,3 +78,7 @@ if [ "${ENABLE_PERSISTENCE}" = true ]; then
       }
     )" "${SONATAFLOW_CR}"
 fi
+# Hack while https://github.com/apache/incubator-kie-kogito-serverless-operator/issues/532 is not merged and released
+# Remove the errorMessage metadata from flow in CR
+yq --inplace 'del(.spec.flow.states[].metadata)' "${SONATAFLOW_CR}"
+## end hack
