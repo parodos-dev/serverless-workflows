@@ -1,7 +1,7 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
-    "title": "WorkflowOption",
-    "description": "Workflow result option, key:value pairs.",
+    "title": "WorkflowOutput",
+    "description": "One workflow result output, a key:value pair.",
     "type": "object",
     "properties": {
         "key": {
@@ -10,9 +10,9 @@
         },
         "value": {
             "description": "Free form value of the option.",
-            "type": "string"
+            "type": ["string", "number"]
         },
-        "valueType": {
+        "format": {
             "description": "More detailed type of the 'value' property. Defaults to 'text'.",
             "enum": [
                 "text",
