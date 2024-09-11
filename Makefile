@@ -24,9 +24,6 @@ $(WORKFLOWS):
 # Empty value is used to work with the default builder image from the dockerfile.
 BUILDER_IMAGE = ""
 
-# Empty value is used to work with the default quarkus extensions list from the dockerfile.
-QUARKUS_EXTENSIONS = ""
-
 ifndef APPLICATION_ID
 APPLICATION_ID = UNDEFINED
 endif
@@ -126,7 +123,7 @@ prepare-workdir:
 # Depends on: prepare-workdir target.
 # Usage: make build-image
 ifeq ($(IS_WORKFLOW),true)
-build-image: BUILD_ARGS=--build-arg-file=$(WORKFLOW_ID)/argfile.conf --build-arg=BUILDER_IMAGE=$(BUILDER_IMAGE) --build-arg=QUARKUS_EXTENSIONS=$(QUARKUS_EXTENSIONS) --build-arg WF_RESOURCES=$(WORKFLOW_ID)
+build-image: BUILD_ARGS=--build-arg-file=$(WORKFLOW_ID)/argfile.conf --build-arg=BUILDER_IMAGE=$(BUILDER_IMAGE) --build-arg WF_RESOURCES=$(WORKFLOW_ID)
 endif
 build-image: EXTRA_ARGS=--ulimit nofile=4096:4096
 build-image: prepare-workdir
