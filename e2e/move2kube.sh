@@ -63,7 +63,7 @@ done
 echo "M2K is available in backstage, sending execution request"
 out=$(curl -XPOST -H "Content-Type: application/json" -H "Authorization: Bearer ${BACKEND_SECRET}" \
     ${BACKSTAGE_URL}/api/orchestrator/v2/workflows/m2k/execute \
-    -d "{\"repositoryURL\": \"ssh://${GIT_REPO}\", \"recipients\": [\"user:default/guest\"], \"sourceBranch\": \"${GIT_SOURCE_BRANCH}\", \"targetBranch\": \"${GIT_TARGET_BRANCH}\", \"workspaceId\": \"${WORKSPACE_ID}\", \"projectId\": \"${PROJECT_ID}\"}")
+    -d "{\"inputData\": {\"repositoryURL\": \"ssh://${GIT_REPO}\", \"recipients\": [\"user:default/guest\"], \"sourceBranch\": \"${GIT_SOURCE_BRANCH}\", \"targetBranch\": \"${GIT_TARGET_BRANCH}\", \"workspaceId\": \"${WORKSPACE_ID}\", \"projectId\": \"${PROJECT_ID}\"}}")
 id=$(echo "$out" | jq -e .id)
 
 if [ -z "$id" ] || [ "$id" == "null" ]; then
