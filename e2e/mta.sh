@@ -31,7 +31,7 @@ echo "End to end tests start ⏳"
 
 out=$(curl -XPOST -H "Content-Type: application/json"  -H "Authorization: Bearer ${BACKEND_SECRET}" \
     http://localhost:9080/api/orchestrator/v2/workflows/MTAAnalysis/execute \
-    -d '{"repositoryURL": "https://github.com/spring-projects/spring-petclinic", "recipients": ["user:default/guest"]}')
+    -d '{"inputData": {"repositoryURL": "https://github.com/spring-projects/spring-petclinic", "recipients": ["user:default/guest"]}}')
 
 id=$(echo "$out" | jq -e .id)
 
