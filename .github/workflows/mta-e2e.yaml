@@ -83,6 +83,13 @@ jobs:
           kubectl get pods
           kubectl get svc
 
+      - name: Deploy psql
+        run: |
+            kubectl create secret generic sonataflow-psql-postgresql --from-literal=postgres-username=postgres --from-literal=postgres-password=postgres
+            helm repo add bitnami https://charts.bitnami.com/bitnami
+            helm install sonataflow-psql bitnami/postgresql --version 12.12.10 \
+            -f https://raw.githubusercontent.com/parodos-dev/orchestrator-helm-chart/main/postgresql/values.yaml
+
       - name: Download sonataflow artifacts generated manifests
         uses: actions/download-artifact@v4
         with:
@@ -104,9 +111,26 @@ jobs:
           # Set the endpoint to the tackle-ui service
           yq --inplace '.spec.podTemplate.container.env |= ( . + [{"name": "QUARKUS_REST_CLIENT_MTA_JSON_URL", "value": "http://tackle-ui.my-konveyor-operator.svc:8080/hub"}, {"name": "BACKSTAGE_NOTIFICATIONS_URL", "value": "http://orchestrator-backstage.default.svc.cluster.local:7007/"}] )' manifests/0?-sonataflow_mtaanalysis.yaml
           
-          # Disable persistence for e2e tests
-          yq e '.spec.persistence = {}' -i manifests/0?-sonataflow_mtaanalysis.yaml
-          sed -i '/quarkus\.flyway\.migrate-at-start=true/d' manifests/0?-configmap_mtaanalysis-props.yaml
+          # reuse orchestrator psql persistence for e2e tests
+          kubectl patch secret orchestrator-postgresql  --patch='{"stringData": { "postgres-username": "postgres" }}'
+
+          yq --inplace ".spec.persistence = (
+            {
+                \"postgresql\": {
+                  \"secretRef\": {
+                    \"name\": \"orchestrator-postgresql\",
+                    \"userKey\": \"postgres-username\",
+                    \"passwordKey\": \"postgres-password\"
+                  },
+                  \"serviceRef\": {
+                    \"name\": \"orchestrator-postgresql\",
+                    \"port\": 5432,
+                    \"databaseName\": \"postgres\",
+                    \"databaseSchema\": \"mta\"
+                  }
+                }
+            }
+          )" manifests/0?-sonataflow_mtaanalysis.yaml
 
           echo "manifests/02-configmap_mtaanalysis-props.yaml"
           cat manifests/0?-configmap_mtaanalysis-props.yaml

@@ -101,10 +101,27 @@ jobs:
         run: |
           # Set the endpoint to the tackle-ui service
           yq --inplace '.spec.podTemplate.container.env |= ( . + [{"name": "QUARKUS_REST_CLIENT_MTA_JSON_URL", "value": "http://tackle-ui.my-konveyor-operator.svc:8080"}, {"name": "BACKSTAGE_NOTIFICATIONS_URL", "value": "http://orchestrator-backstage.default.svc.cluster.local:7007/"}] )' manifests/04-sonataflow_mta-analysis-v7.yaml
-          
-          # Disable persistence for e2e tests
-          yq e '.spec.persistence = {}' -i manifests/04-sonataflow_mta-analysis-v7.yaml
-          sed -i '/quarkus\.flyway\.migrate-at-start=true/d' manifests/01-configmap_mta-analysis-v7-props.yaml
+
+          # reuse orchestrator psql persistence for e2e tests
+          kubectl patch secret orchestrator-postgresql  --patch='{"stringData": { "postgres-username": "postgres" }}'
+
+          yq --inplace ".spec.persistence = (
+            {
+                \"postgresql\": {
+                  \"secretRef\": {
+                    \"name\": \"orchestrator-postgresql\",
+                    \"userKey\": \"postgres-username\",
+                    \"passwordKey\": \"postgres-password\"
+                  },
+                  \"serviceRef\": {
+                    \"name\": \"orchestrator-postgresql\",
+                    \"port\": 5432,
+                    \"databaseName\": \"postgres\",
+                    \"databaseSchema\": \"mta\"
+                  }
+                }
+            }
+          )" manifests/0?-sonataflow_mta-analysis-v7.yaml
 
           echo "manifests/01-configmap_mta-analysis-v7-props.yaml"
           cat manifests/01-configmap_mta-analysis-v7-props.yaml

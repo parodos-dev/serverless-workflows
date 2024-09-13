@@ -87,6 +87,7 @@ jobs:
           kubectl wait --for=condition=Ready=true pods -l "app.kubernetes.io/name=backstage" --timeout=10m
           kubectl get pods -o wide
           kubectl wait --for=condition=Ready=true pods -l "app=sonataflow-platform" --timeout=180s
+          kubectl set env deployment/orchestrator-backstage LOG_LEVEL=DEBUG
 
       - name: Deploy Move2kube serverless workflow
         run: |
@@ -97,12 +98,26 @@ jobs:
           
           yq  --inplace '.spec.podTemplate.container |= ( . +  {"env": [{"name": "K_SINK", "value": "http://broker-ingress.knative-eventing.svc.cluster.local/sonataflow-infra/default"}]} )' manifests/0?-sonataflow_m2k.yaml
 
-          # Disable persistence for e2e tests
-          yq  --inplace 'del(.spec.persistence)' manifests/0?-sonataflow_m2k.yaml
-          # The 'for loop' added due to inconsistency of the generated numbers of the configmaps
-          for file in manifests/*-configmap_m2k-props.yaml; do
-            sed -i '/quarkus\.flyway\.migrate-at-start=true/d' "$file"
-          done
+          # reuse orchestrator psql persistence for e2e tests
+          kubectl patch secret orchestrator-postgresql  --patch='{"stringData": { "postgres-username": "postgres" }}'
+
+          yq --inplace ".spec.persistence = (
+            {
+                \"postgresql\": {
+                  \"secretRef\": {
+                    \"name\": \"orchestrator-postgresql\",
+                    \"userKey\": \"postgres-username\",
+                    \"passwordKey\": \"postgres-password\"
+                  },
+                  \"serviceRef\": {
+                    \"name\": \"orchestrator-postgresql\",
+                    \"port\": 5432,
+                    \"databaseName\": \"postgres\",
+                    \"databaseSchema\": \"m2k\"
+                  }
+                }
+            }
+          )" manifests/0?-sonataflow_m2k.yaml
 
           # Set notification external access token
           echo " Set notification external access token"
@@ -113,6 +128,7 @@ jobs:
           # deploy the manifests created by the  ${{ steps.build-image.outputs.image }}"                                                                    
           kubectl apply -f manifests
           sleep 5
+          kubectl get deployment m2k -o yaml
           kubectl get deployment m2k -o jsonpath={.spec.template.spec.containers[]}
           # give the pod time to start
           sleep 15
