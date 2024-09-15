@@ -18,7 +18,9 @@ ARG QUARKUS_EXTENSIONS=org.kie:kogito-addons-quarkus-jobs-knative-eventing:9.100
 
 # Additional java/mvn arguments to pass to the builder.
 # This are is conventient to pass sonataflow and quarkus build time properties.
-ARG MAVEN_ARGS_APPEND="-Dkogito.persistence.type=jdbc -Dquarkus.datasource.db-kind=postgresql -Dkogito.persistence.proto.marshaller=false"
+# Note that the maxYamlCodePoints parameter contols the maximum input size for 
+#   YAML input files, and is currently set to 35000000 characters (~33MB in UTF-8).  
+ARG MAVEN_ARGS_APPEND="-DmaxYamlCodePoints=35000000 -Dkogito.persistence.type=jdbc -Dquarkus.datasource.db-kind=postgresql -Dkogito.persistence.proto.marshaller=false"
 
 # Argument for passing the resources folder if not current context dir
 ARG WF_RESOURCES
