@@ -162,10 +162,15 @@ states:
         transition: pollResults
         name: taskNotCompleted
       - condition: (.taskgroup.state == "Ready" and .taskgroup.tasks[0].state == "Failed")
-        transition: NotifyFailureBackstage
+        transition: TaskFailedError
         name: taskFailed
     defaultCondition:
       transition: GetApplicationAnalysis
+  - name: TaskFailedError
+    type: inject
+    data:
+      exitMessage: '"The 1st task of the taskGroup " + .taskgroup.id + " is in failed state"'
+    transition: NotifyFailureBackstage
   - name: GetApplicationAnalysis
     type: operation
     actionMode: sequential
@@ -234,7 +239,12 @@ states:
       - condition: (.trackers != null)
         transition: GetTracker
     defaultCondition:
-      transition: NotifyFailureBackstage
+      transition: TrackersDoesNotExistError
+  - name: TrackersDoesNotExistError
+    type: inject
+    data:
+      exitMessage: '"There are no trackers configured in MTA, cannot export to the issue manager"'
+    transition: NotifyFailureBackstage
   - name: GetTracker
     type: operation
     actions:
@@ -252,7 +262,12 @@ states:
       - condition: (.tracker != null)
         transition: GetTrackerProjects
     defaultCondition:
-      transition: NotifyFailureBackstage
+      transition: TrackerDoesNotExistError
+  - name: TrackerDoesNotExistError
+    type: inject
+    data:
+      exitMessage: '"The tracker with the id " + .trackers[0].id + " does not exist, cannot export to the issue manager"'
+    transition: NotifyFailureBackstage
   - name: GetTrackerProjects
     type: operation
     actions:
@@ -270,7 +285,12 @@ states:
       - condition: (.trackerProjects != null)
         transition: GetTrackerProject
     defaultCondition:
-      transition: NotifyFailureBackstage
+      transition: TrackerProjectsDoesNotExistError
+  - name: TrackerProjectsDoesNotExistError
+    type: inject
+    data:
+      exitMessage: '"There are no trackerProjects associated with the tracker with the id " + .tracker.id + ", cannot export to the issue manager"'
+    transition: NotifyFailureBackstage
   - name: GetTrackerProject
     type: operation
     actions:
@@ -289,7 +309,12 @@ states:
       - condition: (.trackerProject != null)
         transition: GetTrackerProjectIssueTypes
     defaultCondition:
-      transition: NotifyFailureBackstage
+      transition: TrackerProjectDoesNotExistError
+  - name: TrackerProjectDoesNotExistError
+    type: inject
+    data:
+      exitMessage: '"The trackerProject with the id " + .trackerProjects[0].id + " of the tracker with the id " + .tracker.id + " does not exist, cannot export to the issue manager"'
+    transition: NotifyFailureBackstage
   - name: GetTrackerProjectIssueTypes
     type: operation
     actions:
@@ -298,7 +323,7 @@ states:
           refName: getTrackerProjectIssueTypes
           arguments:
             id: .tracker.id
-            id2: .trackerProjects[0].id
+            id2: .trackerProject.id
         actionDataFilter:
           toStateData: ".trackerProjectIssueTypes"
     transition: TrackerProjectIssueTypesExist
@@ -308,7 +333,12 @@ states:
       - condition: (.trackerProjectIssueTypes != null)
         transition: CreateMigrationWave
     defaultCondition:
-      transition: NotifyFailureBackstage
+      transition: TrackerProjectIssueTypesDoesNotExistError
+  - name: TrackerProjectIssueTypesDoesNotExistError
+    type: inject
+    data:
+      exitMessage: '"There are no trackerProjectIssueTypes in the trackerProject with the id " + .trackerProject.id + " of the tracker with the id "+ .tracker.id +" does not exist, cannot export to the issue manager"'
+    transition: NotifyFailureBackstage
   - name: CreateMigrationWave
     type: operation
     actions:
@@ -415,7 +445,7 @@ states:
               entityRef: .recipients
             payload:
               title: "MTA analysis failed"
-              description: '"MTA analysis for " + .application.repository.url + " failed. Check logs of task pod: " + .taskgroup.tasks[0].pod'
+              description: '"MTA analysis for " + .application.repository.url + " failed: " + .exitMessage + ". Check logs of task pod: " + .taskgroup.tasks[0].pod'
               topic: "MTA Analysis Workflow"
               severity: "critical"
     end: true
