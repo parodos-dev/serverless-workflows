@@ -20,14 +20,53 @@
             "description": "List of workflows suggested to run next. Items at lower indexes are of higher priority.",
             "type": "array",
             "items": {
-                "$ref": "workflow-ref-schema.json"
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "description": "Workflow identifier",
+                        "type": "string"
+                    },
+                    "name": {
+                        "description": "Human readable title describing the workflow.",
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "id",
+                    "name"
+                ]
             }
         },
         "outputs": {
             "description": "Additional structured output of workflow processing. This can contain identifiers of created resources, links to resources, logs or other output.",
             "type": "array",
             "items": {
-                "$ref": "workflow-result-item-schema.json"
+                "type": "object",
+                "properties": {
+                    "key": {
+                        "description": "Unique identifier of the option. Preferably human-readable.",
+                        "type": "string"
+                    },
+                    "value": {
+                        "description": "Free form value of the option.",
+                        "type": [
+                            "string",
+                            "number"
+                        ]
+                    },
+                    "format": {
+                        "description": "More detailed type of the 'value' property. Defaults to 'text'.",
+                        "enum": [
+                            "text",
+                            "number",
+                            "link"
+                        ]
+                    }
+                },
+                "required": [
+                    "key",
+                    "value"
+                ]
             }
         }
     }
