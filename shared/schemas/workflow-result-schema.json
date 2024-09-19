@@ -49,9 +49,13 @@
                     },
                     "value": {
                         "description": "Free form value of the option.",
-                        "type": [
-                            "string",
-                            "number"
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "number"
+                            }
                         ]
                     },
                     "format": {
