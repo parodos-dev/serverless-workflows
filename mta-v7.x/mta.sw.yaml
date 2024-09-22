@@ -414,7 +414,7 @@ states:
   - name: report
     type: operation
     stateDataFilter:
-      output: '{recipients: .recipients, mtaAnalysisResultURL: ($SECRET.mta.url + "/hub/applications/" + (.application.id|tostring) + "/bucket/windup/report/"), migrationWaveJiraTicketURL: .migrationWaveJiraTicket.link, repositoryURL: .repositoryURL, workflowOptions: {migrationOptions: [{id: "m2k", name: "Move2Kube workflow"}]}}'
+      output: '{recipients: .recipients, mtaAnalysisResultURL: ($SECRET.mta.url + "/hub/applications/" + (.application.id|tostring) + "/analysis/report"), migrationWaveJiraTicketURL: .migrationWaveJiraTicket.link, repositoryURL: .repositoryURL, workflowOptions: {migrationOptions: [{id: "m2k", name: "Move2Kube workflow"}]}}'
     end: true
   - name: NotifyMandatoriesIncidentsInApplication
     type: operation
