@@ -32,9 +32,9 @@ Follow these steps to successfully add a new workflow:
 2. Copy `application.properties`, `onboarding.sw.yaml` into that folder
 3. Create a GitHub workflow file `.github/workflows/${workflow}.yaml` that will call `main` workflow (see greeting.yaml)
 4. Create a pull request but don't merge yet.
-5. Send a pull request to [the helm chart repo][3] to add a sub-chart
+5. Send a pull request to [serverless-workflows-config repository][3] to add a sub-chart
    under the path `charts/workflows/charts/onboarding`. You can copy the greeting sub-chart directory and files.
-6. Create a PR to [serverless-workflows-config][3] and make sure its merge.
+6. Create a PR to [serverless-workflows-config repository][3] and make sure its merge.
 7. Now the PR from 4 can be merged and an automatic PR will be created with the generated manifests. Review and merge.
 
 See [Continuous Integration with make](https://github.com/parodos-dev/serverless-workflows/blob/main/make.md) for implementation details of the CI pipeline.
@@ -49,7 +49,7 @@ There are two builder images under ./pipeline folder:
 
 
 Note on CI:
-For every PR merged in the workflow directory, a GitHub Action runs an image build to generate manifests, and a new PR is automatically generated in the [Helm Chart repo][3]. The credentials used by the build process are defined as organization level secret, and the content is from a token on the helm repo with an expiry period of 60 days. Currently only the repo owner (rgolangh) can recreate the token. This should be revised.
+For every PR merged in the workflow directory, a GitHub Action runs an image build to generate manifests, and a new PR is automatically generated in the [serverless-workflows-config repository][3]. The credentials used by the build process are defined as organization level secret, and the content is from a token on the helm repo with an expiry period of 60 days. Currently only the repo owner (rgolangh) can recreate the token. This should be revised.
 
 [1]: https://github.com/serverlessworkflow/specification/blob/main/specification.md
 [2]: https://github.com/apache/incubator-kie-kogito-serverless-operator/
