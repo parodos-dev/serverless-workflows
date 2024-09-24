@@ -8,7 +8,7 @@
   <artifactId>jira-listener</artifactId>
   <version>1.0.0-SNAPSHOT</version>
   <properties>
-    <cloudevents.version>2.5.0</cloudevents.version>
+    <cloudevents.version>4.0.1</cloudevents.version>
     <compiler-plugin.version>3.13.0</compiler-plugin.version>
     <maven.compiler.release>17</maven.compiler.release>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
