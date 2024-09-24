@@ -2,10 +2,7 @@ name: Check trailing white spaces before merge
 
 on:
   pull_request:
-  push:
-    branches: [ "main" ]
-    paths:
-      - .github/workflows/check-whitespace.yaml
+    branches: '**'
 
 jobs:
   check-whitespace:
