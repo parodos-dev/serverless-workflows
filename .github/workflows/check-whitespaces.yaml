@@ -39,7 +39,7 @@ jobs:
         if [ ! -z "$tw_lines" ]; then
         echo -e "\n***** Lines containing trailing whitespace *****\n"
         echo -e "${tw_lines[@]}"
-        echo -e "\nCI job Failed. Need to fix trailing whitespaces.\n"
+        echo -e "\nCI job Failed. Please run 'make remove-whitespaces'.\n"
         exit_code=1
         fi
 
