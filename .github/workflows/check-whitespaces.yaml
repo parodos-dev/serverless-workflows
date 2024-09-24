@@ -1,0 +1,51 @@
+name: Check trailing white spaces before merge
+
+on:
+  pull_request:
+  push:
+    branches: [ "main" ]
+    paths:
+      - .github/workflows/check-whitespace.yaml
+
+jobs:
+  check-whitespace:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Get Changed Files
+      id: changed-files
+      uses: tj-actions/changed-files@v45
+      with:
+        files: |
+          **/application.properties
+
+
+    - name: Check white spaces scripts
+      env:
+        ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
+      run: |
+
+        tw_lines=""
+
+        for file in ${ALL_CHANGED_FILES}
+        do
+        lines=$(egrep -rnIH " +$" $file | cut -f-2 -d ":")
+        if [ ! -z "$lines" ]; then
+            tw_lines+=$([[ -z "$tw_lines" ]] && echo "$lines" || echo $'\n'"$lines")
+        fi
+        done
+
+        exit_code=0
+
+        # If tw_lines is not empty, change the exit code to 1 to fail the CI.
+        if [ ! -z "$tw_lines" ]; then
+        echo -e "\n***** Lines containing trailing whitespace *****\n"
+        echo -e "${tw_lines[@]}"
+        echo -e "\nCI job Failed. Need to fix trailing whitespaces.\n"
+        exit_code=1
+        fi
+
+        exit $exit_code
+
+
