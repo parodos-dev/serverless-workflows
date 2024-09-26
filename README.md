@@ -51,6 +51,6 @@ There are two builder images under ./pipeline folder:
 Note on CI:
 For every PR merged in the workflow directory, a GitHub Action runs an image build to generate manifests, and a new PR is automatically generated in the [serverless-workflows-config repository][3]. The credentials used by the build process are defined as organization level secret, and the content is from a token on the helm repo with an expiry period of 60 days. Currently only the repo owner (rgolangh) can recreate the token. This should be revised.
 
-[1]: https://github.com/serverlessworkflow/specification/blob/main/specification.md
+[1]: https://github.com/serverlessworkflow/specification/tree/main?tab=readme-ov-file#documentation
 [2]: https://github.com/apache/incubator-kie-kogito-serverless-operator/
 [3]: https://github.com/parodos-dev/serverless-workflows-config
