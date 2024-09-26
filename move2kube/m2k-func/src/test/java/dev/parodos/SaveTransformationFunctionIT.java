@@ -18,20 +18,9 @@ import java.util.UUID;
 import static org.hamcrest.Matchers.containsString;
 
 @QuarkusTest
-@TestProfile(SaveTransformationFunctionIT.OverridePropertiesTestProfile.class)
 public class SaveTransformationFunctionIT {
   @ConfigProperty(name = "transformation-saved.event.name")
   private String transformationSavedEventName;
-
-  public static class OverridePropertiesTestProfile implements QuarkusTestProfile {
-
-    @Override
-    public Map<String, String> getConfigOverrides() {
-      return Map.of(
-          "move2kube.api", "http://localhost:8080/api/v1"
-      );
-    }
-  }
 
   @Test
   @Disabled
