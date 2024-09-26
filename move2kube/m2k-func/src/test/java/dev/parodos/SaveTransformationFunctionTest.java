@@ -7,6 +7,8 @@ import dev.parodos.service.Move2KubeService;
 import dev.parodos.service.Move2KubeServiceImpl;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.junit.QuarkusTestProfile;
+import io.quarkus.test.junit.TestProfile;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import org.apache.commons.io.FileUtils;
@@ -29,6 +31,7 @@ import java.nio.file.Path;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.hamcrest.Matchers.containsString;
@@ -71,6 +74,7 @@ public class SaveTransformationFunctionTest {
 
   private Git git;
 
+  
   @BeforeEach
   public void setUp() throws GitAPIException, IOException {
     File tmpDir = Files.createTempDirectory("gitRepoTest").toFile();
