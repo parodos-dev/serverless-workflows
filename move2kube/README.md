@@ -12,6 +12,30 @@ Once the transformation is over, move2kube provides a zip file containing the tr
 ![m2k.svg](https://raw.githubusercontent.com/parodos-dev/serverless-workflows/main/move2kube/m2k.svg)
 
 Note that if an error occurs during the migration planning there is no feedback given by the move2kube instance API. To overcome this, we defined a maximum amount of retries  (`move2kube_get_plan_max_retries`) to execute while getting the planning before exiting with an error. By default the value is set to 10 and it can be overridden with the environment variable `MOVE2KUBE_GET_PLAN_MAX_RETRIES`.
+
+## Workflow application configuration
+### Move2kube workflow
+Application properties can be initialized from environment variables before running the application:
+
+| Environment variable  | Description | Mandatory | Default value |
+|-----------------------|-------------|-----------|---------------|
+| `MOVE2KUBE_URL`       | The  move2kube instance server URL | ✅ | |
+| `BACKSTAGE_NOTIFICATIONS_URL`      | The backstage server URL for notifications | ✅ | |
+| `NOTIFICATIONS_BEARER_TOKEN`      | The authorization bearer token to use to send notifications | ✅ | |
+| `MOVE2KUBE_GET_PLAN_MAX_RETRIES`      | The amount of retries to get the plan before failing the workflow | ❌ | 10 |
+
+
+### m2k-func serverless function
+Application properties can be initialized from environment variables before running the application:
+
+| Environment variable  | Description | Mandatory | Default value |
+|-----------------------|-------------|-----------|---------------|
+| `MOVE2KUBE_API`       | The move2kube instance server URL | ✅ | |
+| `SSH_PRIV_KEY_PATH`      | The absolute path to the SSH private key | ✅ | |
+| `BROKER_URL`      | The knative broker URL | ✅ | |
+| `LOG_LEVEL`      | The log level | ❌ | INFO |
+
+
 ## Components
 The use case has the following components:
 1. `m2k`: the `Sonataflow` resource representing the workflow. A matching `Deployment` is created by the sonataflow operator..

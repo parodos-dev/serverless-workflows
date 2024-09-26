@@ -14,6 +14,20 @@ If the Jira issue isn't resolved within 60 seconds, the workflow fires a timeout
 
 This workflow can be extended to introduce more capabilities, such as creating K8s resource in OpenShift cluster.
 
+## Workflow application configuration
+Application properties can be initialized from environment variables before running the application:
+
+| Environment variable  | Description | Mandatory | Default value |
+|-----------------------|-------------|-----------|---------------|
+| `BACKSTAGE_NOTIFICATIONS_URL`      | The backstage server URL for notifications | ✅ | |
+| `NOTIFICATIONS_BEARER_TOKEN`      | The authorization bearer token to use to send notifications | ✅ | |
+| `JIRA_URL`      | The jira server URL | ✅ | |
+| `JIRA_USERNAME`      | The jira username | ✅ | |
+| `JIRA_API_TOKEN`      | The jira password | ✅ | |
+| `OCP_API_SERVER_URL`      | The OCP API server url | ✅ | |
+| `OCP_API_SERVER_TOKEN`      | The authorization bearer token to use when sending request to OCP | ✅ | |
+
+
 ## Input
 - `Audit Jira Project Key` [required] - the Jira Project Key to which the workflow is configured to work and has permission to create and update and issue of type Task.
 - `Operations Jira Project Key` [required] - the Jira Project Key to which the workflow is configured to work and has permission to create and update and issue of type Task.
