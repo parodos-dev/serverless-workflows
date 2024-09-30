@@ -16,6 +16,8 @@ extensions:
   - extensionid: workflow-uri-definitions
     definitions:
       notifications: "https://raw.githubusercontent.com/parodos-dev/serverless-workflows/main/shared/specs/notifications-openapi.yaml"
+  - extensionid: workflow-output-schema
+    outputSchema: schemas/workflow-output-schema.json
 functions:
   - name: filterApplication
     type: expression
@@ -410,11 +412,23 @@ states:
               topic: "MTA Analysis Workflow"
               link: '$SECRET.mta.url + "/hub/applications/" + (.application.id|tostring) + "/analysis/report"'
               severity: "normal"
-    transition: report
-  - name: report
-    type: operation
-    stateDataFilter:
-      output: '{recipients: .recipients, mtaAnalysisResultURL: ($SECRET.mta.url + "/hub/applications/" + (.application.id|tostring) + "/analysis/report"), migrationWaveJiraTicketURL: .migrationWaveJiraTicket.link, repositoryURL: .repositoryURL, workflowOptions: {migrationOptions: [{id: "m2k", name: "Move2Kube workflow"}]}}'
+    transition: reportCompletion
+  - name: reportCompletion
+    type: inject
+    data:
+      result:
+        completedWith: success
+        message: '"MTA v7.x analysis completed for " + .repositoryURL'
+        output:
+          - key: mtaAnalysisResultURL
+            value: ($SECRET.mta.url + "/hub/applications/" + (.application.id|tostring) + "/analysis/report")
+            format: link
+          - key: migrationWaveJiraTicketURL
+            value: (if .migrationWaveJiraTicket != null then .migrationWaveJiraTicket.link else "" end)
+            format: link
+        nextWorkflows:
+          - id: m2k
+            name: Move2Kube workflow
     end: true
   - name: NotifyMandatoriesIncidentsInApplication
     type: operation
@@ -431,6 +445,20 @@ states:
               topic: "MTA Analysis Workflow"
               link: '$SECRET.mta.url + "/hub/applications/" + (.application.id|tostring) + "/analysis/report"'
               severity: "high"
+    transition: reportCompletionWithMandatoriesIncidentsInApplication
+  - name: reportCompletionWithMandatoriesIncidentsInApplication
+    type: inject
+    data:
+      result:
+        completedWith: error
+        message: '"MTA analysis for " + .application.repository.url + " completed with " + (.application.mandatoriesIncidents|tostring) +" incidents in mandatory issues. Check the analysis report." + (if .migrationWaveJiraTicket != null then " Application was exported to issue manager." else "" end)'
+        output:
+          - key: mtaAnalysisResultURL
+            value: ($SECRET.mta.url + "/hub/applications/" + (.application.id|tostring) + "/analysis/report")
+            format: link
+          - key: migrationWaveJiraTicketURL
+            value: (if .migrationWaveJiraTicket != null then .migrationWaveJiraTicket.link else "" end)
+            format: link
     end: true
   - name: NotifyFailureBackstage
     type: operation
@@ -448,4 +476,11 @@ states:
               description: '"MTA analysis for " + .application.repository.url + " failed: " + .exitMessage + ". Check logs of task pod: " + .taskgroup.tasks[0].pod'
               topic: "MTA Analysis Workflow"
               severity: "critical"
+    transition: reportFailure
+  - name: reportFailure
+    type: inject
+    data:
+      result:
+        completedWith: error
+        message: '"MTA analysis for " + .application.repository.url + " failed: " + .exitMessage + ". Check logs of task pod: " + .taskgroup.tasks[0].pod'
     end: true
