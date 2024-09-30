@@ -115,6 +115,7 @@ prepare-workdir:
 	@rm -rf $(WORKDIR)
 	@mkdir -p $(WORKDIR)
 	@cp -R . $(WORKDIR)
+	@cp -R $(WORKDIR)/shared $(WORKDIR)/$(WORKFLOW_ID)/shared
 	@find $(WORKDIR) -type d -name target -prune -exec rm -rf {} \;
 
 
