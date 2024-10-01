@@ -1,6 +1,6 @@
 specVersion: "0.8"
 id: mtv-plan
-version: '1.0'
+version: "1.0"
 name: MTV plan assessment workflow
 description: assessment creates a plan and waits for it to be ready or failed
 annotations:
@@ -10,16 +10,18 @@ extensions:
   - extensionid: workflow-uri-definitions
     definitions:
       notifications: "https://raw.githubusercontent.com/parodos-dev/serverless-workflows/main/shared/specs/notifications-openapi.yaml"
+  - extensionid: workflow-output-schema
+    outputSchema: schemas/workflow-output-schema.json
 start: CreatePlan
 functions:
   - name: createNotification
     operation: notifications#createNotification
   - name: createPlan
     type: rest
-    operation: 'specs/mtv.yaml#createPlan'
+    operation: "specs/mtv.yaml#createPlan"
   - name: getPlan
     type: rest
-    operation: 'specs/mtv.yaml#getPlan'
+    operation: "specs/mtv.yaml#getPlan"
   - name: getPlanError
     type: expression
     operation: .getStatusResult.status.conditions | map(select(.category == "Error" or .category == "Critical"))[0].message
@@ -101,7 +103,7 @@ states:
               topic: "MTV plan assessment workflow"
               severity: "critical"
     stateDataFilter:
-      output: '{assessmentResult: {passed: false, message: .planErrorMessage}}'
+      output: '{result: {completedWith: "error", message: .planErrorMessage}}'
     end: true
   - name: PlanReady
     type: operation
@@ -119,5 +121,5 @@ states:
               topic: "MTV plan assessment workflow"
               severity: "normal"
     stateDataFilter:
-      output: '{workflowOptions: {migrationOptions: [{id: "mtv-migration", name: "MTV migration workflow"}]}, assessmentResult: {passed: true, message: "plan is ready for migration"}}'
+      output: '{result: {completedWith: "success", message: "MTV plan successful", "nextWorkflows": [{id: "mtv-migration", name: "MTV migration workflow"}], "outputs": [] }}'
     end: true
