@@ -69,6 +69,84 @@ functions:
   - name: countNonMandatoriesIncidents
     type: expression
     operation: .applicationAnalysis | [select (.issues[].category!="mandatory")][0] | [.issues[]?.incidents //[]] | .[-1][-1].id
+  - name: TaskFailedErrorExitMessage
+    type: expression
+    operation: '{
+        exitMessage: "The 1st task of the taskGroup " + .taskgroup.id + " is in failed state"
+      }'
+  - name: TrackersDoesNotExistErrorExitMessage
+    type: expression
+    operation: '{
+        exitMessage: "There are no trackers configured in MTA, cannot export to the issue manager"
+      }'
+  - name: TrackerDoesNotExistErrorExitMessage
+    type: expression
+    operation: '{
+        exitMessage: "The tracker with the id " + .trackers[0].id + " does not exist, cannot export to the issue manager"
+      }'
+  - name: TrackerProjectsDoesNotExistErrorExitMessage
+    type: expression
+    operation: '{
+        exitMessage: "There are no trackerProjects associated with the tracker with the id " + .tracker.id + ", cannot export to the issue manager"
+      }'
+  - name: TrackerProjectDoesNotExistErrorExitMessage
+    type: expression
+    operation: '{
+        exitMessage: "The trackerProject with the id " + .trackerProjects[0].id + " of the tracker with the id " + .tracker.id + " does not exist, cannot export to the issue manager"
+      }'
+  - name: TrackerProjectIssueTypesDoesNotExistErrorExitMessage
+    type: expression
+    operation: '{
+        exitMessage: "There are no trackerProjectIssueTypes in the trackerProject with the id " + .trackerProject.id + " of the tracker with the id "+ .tracker.id +" does not exist, cannot export to the issue manager"
+      }'                 
+  - name: successResult
+    type: expression
+    operation: '{
+        "completedWith":"success",
+        "message": "MTA v7.x analysis completed for " + .repositoryURL,
+        "outputs":[
+          {
+              "key":"mtaAnalysisResultURL",
+              "value": $SECRET.mta.url + "/hub/applications/" + (.application.id|tostring) + "/analysis/report",
+              "format":"link"
+          },
+          {
+              "key":"migrationWaveJiraTicketURL",
+              "value": (if .migrationWaveJiraTicket != null then .migrationWaveJiraTicket.link else "" end),
+              "format":"link"
+          }
+        ],
+        "nextWorkflows":[
+          {
+              "id":"m2k",
+              "name":"Move2Kube workflow"
+          }
+        ]
+      }'
+  - name: mandatoriesIncidentsResult
+    type: expression
+    operation: '{
+        "completedWith": "error",
+        "message": "MTA analysis for " + .application.repository.url + " completed with " + (.application.mandatoriesIncidents|tostring) + " incidents in mandatory issues. Check the analysis report." + (if .migrationWaveJiraTicket != null then " Application was exported to issue manager." else "" end),
+        "outputs": [
+          {
+            "key": "mtaAnalysisResultURL",
+            "value": ($SECRET.mta.url + "/hub/applications/" + (.application.id|tostring) + "/analysis/report"),
+            "format": "link"
+          },
+          {
+            "key": "migrationWaveJiraTicketURL",
+            "value": (if .migrationWaveJiraTicket != null then .migrationWaveJiraTicket.link else "" end),
+            "format": "link"
+          }
+        ]
+      }'
+  - name: errorResult
+    type: expression
+    operation: '{
+        "completedWith":"error",
+        "message": "MTA analysis for " + .application.repository.url + " failed: " + .exitMessage + ". Check logs of task pod: " + .taskgroup.tasks[0].pod
+      }'
 
 states:
   - name: CreateApplication
@@ -169,9 +247,10 @@ states:
     defaultCondition:
       transition: GetApplicationAnalysis
   - name: TaskFailedError
-    type: inject
-    data:
-      exitMessage: '"The 1st task of the taskGroup " + .taskgroup.id + " is in failed state"'
+    type: operation
+    actions:
+      - name: Fill exitMessage
+        functionRef: TaskFailedErrorExitMessage
     transition: NotifyFailureBackstage
   - name: GetApplicationAnalysis
     type: operation
@@ -243,9 +322,10 @@ states:
     defaultCondition:
       transition: TrackersDoesNotExistError
   - name: TrackersDoesNotExistError
-    type: inject
-    data:
-      exitMessage: '"There are no trackers configured in MTA, cannot export to the issue manager"'
+    type: operation
+    actions:
+      - name: Fill exitMessage
+        functionRef: TrackersDoesNotExistErrorExitMessage
     transition: NotifyFailureBackstage
   - name: GetTracker
     type: operation
@@ -266,9 +346,10 @@ states:
     defaultCondition:
       transition: TrackerDoesNotExistError
   - name: TrackerDoesNotExistError
-    type: inject
-    data:
-      exitMessage: '"The tracker with the id " + .trackers[0].id + " does not exist, cannot export to the issue manager"'
+    type: operation
+    actions:
+      - name: Fill exitMessage
+        functionRef: TrackerDoesNotExistErrorExitMessage
     transition: NotifyFailureBackstage
   - name: GetTrackerProjects
     type: operation
@@ -289,9 +370,10 @@ states:
     defaultCondition:
       transition: TrackerProjectsDoesNotExistError
   - name: TrackerProjectsDoesNotExistError
-    type: inject
-    data:
-      exitMessage: '"There are no trackerProjects associated with the tracker with the id " + .tracker.id + ", cannot export to the issue manager"'
+    type: operation
+    actions:
+      - name: Fill exitMessage
+        functionRef: TrackerProjectsDoesNotExistErrorExitMessage
     transition: NotifyFailureBackstage
   - name: GetTrackerProject
     type: operation
@@ -313,9 +395,10 @@ states:
     defaultCondition:
       transition: TrackerProjectDoesNotExistError
   - name: TrackerProjectDoesNotExistError
-    type: inject
-    data:
-      exitMessage: '"The trackerProject with the id " + .trackerProjects[0].id + " of the tracker with the id " + .tracker.id + " does not exist, cannot export to the issue manager"'
+    type: operation
+    actions:
+      - name: Fill exitMessage
+        functionRef: TrackerProjectDoesNotExistErrorExitMessage
     transition: NotifyFailureBackstage
   - name: GetTrackerProjectIssueTypes
     type: operation
@@ -337,9 +420,10 @@ states:
     defaultCondition:
       transition: TrackerProjectIssueTypesDoesNotExistError
   - name: TrackerProjectIssueTypesDoesNotExistError
-    type: inject
-    data:
-      exitMessage: '"There are no trackerProjectIssueTypes in the trackerProject with the id " + .trackerProject.id + " of the tracker with the id "+ .tracker.id +" does not exist, cannot export to the issue manager"'
+    type: operation
+    actions:
+      - name: Fill exitMessage
+        functionRef: TrackerProjectIssueTypesDoesNotExistErrorExitMessage
     transition: NotifyFailureBackstage
   - name: CreateMigrationWave
     type: operation
@@ -414,21 +498,16 @@ states:
               severity: "normal"
     transition: reportCompletion
   - name: reportCompletion
-    type: inject
-    data:
-      result:
-        completedWith: success
-        message: '"MTA v7.x analysis completed for " + .repositoryURL'
-        output:
-          - key: mtaAnalysisResultURL
-            value: ($SECRET.mta.url + "/hub/applications/" + (.application.id|tostring) + "/analysis/report")
-            format: link
-          - key: migrationWaveJiraTicketURL
-            value: (if .migrationWaveJiraTicket != null then .migrationWaveJiraTicket.link else "" end)
-            format: link
-        nextWorkflows:
-          - id: m2k
-            name: Move2Kube workflow
+    type: operation
+    actionMode: sequential
+    actions:
+      - name: reportCompletion
+        functionRef:
+          refName: successResult
+        actionDataFilter:
+          toStateData: ".result"
+    stateDataFilter:
+      output: ". += .result"
     end: true
   - name: NotifyMandatoriesIncidentsInApplication
     type: operation
@@ -447,18 +526,15 @@ states:
               severity: "high"
     transition: reportCompletionWithMandatoriesIncidentsInApplication
   - name: reportCompletionWithMandatoriesIncidentsInApplication
-    type: inject
-    data:
-      result:
-        completedWith: error
-        message: '"MTA analysis for " + .application.repository.url + " completed with " + (.application.mandatoriesIncidents|tostring) +" incidents in mandatory issues. Check the analysis report." + (if .migrationWaveJiraTicket != null then " Application was exported to issue manager." else "" end)'
-        output:
-          - key: mtaAnalysisResultURL
-            value: ($SECRET.mta.url + "/hub/applications/" + (.application.id|tostring) + "/analysis/report")
-            format: link
-          - key: migrationWaveJiraTicketURL
-            value: (if .migrationWaveJiraTicket != null then .migrationWaveJiraTicket.link else "" end)
-            format: link
+    type: operation
+    actions:
+      - name: reportCompletionWithMandatoriesIncidentsInApplication
+        functionRef:
+          refName: mandatoriesIncidentsResult
+        actionDataFilter:
+          toStateData: ".result"
+    stateDataFilter:
+      output: ". += .result"
     end: true
   - name: NotifyFailureBackstage
     type: operation
@@ -478,9 +554,13 @@ states:
               severity: "critical"
     transition: reportFailure
   - name: reportFailure
-    type: inject
-    data:
-      result:
-        completedWith: error
-        message: '"MTA analysis for " + .application.repository.url + " failed: " + .exitMessage + ". Check logs of task pod: " + .taskgroup.tasks[0].pod'
+    type: operation
+    actions:
+      - name: reportFailure
+        functionRef:
+          refName: errorResult
+        actionDataFilter:
+          toStateData: ".result"
+    stateDataFilter:
+      output: ". += .result"
     end: true
