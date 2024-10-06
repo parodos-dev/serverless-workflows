@@ -19,7 +19,7 @@
     <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
     <quarkus.platform.version>3.14.4</quarkus.platform.version>
     <skipITs>true</skipITs>
-    <surefire-plugin.version>3.5.0</surefire-plugin.version>
+    <surefire-plugin.version>3.5.1</surefire-plugin.version>
     <httpclient-version>5.4</httpclient-version>
     <jackson-version>2.17.2</jackson-version>
     <jackson-databind-version>2.17.2</jackson-databind-version>
