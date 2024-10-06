@@ -76,6 +76,8 @@ jobs:
           GIT_TOKEN=${{ env.GH_TOKEN }} \
           PR_OR_COMMIT_URL=${PR_OR_COMMIT_URL} \
           gen-manifests
+
+        # TODO Push manifests to repo
     
     - name: Push manifests to CD repo
       if: ${{ ! inputs.it_mode }}
@@ -88,6 +90,7 @@ jobs:
         fi
 
         WORKDIR=${{ runner.temp }}/serverless-workflows
+        
         make WORKFLOW_ID=${{ inputs.workflow_id }} \
           WORKDIR=${WORKDIR} \
           APPLICATION_ID=${{ inputs.application_id }} \
@@ -95,7 +98,9 @@ jobs:
           GIT_USER_EMAIL="${{ github.actor }}@users.noreply.github.com" \
           GIT_TOKEN=${{ env.GH_TOKEN }} \
           PR_OR_COMMIT_URL=${PR_OR_COMMIT_URL} \
-          gen-manifests push-manifests
+          gen-manifests
+
+        # TODO Push manifests to repo
 
     - name: Send PRs to config repo
       if: ${{ ! inputs.it_mode }}

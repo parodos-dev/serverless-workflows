@@ -19,7 +19,7 @@ WORKFLOWS = \
 .PHONY: $(WORKFLOWS)
 $(WORKFLOWS):
 	$(eval WORKFLOW_ID="$@")
-	@echo Specify one of the targets: build-image, push-image, gen-manifests, push-manifests
+	@echo Specify one of the targets: build-image, push-image, gen-manifests
 
 # Empty value is used to work with the default builder image from the dockerfile.
 BUILDER_IMAGE = ""
@@ -64,14 +64,6 @@ GIT_REMOTE_URL := $(shell echo "$(GIT_REMOTE_URL)" | sed 's/\.git//')
 GIT_REMOTE_URL := $(shell echo "$(GIT_REMOTE_URL)" | sed 's/git@/https:\/\//')
 GIT_REMOTE_URL := $(shell echo "$(GIT_REMOTE_URL)" | sed 's/com:/com\//')
 PR_OR_COMMIT_URL ?= "$(GIT_REMOTE_URL)/commits/$(shell git rev-parse --short=8 HEAD)"
-ifneq (,$(findstring push-manifests,$(MAKECMDGOALS)))
-  ifndef GIT_TOKEN
-    ifeq ($(wildcard .git_token),)
-      $(error No Git token found. Please provide it either via the GIT_TOKEN variable or the .git_token file )
-    endif
-    GIT_TOKEN ?= $(shell cat .git_token)
-  endif
-endif
 
 LINUX_IMAGE ?= quay.io/orchestrator/ubi9-pipeline:latest
 JDK_IMAGE ?= registry.access.redhat.com/ubi9/openjdk-17:1.17
@@ -97,14 +89,12 @@ else
 IMAGE_NAME = $(REGISTRY)/$(REGISTRY_REPO)/$(IMAGE_PREFIX)-$(APPLICATION_ID)
 endif
 
-DEPLOYMENT_REPO ?= parodos-dev/serverless-workflows-config
-DEPLOYMENT_BRANCH ?= main
 
 ENABLE_PERSISTENCE ?= true
 
 .PHONY: all
 
-all: build-image push-image gen-manifests push-manifests
+all: build-image push-image gen-manifests
 for-local-tests: build-image push-image gen-manifests
 
 # Target: prepare-workdir
@@ -177,15 +167,6 @@ gen-manifests: prepare-workdir
 	@$(CONTAINER_ENGINE) run --rm -v $(WORKDIR):/workdir:Z -w /workdir \
 		$(LINUX_IMAGE) /bin/bash -c "ENABLE_PERSISTENCE=$(ENABLE_PERSISTENCE) WORKFLOW_IMAGE_TAG=$(IMAGE_TAG) ${SCRIPTS_DIR}/gen_manifests.sh $(WORKFLOW_ID)"
 	@echo "Manifests are available in workdir $(WORKDIR)/$(WORKFLOW_ID)/manifests"
-
-# Target: push-manifests
-# Description: Pushes the generated k8s manifests from the configured WORKDIR to the 
-# configured DEPLOYMENT_REPO.
-# Usage: make push-manifests
-push-manifests: prepare-workdir
-	cd $(WORKDIR)
-	@$(CONTAINER_ENGINE) run --rm -v $(WORKDIR):/workdir -w /workdir \
-		$(LINUX_IMAGE) /bin/bash -c "${SCRIPTS_DIR}/push_manifests.sh '$(GIT_USER_NAME)' $(GIT_USER_EMAIL) $(GIT_TOKEN) $(PR_OR_COMMIT_URL) $(DEPLOYMENT_REPO) $(DEPLOYMENT_BRANCH) $(WORKFLOW_ID) $(APPLICATION_ID) $(IMAGE_NAME) $(IMAGE_TAG)"
 
 remove-trailing-whitespaces:
 	@echo "Removing all trailing whitespaces from application.properties files"

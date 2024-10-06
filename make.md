@@ -4,7 +4,7 @@ Continuous integration of the workflows repository automates the jobs to deploy 
 * Build the containerized image of the workflow and the related applications
 * Push the containerized image to an image registry
 * Generate the K8s manifests for the workflow
-* Customize the manifests according to the selected deployment option (either `kustomize` or `helm`)
+* Customize the manifests according to the selected deployment option (`helm`)
 * Commit the manifests and the deployment changes to a configurable deployment repository
 
 Generating the PR for the pushed commit is out of the scope of the make procedure, as it depends
@@ -67,7 +67,6 @@ See the [setup](./setup/README.md) documentation.
 
 ### Requirements for the deployment repo
 The procedure assumes that the folder structure of the target deployment repository reflects the one of the [default repository](https://github.com/parodos-dev/serverless-workflows-config), e.g.:
-* `kustomize` projects are located under the `kustomize/WORKFLOW_ID` folder
   * Manifests are stored in the `base` subfolder
   * Image is customized in the `overlays/prod` subfolder
 * `helm` projects are located under the `charts/workflows/charts/WORKFLOW_ID` folder
@@ -77,7 +76,7 @@ The procedure assumes that the folder structure of the target deployment reposit
 The following examples show how to build a specific workflow like `escalation` in the local repository.
 
 ### Building a Workflow
-Build the image, push it to the registry, prepare the manifests and update the kustomize project with a commit pushed to the default deployment repository:
+Build the image and push it to the registry:
 ```bash
 make WORKFLOW_ID=escalation
 ```
@@ -112,9 +111,9 @@ Generate the k8s manifests with persistence enabled in the Sonataflow CR and in 
 make CONTAINER_ENGINE=docker WORKFLOW_ID=escalation ENABLE_PERSISTENCE=true gen-manifests
 ```
 
-Generate the k8s manifests and push them to the default deployment repo:
+Generate the k8s manifests:
 ```bash
-make CONTAINER_ENGINE=docker WORKFLOW_ID=escalation gen-manifests push-manifests
+make CONTAINER_ENGINE=docker WORKFLOW_ID=escalation gen-manifests
 ```
 
 ### Building an Application
