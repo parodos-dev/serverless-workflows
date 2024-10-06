@@ -8,11 +8,13 @@ This workflow is a continuation of the MTV assessment workflow. It executes an M
 ## Workflow diagram
 ![MTV Migration workflow diagram](https://github.com/parodos-dev/serverless-workflows/blob/main/mtv-migration/mtv.svg?raw=true)
 
-## Application configuration
+## Workflow application configuration
 Application properties can be initialized from environment variables before running the application:
 
 | Environment variable  | Description | Mandatory | Default value |
 |-----------------------|-------------|-----------|---------------|
+| `BACKSTAGE_NOTIFICATIONS_URL`      | The backstage server URL for notifications | ✅ | |
+| `NOTIFICATIONS_BEARER_TOKEN`      | The authorization bearer token to use to send notifications | ✅ | |
 | `OCP_API_SERVER_URL`  | The OpensShift API Server URL | ✅ | |
 | `OCP_API_SERVER_TOKEN`| The OpensShift API Server Token | ✅ | |
 

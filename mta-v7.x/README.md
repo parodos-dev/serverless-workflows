@@ -8,6 +8,16 @@ Users are encouraged to use this workflow as self-service alternative for intera
 a mass-migration of project from a managed place, the project stakeholders can use this (or automation) to regularly check
 the cloud-readiness compatibility of their code.
 
+# Workflow application configuration
+Application properties can be initialized from environment variables before running the application:
+
+| Environment variable  | Description | Mandatory | Default value |
+|-----------------------|-------------|-----------|---------------|
+| `BACKSTAGE_NOTIFICATIONS_URL`      | The backstage server URL for notifications | ✅ | |
+| `NOTIFICATIONS_BEARER_TOKEN`      | The authorization bearer token to use to send notifications | ✅ | |
+| `MTA_URL`      | The MTA Hub server URL | ✅ | |
+
+
 # Inputs
 - `repositoryUrl` [mandatory] - the git repo url to examine
 - `recipients` [mandatory] - A list of recipients for the notification in the format of `user:<namespace>/<username>` or `group:<namespace>/<groupname>`, i.e. `user:default/jsmith`.
