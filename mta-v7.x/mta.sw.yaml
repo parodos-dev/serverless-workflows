@@ -106,12 +106,12 @@ functions:
         "message": "MTA v7.x analysis completed for " + .repositoryURL,
         "outputs":[
           {
-              "key":"mtaAnalysisResultURL",
+              "key":"MTA Analysis Result URL",
               "value": $SECRET.mta.url + "/hub/applications/" + (.application.id|tostring) + "/analysis/report",
               "format":"link"
           },
           {
-              "key":"migrationWaveJiraTicketURL",
+              "key":"Migration Wave Ticket URL",
               "value": (if .migrationWaveJiraTicket != null then .migrationWaveJiraTicket.link else "" end),
               "format":"link"
           }
@@ -130,12 +130,12 @@ functions:
         "message": "MTA analysis for " + .application.repository.url + " completed with " + (.application.mandatoriesIncidents|tostring) + " incidents in mandatory issues. Check the analysis report." + (if .migrationWaveJiraTicket != null then " Application was exported to issue manager." else "" end),
         "outputs": [
           {
-            "key": "mtaAnalysisResultURL",
+              "key":"MTA Analysis Result URL",
             "value": ($SECRET.mta.url + "/hub/applications/" + (.application.id|tostring) + "/analysis/report"),
             "format": "link"
           },
           {
-            "key": "migrationWaveJiraTicketURL",
+              "key":"Migration Wave Ticket URL",
             "value": (if .migrationWaveJiraTicket != null then .migrationWaveJiraTicket.link else "" end),
             "format": "link"
           }
