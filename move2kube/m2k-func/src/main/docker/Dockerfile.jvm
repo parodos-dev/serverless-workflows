@@ -75,13 +75,13 @@
 #   accessed directly. (example: "foo.example.com,bar.example.com")
 #
 ###
-FROM registry.access.redhat.com/ubi9/openjdk-17:1.20-2.1725851028 as builder 
+FROM registry.access.redhat.com/ubi9/openjdk-17:1.20-2.1726695177 as builder 
 
 COPY src src
 COPY pom.xml .
 RUN mvn package
 
-FROM registry.access.redhat.com/ubi9/openjdk-17:1.20-2.1725851028
+FROM registry.access.redhat.com/ubi9/openjdk-17:1.20-2.1726695177
 
 ENV LANGUAGE='en_US:en'
 COPY LICENSE /licenses/
