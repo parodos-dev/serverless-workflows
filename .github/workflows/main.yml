@@ -112,17 +112,6 @@ jobs:
       if: ${{ ! inputs.it_mode }}
       run: |
           WORKDIR=${{ runner.temp }}/serverless-workflows
-          git config --global user.email "${{ github.event.head_commit.author.email || 'parodos@redhat.com' }}"
-          git config --global user.name ${{ github.event.head_commit.author.name || github.triggering_actor }}
-          gh repo clone $WF_CONFIG_REPO config-repo
-          cd config-repo
-          git switch -c ${{ inputs.workflow_id }}-autopr-$RANDOM
-
-          ./hack/bump_chart_version.sh ${{ inputs.workflow_id }} --bump-tag-version
-
-          mkdir -p charts/${{ inputs.workflow_id }}/templates
-          cp ${WORKDIR}/${{ inputs.workflow_id }}/manifests/* charts/${{ inputs.workflow_id }}/templates
-          git add -A
 
           # determine pr or commit url
           if [ ${{ fromJSON(steps.get_pr_data.outputs.result)}} != "" ]; then
@@ -131,13 +120,14 @@ jobs:
             PR_OR_COMMIT_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           fi
 
-          git commit -m "(${{ inputs.workflow_id }}) Automated PR"
-          echo "Automated PR from $PR_OR_COMMIT_URL" | git commit --amend --file=-
-          git remote set-url origin https://${{ env.GH_TOKEN }}@github.com/$WF_CONFIG_REPO
-          git push origin HEAD
-          gh pr create -f --title "${{ inputs.workflow_id }}: Automatic manifests generation" \
-            --body "
-          Updating generated manifests for ${{ inputs.workflow_id }} workflow
- 
-          This PR was created automatically as a result of merging $PR_OR_COMMIT_URL
-          "
+          sh scripts/create_or_update_automated_pr.sh $WF_CONFIG_REPO \
+            ${{ inputs.workflow_id }} \
+            ${PR_OR_COMMIT_URL} \
+            "" \
+            scripts/create_automated_pr.sh \
+            ${{ github.event.head_commit.author.email || 'parodos@redhat.com' }} \
+            ${{ github.event.head_commit.author.name || github.triggering_actor }} \
+            $WORKDIR \
+            ${{ env.GH_TOKEN }} \
+            $WF_CONFIG_REPO
+
