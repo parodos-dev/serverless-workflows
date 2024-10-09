@@ -36,4 +36,8 @@ Application properties can be initialized from environment variables before runn
 - `Recipients` [mandatory] - A list of recipients for the notification in the format of `user:<namespace>/<username>` or `group:<namespace>/<groupname>`, i.e. `user:default/jsmith`.
 
 ## Workflow diagram
-![Request VM on CNV diagram](https://github.com/parodos-dev/serverless-workflows/blob/main/vm-creator/vm-creator.svg?raw=true)
+![Request VM on CNV diagram](https://github.com/parodos-dev/serverless-workflows/blob/main/request-vm-cnv/request-vm-cnv.svg?raw=true)
+
+## Installation
+
+See [official installation guide](https://github.com/parodos-dev/serverless-workflows-config/blob/main/docs/main/request-vm-cnv)

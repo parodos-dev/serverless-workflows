@@ -47,6 +47,10 @@ The use case has the following components:
    3. `error-trigger-m2k`: event sent by `m2k-save-transformation-func` if an error while saving the move2kube output to the git repository.
 5. The Knative `Broker` named `default` which link the components together.
 
+## Installation
+
+See [official installation guide](https://github.com/parodos-dev/serverless-workflows-config/blob/main/docs/main/move2kube)
+
 ## Usage
 1. Create a workspace and a project under it in your move2kube instance
    * you can reach your move2kube instance by running

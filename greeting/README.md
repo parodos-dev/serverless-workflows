@@ -6,3 +6,7 @@ The greeting workflow simply greets the user in the language chosen by the user 
 
 ## Workflow diagram
 ![Greeting workflow diagram](https://github.com/parodos-dev/serverless-workflows/blob/main/greeting/greeting.svg?raw=true)
+
+## Installation
+
+See [official installation guide](https://github.com/parodos-dev/serverless-workflows-config/blob/main/docs/main/greeting)
