@@ -118,7 +118,7 @@ jobs:
           cd config-repo
           git switch -c ${{ inputs.workflow_id }}-autopr-$RANDOM
 
-          ./hack/bump_chart_version.sh ${{ inputs.workflow_id }} --bump-patch-version
+          ./hack/bump_chart_version.sh ${{ inputs.workflow_id }} --bump-tag-version
 
           mkdir -p charts/${{ inputs.workflow_id }}/templates
           cp ${WORKDIR}/${{ inputs.workflow_id }}/manifests/* charts/${{ inputs.workflow_id }}/templates
