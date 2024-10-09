@@ -35,4 +35,4 @@ Application properties can be initialized from environment variables before runn
 - `Recipients` [mandatory] - A list of recipients for the notification in the format of `user:<namespace>/<username>` or `group:<namespace>/<groupname>`, i.e. `user:default/jsmith`.
 
 ## Workflow diagram
-![VM Updater diagram](https://github.com/parodos-dev/serverless-workflow/blob/main/modify-vm-resources/modify-vm-resources.svg?raw=true)
+![VM Updater diagram](https://github.com/parodos-dev/serverless-workflows/blob/main/modify-vm-resources/modify-vm-resources.svg?raw=true)
