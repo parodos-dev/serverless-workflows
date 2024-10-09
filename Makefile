@@ -9,7 +9,6 @@ WORKFLOWS = \
 	escalation \
 	move2kube \
 	mta \
-	mta-v6.x \
 	mta-v7.x \
 	create-ocp-project \
 	$(NULL)

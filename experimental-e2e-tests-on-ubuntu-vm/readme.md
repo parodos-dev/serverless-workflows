@@ -3,7 +3,7 @@ The purpose of this effort is to simulate the behavior of CI pipeline which perf
 ## Prerequisites
 - An available Ubuntu Server 24.04 LTS VM with specs equivalent to AWS' t3.2xlarge specifications
 
-## Testing mta-v6.x workflow
+## Testing mta-v7.x workflow
 - Clone the serverless-workflows repo which includes the code to ci tests
 ```shell
 ssh <your ubuntu vm>
@@ -19,10 +19,10 @@ export REGISTRY_REPO=<Your Qauy.io registry repo>
 ./ubuntuvm.sh
 ```
 
-- Test the mta-v6.x workflow
+- Test the mta-v7.x workflow
 ```shell
-export WORKFLOW_ID=mta-v6.x
-./mta-v6.sh
+export WORKFLOW_ID=mta-v7.x
+./mta-v7.sh
 ```
 
 - Test the mta-v7.x workflow
