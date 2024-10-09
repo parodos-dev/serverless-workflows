@@ -36,3 +36,7 @@ Application properties can be initialized from environment variables before runn
 
 ## Workflow diagram
 ![VM Updater diagram](https://github.com/parodos-dev/serverless-workflows/blob/main/modify-vm-resources/modify-vm-resources.svg?raw=true)
+
+## Installation
+
+See [official installation guide](https://github.com/parodos-dev/serverless-workflows-config/blob/main/docs/main/modify-vm-resources)

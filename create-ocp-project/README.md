@@ -35,3 +35,7 @@ Application properties can be initialized from environment variables before runn
 
 ## Workflow diagram
 ![Create OpenShift Project diagram](https://github.com/parodos-dev/serverless-workflow-examples/blob/main/create-ocp-project/create-ocp-project.svg?raw=true)
+
+## Installation
+
+See [official installation guide](https://github.com/parodos-dev/serverless-workflows-config/blob/main/docs/main/create-ocp-project)

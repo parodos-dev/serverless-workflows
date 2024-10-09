@@ -18,6 +18,10 @@ Application properties can be initialized from environment variables before runn
 | `OCP_API_SERVER_URL`  | The OpensShift API Server URL | ✅ | |
 | `OCP_API_SERVER_TOKEN`| The OpensShift API Server Token | ✅ | |
 
+## Installation
+
+See [official installation guide](https://github.com/parodos-dev/serverless-workflows-config/blob/main/docs/main/mtv-migration)
+
 ## How to run
 Example of POST to trigger the flow (see input schema [mtv-input.json](./schema/mtv-input.json)):
 ```bash
