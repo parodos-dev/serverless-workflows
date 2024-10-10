@@ -42,16 +42,16 @@ for pr in $prs; do
             # Get the PR details (branch)
             pr_branch=$(gh pr view "$pr" --repo "$REPO" --json headRefName --jq '.headRefName')
             
+            gh repo clone "${WF_CONFIG_REPO}" config-repo
+            cd config-repo || exit
             # Checkout the PR branch
-            git fetch origin "$pr_branch"
             git checkout "$pr_branch"
             
-            ls -al "${WORKDIR}/${WORKFLOW_ID}"
-            ls -al "${WORKDIR}"
+            ls -al "${WORKDIR}/${WORKFLOW_ID}/manifests/*"
             # Create the new file
-            cp "${WORKDIR}/${WORKFLOW_ID}/manifests/*" "charts/${WORKFLOW_ID}/templates" || exit -1
+            cp "${WORKDIR}/${WORKFLOW_ID}/manifests/*" "charts/${WORKFLOW_ID}/templates" || exit 1
             if [ "${INPUT_VALUES_FILEPATH}" != "" ]; then
-                cp "${INPUT_VALUES_FILEPATH}" "charts/${WORKFLOW_ID}/values.yaml" || exit -1
+                cp "${INPUT_VALUES_FILEPATH}" "charts/${WORKFLOW_ID}/values.yaml" || exit 1
             fi
             git add -A
 
