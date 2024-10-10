@@ -13,7 +13,7 @@ gh repo clone "${WF_CONFIG_REPO}" config-repo
 cd config-repo || exit
 git switch -c "${WORKFLOW_ID}"-autopr-"${RANDOM}"
 
-./../hack/bump_chart_version.sh "${WORKFLOW_ID}" --bump-tag-version
+./hack/bump_chart_version.sh "${WORKFLOW_ID}" --bump-tag-version
 mkdir -p charts/"${WORKFLOW_ID}"/templates
 cp "${WORKDIR}"/"${WORKFLOW_ID}"/manifests/* charts/"${WORKFLOW_ID}"/templates
 git add -A
