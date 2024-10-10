@@ -49,7 +49,7 @@ for pr in $prs; do
             git commit -m "(${WORKFLOW_ID}) Automated PR"
             echo "Automated PR from $PR_OR_COMMIT_URL" | git commit --amend --file=-
   
-            git push origin "$pr_branch"
+            git push -f origin "$pr_branch"
             
             echo "Changes pushed to PR #$pr on branch $pr_branch"
 
