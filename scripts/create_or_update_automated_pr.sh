@@ -47,9 +47,8 @@ for pr in $prs; do
             # Checkout the PR branch
             git checkout "$pr_branch"
             
-            ls -al "${WORKDIR}/${WORKFLOW_ID}/manifests/*"
             # Create the new file
-            cp "${WORKDIR}/${WORKFLOW_ID}/manifests/*" "charts/${WORKFLOW_ID}/templates" || exit 1
+            cp -r "${WORKDIR}/${WORKFLOW_ID}/manifests/" "charts/${WORKFLOW_ID}/templates/" || exit 1
             if [ "${INPUT_VALUES_FILEPATH}" != "" ]; then
                 cp "${INPUT_VALUES_FILEPATH}" "charts/${WORKFLOW_ID}/values.yaml" || exit 1
             fi
@@ -58,7 +57,8 @@ for pr in $prs; do
             git commit -m "(${WORKFLOW_ID}) Automated PR"
             echo "Automated PR from $PR_OR_COMMIT_URL" | git commit --amend --file=-
   
-            git push -f origin "$pr_branch"
+            git remote set-url origin https://"${GH_TOKEN}"@github.com/"${WF_CONFIG_REPO}" || exit 1
+            git push origin HEAD || exit 1
             
             echo "Changes pushed to PR #$pr on branch $pr_branch"
         fi
