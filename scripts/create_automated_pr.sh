@@ -7,11 +7,12 @@ PR_OR_COMMIT_URL=$5
 GH_TOKEN=$6
 WF_CONFIG_REPO=$7
 
+TIMESTAMP=$(date +%s)
 git config --global user.email "${USER_EMAIL}"
 git config --global user.name "${USER_NAME}"
 gh repo clone "${WF_CONFIG_REPO}" config-repo
 cd config-repo || exit
-git switch -c "${WORKFLOW_ID}"-autopr-"${RANDOM}"
+git switch -c "${WORKFLOW_ID}"-autopr-"${TIMESTAMP}"
 
 ./hack/bump_chart_version.sh "${WORKFLOW_ID}" --bump-tag-version
 mkdir -p charts/"${WORKFLOW_ID}"/templates
