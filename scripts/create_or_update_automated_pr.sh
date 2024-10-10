@@ -15,10 +15,14 @@ WF_CONFIG_REPO=${10}
 
 # Get all open PRs for the repository
 prs=$(gh pr list --repo "${REPO}" --json number --jq '.[].number')
-
+STOP=false
 # Loop through each PR and check for the version in Chart.yaml
 for pr in $prs; do
     echo "Checking PR #$pr..."
+
+    if "${STOP}"; then
+        exit 0
+    fi
     
     # Fetch the list of changed files for the PR
     files=$(gh pr diff "$pr" --name-only --repo "${REPO}")
@@ -26,6 +30,7 @@ for pr in $prs; do
     # Check if Chart.yaml is in the list of changed files
     if echo "$files" | grep -q "charts/${WORKFLOW_ID}/Chart.yaml"; then
         echo "Chart.yaml found in PR #${pr}"
+        STOP=true
         
         # Get the contents of the Chart.yaml file from the PR
         chart_content=$(gh pr diff "$pr" --repo "${REPO}")
