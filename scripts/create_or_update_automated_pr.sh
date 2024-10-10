@@ -28,10 +28,10 @@ for pr in $prs; do
         echo "Chart.yaml found in PR #${pr}"
         
         # Get the contents of the Chart.yaml file from the PR
-        chart_content=$(gh pr diff "$pr" --repo "${REPO}" -- "charts/${WORKFLOW_ID}/Chart.yaml")
+        chart_content=$(gh pr diff "$pr" --repo "${REPO}")
         
         # Check if the content has a version entry
-        if echo "$chart_content" | grep -q "^version: .*"; then
+        if echo "$chart_content" | grep "[+-]version: .*"; then
             # Get the PR details (branch)
             pr_branch=$(gh pr view "$pr" --repo "$REPO" --json headRefName --jq '.headRefName')
             
@@ -52,9 +52,8 @@ for pr in $prs; do
             git push -f origin "$pr_branch"
             
             echo "Changes pushed to PR #$pr on branch $pr_branch"
-
-            exit 0
         fi
+        exit 0
     fi
 done
 
