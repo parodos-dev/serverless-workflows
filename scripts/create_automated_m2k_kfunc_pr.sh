@@ -6,20 +6,19 @@ WORKFLOW_ID=$4
 PR_OR_COMMIT_URL=$5
 GH_TOKEN=$6
 WF_CONFIG_REPO=$7
-INPUT_VALUES_FILEPATH=$8
+GITHUB_SHA=$8
 
+TIMESTAMP=$(date +%s)
 git config --global user.email "${USER_EMAIL}"
 git config --global user.name "${USER_NAME}"
 gh repo clone "${WF_CONFIG_REPO}" config-repo
 cd config-repo || exit
-git switch -c "${WORKFLOW_ID}"-autopr-"${RANDOM}"
+git switch -c "${WORKFLOW_ID}"-autopr-"${TIMESTAMP}"
 
-./../hack/bump_chart_version.sh "${WORKFLOW_ID}" --bump-tag-version
-
-cp "${INPUT_VALUES_FILEPATH}" charts/move2kube/values.yaml
-
+./hack/bump_chart_version.sh "${WORKFLOW_ID}" --bump-tag-version
 mkdir -p charts/"${WORKFLOW_ID}"/templates
 cp "${WORKDIR}"/"${WORKFLOW_ID}"/manifests/* charts/"${WORKFLOW_ID}"/templates
+yq --inplace '.kfunction.image="quay.io/orchestrator/serverless-workflow-m2k-kfunc:'"${GITHUB_SHA}"'"' charts/move2kube/values.yaml
 git add -A
 
 git commit -m "(m2k-kfunc) Automated PR"

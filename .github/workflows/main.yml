@@ -129,5 +129,5 @@ jobs:
             ${{ github.event.head_commit.author.name || github.triggering_actor }} \
             $WORKDIR \
             ${{ env.GH_TOKEN }} \
-            $WF_CONFIG_REPO
+            ${{ github.sha }}
 

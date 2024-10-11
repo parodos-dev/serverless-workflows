@@ -7,20 +7,13 @@ on:
         required: false
         type: boolean
         default: false
-  workflow_dispatch:
-  push:
-    branches: [ "main" ]
-    paths:
-      - 'move2kube/m2k-func/**'
-      - 'pipeline/**'
-      - .github/workflows/m2k-func.yaml
 
 env:
   WORKDIR: move2kube/m2k-func
   MVN_OPTS: ""
   WF_CONFIG_REPO: parodos-dev/serverless-workflows-config
   REGISTRY_REPO: orchestrator
-  GH_TOKEN: ${{ secrets.HELM_REPO_TOKEN }}
+  GH_TOKEN: ${{ secrets.HELM_REPO_TOKEN }}  
 
 jobs:
   build-and-push-m2k-func:
@@ -31,6 +24,13 @@ jobs:
       with:
         java-version: '17'
         distribution: 'temurin'
+
+    - name: Log in to Red Hat Registry
+      uses: redhat-actions/podman-login@v1
+      with:
+        registry: registry.redhat.io
+        username: ${{ secrets.REGISTRY_REDHAT_IO_USER }}
+        password: ${{ secrets.REGISTRY_REDHAT_IO_PASSWORD }}
 
     - name: Buildah Action
       id: build-image
@@ -84,6 +84,8 @@ jobs:
 
     - name: Send PRs to config repo
       if: ${{ ! inputs.it_mode }}
+      env:
+        GH_TOKEN: ${{ secrets.HELM_REPO_TOKEN }}  
       run: |
           # determine pr or commit url
           if [ ${{ fromJSON(steps.get_pr_data.outputs.result)}} != "" ]; then
@@ -92,24 +94,13 @@ jobs:
             PR_OR_COMMIT_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           fi
 
-          git config --global user.email "${{ github.event.head_commit.author.email || 'parodos@redhat.com' }}"
-          git config --global user.name ${{ github.event.head_commit.author.name || github.triggering_actor }}
-          gh repo clone $WF_CONFIG_REPO config-repo
-          cd config-repo
-          git switch -c m2k-kfunc-autopr-$RANDOM
-
-          ./hack/bump_chart_version.sh move2kube --bump-tag-version
-
-          yq --inplace '.kfunction.image="quay.io/orchestrator/serverless-workflow-m2k-kfunc:${{ github.sha }}"' charts/move2kube/values.yaml
-          cd ..
-         
           sh scripts/create_or_update_automated_pr.sh $WF_CONFIG_REPO \
-            ${{ inputs.workflow_id }} \
+            move2kube \
             ${PR_OR_COMMIT_URL} \
-            config-repo/charts/move2kube/values.yaml \
+            "yq --inplace '.kfunction.image=\"quay.io/orchestrator/serverless-workflow-m2k-kfunc:${GITHUB_SHA}\"' charts/move2kube/values.yaml" \
             scripts/create_automated_m2k_kfunc_pr.sh \
             ${{ github.event.head_commit.author.email || 'parodos@redhat.com' }} \
             ${{ github.event.head_commit.author.name || github.triggering_actor }} \
-            $WORKDIR \
+            ${{ env.WORKDIR }} \
             ${{ env.GH_TOKEN }} \
-            $WF_CONFIG_REPO
+            ${{ github.sha }}

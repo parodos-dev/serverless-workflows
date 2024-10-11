@@ -4,17 +4,18 @@
 REPO=$1
 WORKFLOW_ID=$2
 PR_OR_COMMIT_URL=$3
-INPUT_VALUES_FILEPATH=$4
+APPLICATION_UPDATE_COMMAND=$4
 
 CREATE_PR_SCRIPT=$5
 USER_EMAIL=$6
 USER_NAME=$7
 WORKDIR=$8
 GH_TOKEN=$9
-WF_CONFIG_REPO=${10}
+GITHUB_SHA=${10}
 
 # Get all open PRs for the repository
-prs=$(gh pr list --repo "${REPO}" --json number --jq '.[].number')
+prs=$(gh pr list --repo "${REPO}" --json number --jq '.[].number') || exit
+echo "${prs}"
 STOP=false
 # Loop through each PR and check for the version in Chart.yaml
 for pr in $prs; do
@@ -25,7 +26,7 @@ for pr in $prs; do
     fi
     
     # Fetch the list of changed files for the PR
-    files=$(gh pr diff "$pr" --name-only --repo "${REPO}")
+    files=$(gh pr diff "$pr" --name-only --repo "${REPO}") || exit
     
     # Check if Chart.yaml is in the list of changed files
     if echo "$files" | grep -q "charts/${WORKFLOW_ID}/Chart.yaml"; then
@@ -42,22 +43,22 @@ for pr in $prs; do
             # Get the PR details (branch)
             pr_branch=$(gh pr view "$pr" --repo "$REPO" --json headRefName --jq '.headRefName')
             
-            gh repo clone "${WF_CONFIG_REPO}" config-repo
+            gh repo clone "${REPO}" config-repo
             cd config-repo || exit
             # Checkout the PR branch
             git checkout "$pr_branch"
-            
-            # Create the new file
-            cp -r "${WORKDIR}/${WORKFLOW_ID}/manifests/" "charts/${WORKFLOW_ID}/templates/" || exit 1
-            if [ "${INPUT_VALUES_FILEPATH}" != "" ]; then
-                cp "${INPUT_VALUES_FILEPATH}" "charts/${WORKFLOW_ID}/values.yaml" || exit 1
+                        
+            if [ "${APPLICATION_UPDATE_COMMAND}" != "" ]; then
+                eval "${APPLICATION_UPDATE_COMMAND}" || exit 1
+            else
+                cp "${WORKDIR}"/"${WORKFLOW_ID}"/manifests/* charts/"${WORKFLOW_ID}"/templates || exit 1
             fi
             git add -A
 
             git commit -m "(${WORKFLOW_ID}) Automated PR"
             echo "Automated PR from $PR_OR_COMMIT_URL" | git commit --amend --file=-
   
-            git remote set-url origin https://"${GH_TOKEN}"@github.com/"${WF_CONFIG_REPO}" || exit 1
+            git remote set-url origin https://"${GH_TOKEN}"@github.com/"${REPO}" || exit 1
             git push origin HEAD || exit 1
             
             echo "Changes pushed to PR #$pr on branch $pr_branch"
@@ -72,4 +73,5 @@ sh "${CREATE_PR_SCRIPT}" "${USER_EMAIL}" \
            "${WORKFLOW_ID}" \
            "${PR_OR_COMMIT_URL}" \
            "${GH_TOKEN}" \
-           "${WF_CONFIG_REPO}" 
+           "${REPO}" \
+           "${GITHUB_SHA}"
