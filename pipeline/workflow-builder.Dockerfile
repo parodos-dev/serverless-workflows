@@ -4,13 +4,16 @@
 ARG BUILDER_IMAGE
 
 # The default builder image is the released OSL 1.33 https://catalog.redhat.com/software/containers/openshift-serverless-1/logic-swf-builder-rhel8/6614edd826a5be569c111884?container-tabs=gti
-FROM ${BUILDER_IMAGE:-registry.redhat.io/openshift-serverless-1/logic-swf-builder-rhel8@sha256:5c624eff9780d08409a446d76a1bbe88c91ea98a6428883a170303e8de40c78a} AS builder
+FROM ${BUILDER_IMAGE:-registry.redhat.io/openshift-serverless-1/logic-swf-builder-rhel8@sha256:9a4093e195bec163c609381e3c0ceeec55f6e229c6a1def6f362517886faea71} AS builder
 
 #ENV MAVEN_REPO_URL=https://maven.repository.redhat.com/earlyaccess/all
 
 # variables that can be overridden by the builder
 # To add a Quarkus extension to your application
-ARG QUARKUS_EXTENSIONS=org.kie:kogito-addons-quarkus-jobs-knative-eventing:9.100.0.redhat-00004,org.kie:kie-addons-quarkus-persistence-jdbc:9.100.0.redhat-00004,io.quarkus:quarkus-jdbc-postgresql:3.8.4.redhat-00002,io.quarkus:quarkus-agroal:3.8.4.redhat-00002
+# When using nightly:
+# ARG QUARKUS_EXTENSIONS=org.kie:kogito-addons-quarkus-jobs-knative-eventing:999-SNAPSHOT,org.kie:kie-addons-quarkus-persistence-jdbc:999-SNAPSHOT,io.quarkus:quarkus-jdbc-postgresql:3.8.4,io.quarkus:quarkus-agroal:3.8.4,org.kie:kie-addons-quarkus-monitoring-prometheus:999-SNAPSHOT,org.kie:kie-addons-quarkus-monitoring-sonataflow:999-SNAPSHOT
+# When using prod:
+ARG QUARKUS_EXTENSIONS=org.kie:kogito-addons-quarkus-jobs-knative-eventing:9.101.0.redhat-00007,org.kie:kie-addons-quarkus-persistence-jdbc:9.101.0.redhat-00007,io.quarkus:quarkus-jdbc-postgresql:3.8.4.redhat-00002,io.quarkus:quarkus-agroal:3.8.4.redhat-00002
 
 # Args to pass to the Quarkus CLI
 # add extension command
