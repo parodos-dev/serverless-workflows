@@ -34,6 +34,9 @@ RUN ls -la ./resources
 
 ENV swf_home_dir=/home/kogito/serverless-workflow-project
 RUN if [[ -d "./resources/src" ]]; then cp -r ./resources/src/* ./src/; fi
+# Workaround for https://github.com/apache/incubator-kie-kogito-runtimes/issues/3725
+RUN mvn quarkus:remove-extension -Dextension=org.kie:kie-addons-quarkus-monitoring-sonataflow:9.101.0.redhat-00007
+RUN mvn quarkus:remove-extension -Dextension=org.kie:kie-addons-quarkus-monitoring-prometheus:9.101.0.redhat-00007
 
 RUN /home/kogito/launch/build-app.sh ./resources
 
