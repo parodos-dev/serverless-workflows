@@ -5,7 +5,6 @@ name: extendable-workflow workflow
 description: YAML based extendable-workflow workflow
 annotations:
   - "workflow-type/infrastructure"
-expressionLang: jsonpath
 dataInputSchema: "schemas/extendable-workflow.sw.input-schema.json"
 start: ChooseOnLanguage
 functions:
