@@ -30,10 +30,10 @@ states:
   - name: ChooseOnLanguage
     type: switch
     dataConditions:
-      - condition: ".languageInfo.language == 'French'"
+      - condition: .languageInfo.language == "French"
         transition: GreetInFrench
         name: Greet in french
-      - condition: ".languageInfo.language  == 'Spanish'"
+      - condition: .languageInfo.language  == "Spanish"
         transition: GreetInSpanish
         name: Greet in spanish
     defaultCondition:
