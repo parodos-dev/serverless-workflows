@@ -9,7 +9,6 @@ WORKFLOWS = \
 	extendable-workflow \
 	escalation \
 	move2kube \
-	mta \
 	mta-v7.x \
 	create-ocp-project \
 	$(NULL)

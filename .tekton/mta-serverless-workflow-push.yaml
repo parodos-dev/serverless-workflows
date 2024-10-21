@@ -23,13 +23,13 @@ spec:
   - name: output-image
     value: quay.io/redhat-user-workloads/orchestrator-releng-tenant/serverless-workflows/mta-serverless-workflow:{{revision}}
   - name: path-context
-    value: mta
+    value: mta-v7.x
   - name: revision
     value: '{{revision}}'
   - name: build-source-image
     value: "true"
   - name: build-args-file
-    value: mta/argfile.conf
+    value: mta-v7.x/argfile.conf
   pipelineSpec:
     finally:
     - name: show-sbom
