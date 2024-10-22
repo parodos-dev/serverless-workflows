@@ -16,7 +16,7 @@ in the form of `quay.io/orchestrator/serverless-workflow-${workflow}`.
 
 ## Current image statuses:
 
-- https://quay.io/repository/orchestrator/serverless-workflow-mta
+- https://quay.io/repository/orchestrator/serverless-workflow-mta-v7.x
 - https://quay.io/repository/orchestrator/serverless-workflow-m2k
 - https://quay.io/repository/orchestrator/serverless-workflow-greeting
 - https://quay.io/repository/orchestrator/serverless-workflow-escalation
