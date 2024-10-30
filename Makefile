@@ -11,6 +11,9 @@ WORKFLOWS = \
 	move2kube \
 	mta-v7.x \
 	create-ocp-project \
+	request-vm-cnv \
+	mtv-migration \
+	modify-vm-resources \
 	$(NULL)
 
 # Dynamic rule patten that uses one of the workflows and sets the workflow id

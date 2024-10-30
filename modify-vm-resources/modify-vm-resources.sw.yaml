@@ -5,6 +5,8 @@ name: "Modify VM Resources"
 description: Modify VM Resources (Memory/CPU)
 dataInputSchema: schemas/modify-vm-resources__main-schema.json
 extensions:
+  - extensionid: workflow-output-schema
+    outputSchema: schemas/workflow-output-schema.json
   - extensionid: workflow-uri-definitions
     definitions:
       notifications: "https://raw.githubusercontent.com/parodos-dev/serverless-workflows/main/shared/specs/notifications-openapi.yaml"
@@ -41,6 +43,37 @@ functions:
       vm_new_cpu_threads:if .vm_new_cpu_threads == null then
       .vm.spec.template.spec.domain.cpu.threads else .vm_new_cpu_threads
       end
+      }'
+  - name: successResult
+    type: expression
+    operation: '{
+        "completedWith":"success",
+        "message": "VM" + .vm_name + " in namespace " + .vm_namespace + " updated.",
+        "outputs":[
+          {
+              "key":"Console URL",
+              "value": $SECRET.cluster_console_url + "/k8s/ns/" + .vm_namespace + "/kubevirt.io~v1~VirtualMachine/" + .vm_name + "/console/standalone",
+              "format":"link"
+          }
+        ]
+      }'
+  - name: errorVMNotRunningResult
+    type: expression
+    operation: '{
+        "completedWith":"error",
+        "message": "VM" + .vm_name + " in namespace " + .vm_namespace + " not ready after the update after checking" + .vmStatusRunningRetries + " times: " + .vm.status
+      }'
+  - name: errorAuthorizationDeniedResult
+    type: expression
+    operation: '{
+        "completedWith":"error",
+        "message": "Authorization denied to update VM " + .vm_name + " in namespace " + .vm_namespace + ". Memory: " + .vm_new_memory + ". CPU cores: " + (.vm_new_cpu_cores|tostring) + ". CPU threads: " + (.vm_new_cpu_threads|tostring) + ". CPU sockets: " + (.vm_new_cpu_sockets|tostring),
+        "outputs":[
+          {
+              "key":"Jira issue",
+              "value": $SECRET.jira_url + "/jira/servicedesk/projects/" + .projectKey + "/issues/" + .jiraCreateIssueResult.key,
+              "format":"link"
+          }]
       }'
 start: Get VM
 states:
@@ -256,6 +289,11 @@ states:
                   # There are more dynamic ways to get the JIRA URL, but for simplicity, we are using a hardcoded URL
                   link: '$SECRET.cluster_console_url + "/k8s/ns/" + .vm_namespace + "/kubevirt.io~v1~VirtualMachine/" + .vm_name + "/console/standalone"'
                   severity: "normal"
+      - name: setOutput
+        actions:
+        - name: setOutput
+          functionRef:
+            refName: successResult
     end: true
   - name: Notify VM not running
     type: parallel
@@ -278,9 +316,14 @@ states:
                   entityRef: .recipients
                 payload:
                   title: '"VM" + .vm_name + " in namespace " + .vm_namespace + " not ready"'
-                  description: '"VM" + .vm_name + " in namespace " + .vm_namespace + " not ready after the update after checking" +.vmStatusRunningRetries+" times: " + .vm.status'
+                  description: '"VM" + .vm_name + " in namespace " + .vm_namespace + " not ready after the update after checking" + .vmStatusRunningRetries + " times: " + .vm.status'
                   topic: "Modify VM Resources workflow"
                   severity: "high"
+      - name: setOutput
+        actions:
+        - name: setOutput
+          functionRef:
+            refName: errorVMNotRunningResult
     end: true
   - name: Notify VM update denied
     type: parallel
@@ -307,4 +350,9 @@ states:
                   topic: "Modify VM Resources workflow"
                   link: '$SECRET.jira_url + "/jira/servicedesk/projects/" + .projectKey + "/issues/" + .jiraCreateIssueResult.key'
                   severity: "high"
+      - name: setOutput
+        actions:
+        - name: setOutput
+          functionRef:
+            refName: errorAuthorizationDeniedResult
     end: true
