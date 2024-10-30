@@ -5,6 +5,8 @@ name: "Request VM on CNV"
 description: Request VM on CNV
 dataInputSchema: schemas/request-vm-cnv__main-schema.json
 extensions:
+  - extensionid: workflow-output-schema
+    outputSchema: schemas/workflow-output-schema.json
   - extensionid: workflow-uri-definitions
     definitions:
       notifications: "https://raw.githubusercontent.com/parodos-dev/serverless-workflows/main/shared/specs/notifications-openapi.yaml"
@@ -25,6 +27,37 @@ functions:
   - name: increaseVMStatusRunningRetries
     type: expression
     operation: ".vmStatusRunningRetries=.vmStatusRunningRetries + 1"
+  - name: successResult
+    type: expression
+    operation: '{
+        "completedWith":"success",
+        "message": "VM" + .vm_name + " in namespace "+.vm_namespace + " using image "+ .vm_image +" ready and running.",
+        "outputs":[
+          {
+              "key":"Console URL",
+              "value": $SECRET.cluster_console_url + "/k8s/ns/" + .vm_namespace + "/kubevirt.io~v1~VirtualMachine/" + .vm_name + "/console/standalone",
+              "format":"link"
+          }
+        ]
+      }'
+  - name: errorVMNotRunningResult
+    type: expression
+    operation: '{
+        "completedWith":"error",
+        "message": "VM" + .vm_name + " in namespace "+.vm_namespace + " using image "+ .vm_image +" not ready after "+ .vmStatusRunningRetries + " retries: " + .vm.status
+      }'
+  - name: errorAuthorizationDeniedResult
+    type: expression
+    operation: '{
+        "completedWith":"error",
+        "message": "Authorization denied to create VM" + .vm_name + " in namespace "+.vm_namespace + " using image "+ .vm_image,
+        "outputs":[
+          {
+              "key":"Jira issue",
+              "value": $SECRET.jira_url + "/jira/servicedesk/projects/" + .projectKey + "/issues/" + .jiraCreateIssueResult.key,
+              "format":"link"
+          }]
+      }'
 start: Open issue on JIRA
 states:
   - name: Open issue on JIRA
@@ -249,6 +282,11 @@ states:
                   topic: "Request CM on CNV workflow"
                   link: '$SECRET.cluster_console_url + "/k8s/ns/" + .vm_namespace + "/kubevirt.io~v1~VirtualMachine/" + .vm_name + "/console/standalone"'
                   severity: "normal"
+      - name: setOutput
+        actions:
+        - name: setOutput
+          functionRef:
+            refName: successResult
     end: true
   - name: Notify VM not running
     type: parallel
@@ -271,9 +309,14 @@ states:
                   entityRef: .recipients
                 payload:
                   title: '"VM" + .vm_name + " in namespace "+.vm_namespace + " not ready"'
-                  description: '"VM" + .vm_name + " in namespace "+.vm_namespace + " using image "+ .vm_image +" not ready after "+.vmStatusRunningRetries+" retries: " + .vm.status'
+                  description: '"VM" + .vm_name + " in namespace "+.vm_namespace + " using image "+ .vm_image +" not ready after "+ .vmStatusRunningRetries + " retries: " + .vm.status'
                   topic: "Request CM on CNV workflow"
                   severity: "high"
+      - name: setOutput
+        actions:
+        - name: setOutput
+          functionRef:
+            refName: errorVMNotRunningResult
     end: true
   - name: Notify VM creation denied
     type: parallel
@@ -300,4 +343,9 @@ states:
                   topic: "Request CM on CNV workflow"
                   link: '$SECRET.jira_url + "/jira/servicedesk/projects/" + .projectKey + "/issues/" + .jiraCreateIssueResult.key'
                   severity: "high"
+      - name: setOutput
+        actions:
+        - name: setOutput
+          functionRef:
+            refName: errorAuthorizationDeniedResult
     end: true

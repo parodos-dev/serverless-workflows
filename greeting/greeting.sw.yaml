@@ -6,11 +6,30 @@ description: YAML based greeting workflow
 annotations:
   - "workflow-type/infrastructure"
 dataInputSchema: "schemas/greeting.sw.input-schema.json"
+extensions:
+  - extensionid: workflow-output-schema
+    outputSchema: schemas/workflow-output-schema.json
 start: ChooseOnLanguage
 functions:
   - name: greetFunction
     type: custom
     operation: sysout
+  - name: successResult
+    type: expression
+    operation: '{
+        "completedWith":"success",
+        "message": "Greeting workflow completed successfully",
+        "outputs":[
+          {
+              "key":"Selected language",
+              "value": .language
+          },
+          {
+              "key":"Greeting message",
+              "value": .greeting
+          }
+        ]
+      }'
 states:
   - name: ChooseOnLanguage
     type: switch
@@ -39,5 +58,8 @@ states:
           refName: greetFunction
           arguments:
             message: .greeting
+      - name: setOutput
+        functionRef:
+          refName: successResult
     end:
       terminate: true

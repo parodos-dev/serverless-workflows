@@ -8,6 +8,8 @@ annotations:
 dataInputSchema: schemas/input.json
 start: StartPlanning
 extensions:
+  - extensionid: workflow-output-schema
+    outputSchema: schemas/workflow-output-schema.json
   - extensionid: workflow-uri-definitions
     definitions:
       notifications: "https://raw.githubusercontent.com/parodos-dev/serverless-workflows/main/shared/specs/notifications-openapi.yaml"
@@ -44,6 +46,40 @@ functions:
     type: expression
     operation: '{
       exitMessage: "Error while saving transformation output: " + (if .error == null then "timeout exception was thrown." else .error end)
+      }'
+  - name: successResult
+    type: expression
+    operation: '{
+        "completedWith":"success",
+        "message": "Move2Kube workflow  " + $WORKFLOW.instanceId + " on workspace " + .workspaceId + " and project " + .projectId + " was successful; the output is available in the branch " + .targetBranch + " of your git repository "+ .repositoryURL,
+        "outputs": [
+          {
+              "key":"Git repository",
+              "value": .repositoryURL,
+              "format":"link"
+          },
+          {
+              "key":"Git branch",
+              "value": .targetBranch
+          }
+        ]
+      }'
+  - name: errorResult
+    type: expression
+    operation: '{
+        "completedWith":"error",
+        "message": "Move2Kube workflow  " + $WORKFLOW.instanceId + " on workspace " + .workspaceId + " and project " + .projectId + " failed ",
+        "outputs":[
+          {
+              "key":"Exit message",
+              "value": .exitMessage
+          },
+          {
+              "key":"Plan retries",
+              "value": (.planRetries|tostring),
+              "format":"number"
+          }
+        ]
       }'
 states:
   - name: StartPlanning
@@ -188,6 +224,11 @@ states:
                   description: '"Move2Kube workflow  " + $WORKFLOW.instanceId + " on workspace " + .workspaceId + " and project " + .projectId + " failed with exit message: "+ .exitMessage + " -- Plan retries: "  + (.planRetries|tostring)'
                   topic: "Move2Kube Workflow"
                   severity: "critical"
+      - name: setOutput
+        actions:
+        - name: setOutput
+          functionRef:
+            refName: errorResult
     end: true
   - name: PrintExitSuccessMessage
     type: parallel
@@ -213,4 +254,9 @@ states:
                   description: '"Move2Kube workflow  " + $WORKFLOW.instanceId + " on workspace " + .workspaceId + " and project " + .projectId + " was successful; the output is available in the branch " + .targetBranch + " of your git repository "+ .repositoryURL'
                   topic: "Move2Kube Workflow"
                   severity: "normal"
+      - name: setOutput
+        actions:
+        - name: setOutput
+          functionRef:
+            refName: successResult
     end: true

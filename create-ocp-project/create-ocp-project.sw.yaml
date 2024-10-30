@@ -5,6 +5,8 @@ name: "Create OpenShift Project"
 description: Creating an OpenShift Project
 dataInputSchema: schemas/create-ocp-project__main-schema.json
 extensions:
+  - extensionid: workflow-output-schema
+    outputSchema: schemas/workflow-output-schema.json
   - extensionid: workflow-uri-definitions
     definitions:
       notifications: "https://raw.githubusercontent.com/parodos-dev/serverless-workflows/main/shared/specs/notifications-openapi.yaml"
@@ -26,6 +28,31 @@ functions:
   - name: print
     type: custom
     operation: sysout
+  - name: successResult
+    type: expression
+    operation: '{
+        "completedWith":"success",
+        "message": "Project " + .projectName + " active",
+        "outputs":[]
+      }'
+  - name: errorProjectNotActiveResult
+    type: expression
+    operation: '{
+        "completedWith":"error",
+        "message": "Project " + .projectName + " not active"
+      }'
+  - name: errorAuthorizationDeniedResult
+    type: expression
+    operation: '{
+        "completedWith":"error",
+        "message": "Creation of project " + .projectName + " denied",
+        "outputs":[
+          {
+              "key":"Jira issue",
+              "value": $SECRET.jira_url + "/jira/servicedesk/projects/" + .operationsProjectKey + "/issues/" + .operationsJiraCreateIssueResult.key,
+              "format":"link"
+          }]
+      }'
 start: "[Audit]: workflow started"
 states:
   - name: "[Audit]: workflow started"
@@ -165,6 +192,9 @@ states:
               description: '"Project " + .projectName + " active"'
               topic: "Create OCP Project workflow"
               severity: "normal"
+      - name: setOutput
+        functionRef:
+          refName: successResult
     transition:
       nextState: "[Audit]: Close issue on Jira"
   - name: Notify project not active
@@ -182,6 +212,9 @@ states:
               description: '"Project " + .projectName + " inactive"'
               topic: "Create OCP Project workflow"
               severity: "high"
+      - name: setOutput
+        functionRef:
+          refName: errorProjectNotActiveResult
     transition:
       nextState: "[Audit]: Close issue on Jira"
   - name: "[Audit]: Close issue on Jira"
@@ -213,6 +246,9 @@ states:
     type: operation
     actionMode: sequential
     actions:
+      - name: setOutput
+        functionRef:
+          refName: errorAuthorizationDeniedResult
       - name: get transition id
         actionDataFilter:
           toStateData: .jiraGetTransitionResult

@@ -7,6 +7,8 @@ annotations:
   - "workflow-type/infrastructure"
 dataInputSchema: schemas/mtv-input.json
 extensions:
+  - extensionid: workflow-output-schema
+    outputSchema: schemas/workflow-output-schema.json
   - extensionid: workflow-uri-definitions
     definitions:
       notifications: "https://raw.githubusercontent.com/parodos-dev/serverless-workflows/main/shared/specs/notifications-openapi.yaml"
@@ -23,6 +25,25 @@ functions:
   - name: getMigrationError
     type: expression
     operation: .getStatusResult.status.conditions | map(select(.category == "Error" or .category == "Critical" or .type == "Failed"))[0].message
+  - name: successResult
+    type: expression
+    operation: '{
+        "completedWith":"success",
+        "message": "MTV migration " + .migrationName + " succeeded",
+        "outputs":[]
+      }'
+  - name: errorResult
+    type: expression
+    operation: '{
+        "completedWith":"error",
+        "message": "MTV migration " + .migrationName + " failed.",
+        "outputs":[
+          {
+              "key":"Error",
+              "value": .migrationErrorMessage
+          }
+        ]
+      }'
 states:
   - name: CreateMigration
     type: operation
@@ -87,8 +108,9 @@ states:
               description: '"MTV migration " + .migrationName + " failed. Error: " + .migrationErrorMessage'
               topic: "MTV migration workflow"
               severity: "critical"
-    stateDataFilter:
-      output: '{migrationError: .migrationErrorMessage}'
+      - name: setOutput
+        functionRef:
+          refName: errorResult
     end: true
   - name: MigrationSuccessful
     type: operation
@@ -105,6 +127,7 @@ states:
               description: '"MTV migration " + .migrationName + " succeeded"'
               topic: "MTV migration workflow"
               severity: "normal"
-    stateDataFilter:
-      output: '{migrationSuccessful: "migration successful"}'
+      - name: setOutput
+        functionRef:
+          refName: successResult
     end: true
