@@ -21,8 +21,8 @@ functions:
     operation: specs/jira-openapi.yaml#getIssueTransitions
   - name: createNotification
     operation: notifications#createNotification
-  - name: createProjectOpenshiftIoV1Project
-    operation: specs/ocp-project-openapi.yaml#createProjectOpenshiftIoV1Project
+  - name: createProjectRequestOpenshiftIoV1Project
+    operation: specs/ocp-project-openapi.yaml#createProjectRequestOpenshiftIoV1Project
   - name: readProjectOpenshiftIoV1Project
     operation: specs/ocp-project-openapi.yaml#readProjectOpenshiftIoV1Project
   - name: print
@@ -148,9 +148,9 @@ states:
     actions:
       - name: "Create OCP Project"
         functionRef:
-          refName: createProjectOpenshiftIoV1Project
+          refName: createProjectRequestOpenshiftIoV1Project
           arguments:
-            kind: Project
+            kind: ProjectRequest
             metadata:
               labels:
                 kubernetes.io/metadata.name: .projectName
