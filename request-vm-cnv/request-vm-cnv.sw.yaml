@@ -30,33 +30,39 @@ functions:
   - name: successResult
     type: expression
     operation: '{
-        "completedWith":"success",
-        "message": "VM" + .vm_name + " in namespace "+.vm_namespace + " using image "+ .vm_image +" ready and running.",
-        "outputs":[
-          {
-              "key":"Console URL",
-              "value": $SECRET.cluster_console_url + "/k8s/ns/" + .vm_namespace + "/kubevirt.io~v1~VirtualMachine/" + .vm_name + "/console/standalone",
-              "format":"link"
-          }
-        ]
+        "result": {
+          "completedWith":"success",
+          "message": "VM" + .vm_name + " in namespace "+.vm_namespace + " using image "+ .vm_image +" ready and running.",
+          "outputs":[
+            {
+                "key":"Console URL",
+                "value": $SECRET.cluster_console_url + "/k8s/ns/" + .vm_namespace + "/kubevirt.io~v1~VirtualMachine/" + .vm_name + "/console/standalone",
+                "format":"link"
+            }
+          ]
+        }
       }'
   - name: errorVMNotRunningResult
     type: expression
     operation: '{
-        "completedWith":"error",
-        "message": "VM" + .vm_name + " in namespace "+.vm_namespace + " using image "+ .vm_image +" not ready after "+ .vmStatusRunningRetries + " retries: " + .vm.status
+        "result": {
+          "completedWith":"error",
+          "message": "VM" + .vm_name + " in namespace "+.vm_namespace + " using image "+ .vm_image +" not ready after "+ .vmStatusRunningRetries + " retries: " + .vm.status
+        }
       }'
   - name: errorAuthorizationDeniedResult
     type: expression
     operation: '{
-        "completedWith":"error",
-        "message": "Authorization denied to create VM" + .vm_name + " in namespace "+.vm_namespace + " using image "+ .vm_image,
-        "outputs":[
-          {
-              "key":"Jira issue",
-              "value": $SECRET.jira_url + "/jira/servicedesk/projects/" + .projectKey + "/issues/" + .jiraCreateIssueResult.key,
-              "format":"link"
-          }]
+        "result": {
+          "completedWith":"error",
+          "message": "Authorization denied to create VM" + .vm_name + " in namespace "+.vm_namespace + " using image "+ .vm_image,
+          "outputs":[
+            {
+                "key":"Jira issue",
+                "value": $SECRET.jira_url + "/jira/servicedesk/projects/" + .projectKey + "/issues/" + .jiraCreateIssueResult.key,
+                "format":"link"
+            }]
+          }
       }'
 start: Open issue on JIRA
 states:

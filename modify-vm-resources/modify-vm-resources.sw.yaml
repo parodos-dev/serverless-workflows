@@ -47,33 +47,39 @@ functions:
   - name: successResult
     type: expression
     operation: '{
-        "completedWith":"success",
-        "message": "VM" + .vm_name + " in namespace " + .vm_namespace + " updated.",
-        "outputs":[
-          {
-              "key":"Console URL",
-              "value": $SECRET.cluster_console_url + "/k8s/ns/" + .vm_namespace + "/kubevirt.io~v1~VirtualMachine/" + .vm_name + "/console/standalone",
-              "format":"link"
-          }
-        ]
+        "result": {
+          "completedWith":"success",
+          "message": "VM" + .vm_name + " in namespace " + .vm_namespace + " updated.",
+          "outputs":[
+            {
+                "key":"Console URL",
+                "value": $SECRET.cluster_console_url + "/k8s/ns/" + .vm_namespace + "/kubevirt.io~v1~VirtualMachine/" + .vm_name + "/console/standalone",
+                "format":"link"
+            }
+          ]
+        }
       }'
   - name: errorVMNotRunningResult
     type: expression
     operation: '{
-        "completedWith":"error",
-        "message": "VM" + .vm_name + " in namespace " + .vm_namespace + " not ready after the update after checking" + .vmStatusRunningRetries + " times: " + .vm.status
+        "result": {
+          "completedWith":"error",
+          "message": "VM" + .vm_name + " in namespace " + .vm_namespace + " not ready after the update after checking" + .vmStatusRunningRetries + " times: " + .vm.status
+        }
       }'
   - name: errorAuthorizationDeniedResult
     type: expression
     operation: '{
-        "completedWith":"error",
-        "message": "Authorization denied to update VM " + .vm_name + " in namespace " + .vm_namespace + ". Memory: " + .vm_new_memory + ". CPU cores: " + (.vm_new_cpu_cores|tostring) + ". CPU threads: " + (.vm_new_cpu_threads|tostring) + ". CPU sockets: " + (.vm_new_cpu_sockets|tostring),
-        "outputs":[
-          {
-              "key":"Jira issue",
-              "value": $SECRET.jira_url + "/jira/servicedesk/projects/" + .projectKey + "/issues/" + .jiraCreateIssueResult.key,
-              "format":"link"
-          }]
+        "result": {
+          "completedWith":"error",
+          "message": "Authorization denied to update VM " + .vm_name + " in namespace " + .vm_namespace + ". Memory: " + .vm_new_memory + ". CPU cores: " + (.vm_new_cpu_cores|tostring) + ". CPU threads: " + (.vm_new_cpu_threads|tostring) + ". CPU sockets: " + (.vm_new_cpu_sockets|tostring),
+          "outputs":[
+            {
+                "key":"Jira issue",
+                "value": $SECRET.jira_url + "/jira/servicedesk/projects/" + .projectKey + "/issues/" + .jiraCreateIssueResult.key,
+                "format":"link"
+            }]
+          }
       }'
 start: Get VM
 states:
