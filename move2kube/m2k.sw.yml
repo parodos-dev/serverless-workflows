@@ -50,36 +50,40 @@ functions:
   - name: successResult
     type: expression
     operation: '{
-        "completedWith":"success",
-        "message": "Move2Kube workflow  " + $WORKFLOW.instanceId + " on workspace " + .workspaceId + " and project " + .projectId + " was successful; the output is available in the branch " + .targetBranch + " of your git repository "+ .repositoryURL,
-        "outputs": [
-          {
-              "key":"Git repository",
-              "value": .repositoryURL,
-              "format":"link"
-          },
-          {
-              "key":"Git branch",
-              "value": .targetBranch
-          }
-        ]
+        "result": {
+          "completedWith":"success",
+          "message": "Move2Kube workflow  " + $WORKFLOW.instanceId + " on workspace " + .workspaceId + " and project " + .projectId + " was successful; the output is available in the branch " + .targetBranch + " of your git repository "+ .repositoryURL,
+          "outputs": [
+            {
+                "key":"Git repository",
+                "value": .repositoryURL,
+                "format":"link"
+            },
+            {
+                "key":"Git branch",
+                "value": .targetBranch
+            }
+          ]
+        }
       }'
   - name: errorResult
     type: expression
     operation: '{
-        "completedWith":"error",
-        "message": "Move2Kube workflow  " + $WORKFLOW.instanceId + " on workspace " + .workspaceId + " and project " + .projectId + " failed ",
-        "outputs":[
-          {
-              "key":"Exit message",
-              "value": .exitMessage
-          },
-          {
-              "key":"Plan retries",
-              "value": (.planRetries|tostring),
-              "format":"number"
-          }
-        ]
+        "result": {
+          "completedWith":"error",
+          "message": "Move2Kube workflow  " + $WORKFLOW.instanceId + " on workspace " + .workspaceId + " and project " + .projectId + " failed ",
+          "outputs":[
+            {
+                "key":"Exit message",
+                "value": .exitMessage
+            },
+            {
+                "key":"Plan retries",
+                "value": (.planRetries|tostring),
+                "format":"number"
+            }
+          ]
+        }
       }'
 states:
   - name: StartPlanning

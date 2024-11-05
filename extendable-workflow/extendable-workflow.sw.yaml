@@ -32,18 +32,20 @@ functions:
   - name: successResult
     type: expression
     operation: '{
-        "completedWith":"success",
-        "message": "Extendable workflow completed successfully",
-        "outputs":[
-          {
-              "key":"Selected language",
-              "value": .languageInfo.language
-          },
-          {
-              "key":"Greeting message",
-              "value": .greeting
-          }
-        ]
+        "result": {
+          "completedWith":"success",
+          "message": "Extendable workflow completed successfully",
+          "outputs":[
+            {
+                "key":"Selected language",
+                "value": .languageInfo.language
+            },
+            {
+                "key":"Greeting message",
+                "value": .greeting
+            }
+          ]
+        }
       }'
 states:
   - name: ChooseOnLanguage

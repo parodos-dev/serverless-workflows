@@ -31,27 +31,33 @@ functions:
   - name: successResult
     type: expression
     operation: '{
-        "completedWith":"success",
-        "message": "Project " + .projectName + " active",
-        "outputs":[]
+        "result": {
+          "completedWith":"success",
+          "message": "Project " + .projectName + " active",
+          "outputs":[]
+        }
       }'
   - name: errorProjectNotActiveResult
     type: expression
     operation: '{
-        "completedWith":"error",
-        "message": "Project " + .projectName + " not active"
+        "result": {
+          "completedWith":"error",
+          "message": "Project " + .projectName + " not active"
+        }
       }'
   - name: errorAuthorizationDeniedResult
     type: expression
     operation: '{
-        "completedWith":"error",
-        "message": "Creation of project " + .projectName + " denied",
-        "outputs":[
-          {
-              "key":"Jira issue",
-              "value": $SECRET.jira_url + "/jira/servicedesk/projects/" + .operationsProjectKey + "/issues/" + .operationsJiraCreateIssueResult.key,
-              "format":"link"
-          }]
+        "result": {
+          "completedWith":"error",
+          "message": "Creation of project " + .projectName + " denied",
+          "outputs":[
+            {
+                "key":"Jira issue",
+                "value": $SECRET.jira_url + "/jira/servicedesk/projects/" + .operationsProjectKey + "/issues/" + .operationsJiraCreateIssueResult.key,
+                "format":"link"
+            }]
+          }
       }'
 start: "[Audit]: workflow started"
 states:

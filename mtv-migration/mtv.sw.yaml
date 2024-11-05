@@ -28,21 +28,25 @@ functions:
   - name: successResult
     type: expression
     operation: '{
-        "completedWith":"success",
-        "message": "MTV migration " + .migrationName + " succeeded",
-        "outputs":[]
+        "result": {
+          "completedWith":"success",
+          "message": "MTV migration " + .migrationName + " succeeded",
+          "outputs":[]
+        }
       }'
   - name: errorResult
     type: expression
     operation: '{
-        "completedWith":"error",
-        "message": "MTV migration " + .migrationName + " failed.",
-        "outputs":[
-          {
-              "key":"Error",
-              "value": .migrationErrorMessage
-          }
-        ]
+        "result": {
+          "completedWith":"error",
+          "message": "MTV migration " + .migrationName + " failed.",
+          "outputs":[
+            {
+                "key":"Error",
+                "value": .migrationErrorMessage
+            }
+          ]
+        }
       }'
 states:
   - name: CreateMigration
