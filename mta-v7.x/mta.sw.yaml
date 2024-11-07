@@ -126,8 +126,8 @@ functions:
   - name: mandatoriesIncidentsResult
     type: expression
     operation: '{
-        "completedWith": "error",
-        "message": "MTA analysis for " + .application.repository.url + " completed with " + (.application.mandatoriesIncidents|tostring) + " incidents in mandatory issues. Check the analysis report." + (if .migrationWaveJiraTicket != null then " Application was exported to issue manager." else "" end),
+        "completedWith": "warning",
+        "message": "MTA analysis for " + .application.repository.url + " completed with " + (.application.mandatoriesIncidents|tostring) + " incidents in mandatory issues that need to be fixed before being able to provide any next possible workflow. Check the analysis report." + (if .migrationWaveJiraTicket != null then " Application was exported to issue manager." else "" end),
         "outputs": [
           {
               "key":"MTA Analysis Result URL",
