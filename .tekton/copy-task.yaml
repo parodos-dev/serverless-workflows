@@ -16,6 +16,9 @@ spec:
       image: registry.access.redhat.com/ubi9-minimal
       workingDir: $(workspaces.workspace.path)
       script: |
+        echo "$(params.SOURCE_ARTIFACT)"
+        pwd
+        ls -al
         cp -R source/shared source/$(params.workflowId)/shared
         cp source/LICENSE source/$(params.workflowId)/LICENSE
         ls -al  source/$(params.workflowId)
