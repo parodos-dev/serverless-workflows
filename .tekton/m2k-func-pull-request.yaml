@@ -389,6 +389,10 @@ spec:
         operator: in
         values:
         - "false"
+      - input: $(params.skip-ecosystem-checks)
+        operator: in
+        values:
+        - "false"
     - name: sast-snyk-check
       params:
       - name: image-digest
