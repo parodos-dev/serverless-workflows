@@ -99,6 +99,10 @@ spec:
       description: Execute the build with network isolation
       name: hermetic
       type: string
+    - default: "true"
+      description: Skip ecosystem checks against built image
+      name: skip-ecosystem-checks
+      type: string
     - default: ""
       description: Build dependencies to be prefetched by Cachi2
       name: prefetch-input
