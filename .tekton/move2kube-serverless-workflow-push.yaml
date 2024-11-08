@@ -188,45 +188,27 @@ spec:
       workspaces:
       - name: basic-auth
         workspace: git-auth
-    - name: prefetch-dependencies
-      params:
-      - name: input
-        value: $(params.prefetch-input)
-      - name: SOURCE_ARTIFACT
-        value: $(tasks.clone-repository.results.SOURCE_ARTIFACT)
-      - name: ociStorage
-        value: $(params.output-image).prefetch
-      - name: ociArtifactExpiresAfter
-        value: $(params.image-expires-after)
+    - name: copy-shared-files-and-folders
       runAfter:
       - clone-repository
       taskRef:
         params:
         - name: name
-          value: prefetch-dependencies-oci-ta
+          value: copy-oci-ta
         - name: bundle
-          value: quay.io/konflux-ci/tekton-catalog/task-prefetch-dependencies-oci-ta:0.1@sha256:3c11f5de6a0281bf93857f0c85bbbdfeda4cc118337da273fef0c138bda5eebb
+          value: quay.io/orchestrator/konflux-task-copy-ta@sha256:dec0a1ced84b41190f223ce296fce30758b2a926a82cc6f9accb1391ecc01e52
         - name: kind
           value: task
         resolver: bundles
-      when:
-      - input: $(params.hermetic)
-        operator: in
-        values:
-        - "true"
-      workspaces:
-      - name: git-basic-auth
-        workspace: git-auth
-    - name: copy-shared-files-and-folders
-      runAfter:
-      - clone-repository
-      taskRef:
-        name: copy
       params:
       - name: workflowId
         value: $(params.path-context)
       - name: SOURCE_ARTIFACT
         value: $(tasks.clone-repository.results.SOURCE_ARTIFACT)
+      - name: ociStorage
+        value: $(params.output-image).copyfiles
+      - name: ociArtifactExpiresAfter
+        value: $(params.image-expires-after)
     - name: build-container
       params:
       - name: IMAGE
@@ -251,7 +233,6 @@ spec:
       - name: SOURCE_ARTIFACT
         value: $(tasks.copy-shared-files-and-folders.results.SOURCE_ARTIFACT)
       runAfter:
-      - prefetch-dependencies
       - copy-shared-files-and-folders
       taskRef:
         params:
