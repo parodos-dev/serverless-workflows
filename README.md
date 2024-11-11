@@ -1,6 +1,19 @@
 # Serverless-Workflows
 
-A selected set of serverless workflows.
+This repository contains multiple workflows. Each workflow is represented by a directory in the project. Below is a table listing all available workflows:
+
+| Workflow Name                    | Description                                       |
+|----------------------------------|---------------------------------------------------|
+| `create-ocp-project`             | Sets up an OpenShift Container Platform (OCP) project. |
+| `escalation`                     | Demos workflow ticket escalation.          |
+| `extendable-workflow`            | Provides a flexible, extendable workflow setup.   |
+| `greeting`                       | Sample greeting workflow.                         |
+| `modify-vm-resources`            | Modifies resources allocated to virtual machines. |
+| `move2kube`                      | Workflow for Move2Kube tasks and transformation.  |
+| `mta-v7.x`                       | Migration toolkit for applications, version 7.x.  |
+| `mtv-migration`                  | Migration tasks using Migration Toolkit for Virtualization (MTV). |
+| `mtv-plan`                       | Planning workflows for Migration Toolkit for Virtualization. |
+| `request-vm-cnv`                 | Requests and provisions VMs using Container Native Virtualization (CNV). |
 
 Here is the layout of directories per workflow. Each folder contains at least:
 
