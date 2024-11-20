@@ -24,7 +24,7 @@ functions:
             },
             {
                 "key":"Personnal info",
-                "value": "Name: " + .personalInfo.firstName + " " + .personalInfo.lastName + "; Country: " + .personalInfo.country + "; Password:  " + .personalInfo.password + " / " + .personalInfo.confirmPassword
+                "value": "Name: " + .personalInfo.firstName + " " + .personalInfo.lastName + "; Country: " + .personalInfo.country
             }
           ]
         }
