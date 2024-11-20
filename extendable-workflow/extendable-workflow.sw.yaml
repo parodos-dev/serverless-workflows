@@ -9,26 +9,8 @@ dataInputSchema: "schemas/extendable-workflow.sw.input-schema.json"
 extensions:
   - extensionid: workflow-output-schema
     outputSchema: schemas/workflow-output-schema.json
-start: ChooseOnLanguage
+start: OutputInputs
 functions:
-  - name: greetFunction
-    type: custom
-    operation: sysout
-  - name: GreetInEnglish
-    type: expression
-    operation: '{
-      greeting: "Welcome " + .personalInfo.firstName + " " + .personalInfo.lastName + " from the beautiful country of " + .personalInfo.country + "! I got your paswwords loud and clear: " + .personalInfo.password + " and they match: " + .personalInfo.confirmPassword + "... You may want ot change them now."
-      }'
-  - name: GreetInSpanish
-    type: expression
-    operation: '{
-      greeting: "¡Bienvenido " + .personalInfo.firstName + " " + .personalInfo.lastName + " desde el hermoso país de " + .personalInfo.country + "! Recibí tus contraseñas alto y claro: " + .personalInfo.password + " y coinciden: " + .personalInfo.confirmPassword + "... Quizás quieras cambiarlas ahora."
-      }'
-  - name: GreetInFrench
-    type: expression
-    operation: '{
-      greeting: "Bienvenue " + .personalInfo.firstName + " " + .personalInfo.lastName + " du merveilleux pays de " + .personalInfo.country + " ! Vos mots de passes sont bien reçus: " + .personalInfo.password + " et ils correspondent: " + .personalInfo.confirmPassword + "... Il serait bon de les changer maintenant."
-      }'
   - name: successResult
     type: expression
     operation: '{
@@ -37,56 +19,21 @@ functions:
           "message": "Extendable workflow completed successfully",
           "outputs":[
             {
-                "key":"Selected language",
+                "key":"Language",
                 "value": .languageInfo.language
             },
             {
-                "key":"Greeting message",
-                "value": .greeting
+                "key":"Personnal info",
+                "value": "Name: " + .personalInfo.firstName + " " + .personalInfo.lastName + "; Country: " + .personalInfo.country + "; Password:  " + .personalInfo.password + " / " + .personalInfo.confirmPassword
             }
           ]
         }
       }'
 states:
-  - name: ChooseOnLanguage
-    type: switch
-    dataConditions:
-      - condition: .languageInfo.language == "French"
-        transition: GreetInFrench
-        name: Greet in french
-      - condition: .languageInfo.language  == "Spanish"
-        transition: GreetInSpanish
-        name: Greet in spanish
-    defaultCondition:
-      transition: GreetInEnglish
-  - name: GreetInEnglish
+  - name: OutputInputs
     type: operation
     actions:
-      - functionRef:
-          refName: GreetInEnglish
-    transition: GreetPerson
-  - name: GreetInSpanish
-    type: operation
-    actions:
-      - functionRef:
-          refName: GreetInSpanish
-    transition: GreetPerson
-  - name: GreetInFrench
-    type: operation
-    actions:
-      - functionRef:
-          refName: GreetInFrench
-    transition: GreetPerson
-  - name: GreetPerson
-    type: operation
-    actions:
-      - name: greetAction
-        functionRef:
-          refName: greetFunction
-          arguments:
-            message: .greeting
       - name: setOutput
         functionRef:
           refName: successResult
-    end:
-      terminate: true
+    end: true
