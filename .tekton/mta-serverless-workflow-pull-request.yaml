@@ -229,7 +229,7 @@ spec:
         - name: name
           value: copy-oci-ta
         - name: bundle
-          value: quay.io/orchestrator/konflux-task-copy-ta@sha256:dec0a1ced84b41190f223ce296fce30758b2a926a82cc6f9accb1391ecc01e52
+          value: quay.io/orchestrator/konflux-task-copy-ta:v1@sha256:dec0a1ced84b41190f223ce296fce30758b2a926a82cc6f9accb1391ecc01e52
         - name: kind
           value: task
         resolver: bundles
