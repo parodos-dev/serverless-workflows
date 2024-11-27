@@ -72,7 +72,7 @@ functions:
   - name: TaskFailedErrorExitMessage
     type: expression
     operation: '{
-        exitMessage: "The 1st task of the taskGroup " + .taskgroup.id + " is in failed state"
+        exitMessage: "The 1st task of the taskGroup " + (.taskgroup.id|tostring) + " is in failed state"
       }'
   - name: TrackersDoesNotExistErrorExitMessage
     type: expression
@@ -82,22 +82,22 @@ functions:
   - name: TrackerDoesNotExistErrorExitMessage
     type: expression
     operation: '{
-        exitMessage: "The tracker with the id " + .trackers[0].id + " does not exist, cannot export to the issue manager"
+        exitMessage: "The tracker with the id " + (.trackers[0].id|tostring) + " does not exist, cannot export to the issue manager"
       }'
   - name: TrackerProjectsDoesNotExistErrorExitMessage
     type: expression
     operation: '{
-        exitMessage: "There are no trackerProjects associated with the tracker with the id " + .tracker.id + ", cannot export to the issue manager"
+        exitMessage: "There are no trackerProjects associated with the tracker with the id " + (.tracker.id|tostring) + ", cannot export to the issue manager"
       }'
   - name: TrackerProjectDoesNotExistErrorExitMessage
     type: expression
     operation: '{
-        exitMessage: "The trackerProject with the id " + .trackerProjects[0].id + " of the tracker with the id " + .tracker.id + " does not exist, cannot export to the issue manager"
+        exitMessage: "The trackerProject with the id " + (.trackerProjects[0].id|tostring) + " of the tracker with the id " + (.tracker.id|tostring) + " does not exist, cannot export to the issue manager"
       }'
   - name: TrackerProjectIssueTypesDoesNotExistErrorExitMessage
     type: expression
     operation: '{
-        exitMessage: "There are no trackerProjectIssueTypes in the trackerProject with the id " + .trackerProject.id + " of the tracker with the id "+ .tracker.id +" does not exist, cannot export to the issue manager"
+        exitMessage: "There are no trackerProjectIssueTypes in the trackerProject with the id " + (.trackerProject.id|tostring) + " of the tracker with the id "+ (.tracker.id|tostring) +", cannot export to the issue manager"
       }'                 
   - name: successResult
     type: expression
