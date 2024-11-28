@@ -42,7 +42,7 @@ for pr in $prs; do
             git config --global user.name "${USER_NAME}"
             # Get the PR details (branch)
             pr_labels=$(gh pr view "$pr" --repo "$REPO" --json labels --jq '.labels[].name')
-            if [[ ${pr_labels[@]} =~ "do-not-merge" ]]
+            if [[ ${pr_labels[*]} =~ "do-not-merge" ]]
             then
                 echo "PR $pr is labeled with do-not-merge, ignoring it"
                 exit 0
