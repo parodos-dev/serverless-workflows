@@ -10,7 +10,8 @@
             "enum": [
                 "error",
                 "success",
-                "warning"
+                "warning",
+                "aborted"
             ]
         },
         "message": {
