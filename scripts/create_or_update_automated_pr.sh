@@ -13,8 +13,8 @@ WORKDIR=$8
 GH_TOKEN=$9
 GITHUB_SHA=${10}
 
-# Get all open PRs for the repository
-prs=$(gh pr list --repo "${REPO}" --json number --jq '.[].number') || exit
+# Get all automated PRs opened by orchestrator-ci for the repository
+prs=$(gh pr list --repo "${REPO}" -A orchestrator-ci --json number --jq '.[].number') || exit
 echo "${prs}"
 STOP=false
 # Loop through each PR and check for the version in Chart.yaml
@@ -41,8 +41,15 @@ for pr in $prs; do
             git config --global user.email "${USER_EMAIL}"
             git config --global user.name "${USER_NAME}"
             # Get the PR details (branch)
+            pr_labels=$(gh pr view "$pr" --repo "$REPO" --json labels --jq '.labels[].name')
+            if [[ ${pr_labels[@]} =~ "do-not-merge" ]]
+            then
+                echo "PR $pr is labeled with do-not-merge, ignoring it"
+                exit 0
+            fi
+
             pr_branch=$(gh pr view "$pr" --repo "$REPO" --json headRefName --jq '.headRefName')
-            
+
             gh repo clone "${REPO}" config-repo
             cd config-repo || exit
             # Checkout the PR branch
