@@ -5,7 +5,7 @@ on:
   push:
     branches: [ "main" ]
     paths:
-      - 'extendable-workflow/**'
+      - 'workflows/extendable-workflow/**'
       - 'pipeline/**'
       - .github/workflows/extendable-workflow.yml
       - .github/workflows/main.yml

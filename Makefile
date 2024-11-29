@@ -108,7 +108,7 @@ prepare-workdir:
 	@rm -rf $(WORKDIR)
 	@mkdir -p $(WORKDIR)
 	@cp -R . $(WORKDIR)
-	@cp -R $(WORKDIR)/shared $(WORKDIR)/$(WORKFLOW_ID)/shared
+	@cp -R $(WORKDIR)/workflows/shared $(WORKDIR)/workflows/$(WORKFLOW_ID)/shared
 	@find $(WORKDIR) -type d -name target -prune -exec rm -rf {} \;
 
 
@@ -117,7 +117,7 @@ prepare-workdir:
 # Depends on: prepare-workdir target.
 # Usage: make build-image
 ifeq ($(IS_WORKFLOW),true)
-build-image: BUILD_ARGS=--build-arg-file=$(WORKFLOW_ID)/argfile.conf --build-arg=BUILDER_IMAGE=$(BUILDER_IMAGE) --build-arg WF_RESOURCES=$(WORKFLOW_ID)
+build-image: BUILD_ARGS=--build-arg-file=workflows/$(WORKFLOW_ID)/argfile.conf --build-arg=BUILDER_IMAGE=$(BUILDER_IMAGE) --build-arg WF_RESOURCES=workflows/$(WORKFLOW_ID)
 endif
 build-image: EXTRA_ARGS=--ulimit nofile=4096:4096
 build-image: prepare-workdir
@@ -126,7 +126,7 @@ ifeq ($(IS_APPLICATION),true)
 	# First build the application
 	$(BUILD_APPLICATION_SCRIPT) $(CONTAINER_ENGINE) $(WORKDIR) $(WORKFLOW_ID) $(APPLICATION_ID) $(JDK_IMAGE) $(MVN_OPTS)
 	# Then build the containerized image from the application source
-	@cd $(WORKDIR)/$(WORKFLOW_ID)/$(APPLICATION_ID) && $(CONTAINER_ENGINE) build -f $(DOCKERFILE) \
+	@cd $(WORKDIR)/workflows/$(WORKFLOW_ID)/$(APPLICATION_ID) && $(CONTAINER_ENGINE) build -f $(DOCKERFILE) \
 		$(BUILD_ARGS) $(EXTRA_ARGS) \
 		--tag ${IMAGE_NAME}:${IMAGE_TAG} --tag ${IMAGE_NAME}:latest .
 else
@@ -167,9 +167,9 @@ save-oci: build-image
 # Usage: make gen-manifests
 gen-manifests: prepare-workdir
 	cd $(WORKDIR)
-	@$(CONTAINER_ENGINE) run --rm -v $(WORKDIR):/workdir:Z -w /workdir \
-		$(LINUX_IMAGE) /bin/bash -c "ENABLE_PERSISTENCE=$(ENABLE_PERSISTENCE) WORKFLOW_IMAGE_TAG=$(IMAGE_TAG) ${SCRIPTS_DIR}/gen_manifests.sh $(WORKFLOW_ID)"
-	@echo "Manifests are available in workdir $(WORKDIR)/$(WORKFLOW_ID)/manifests"
+	$(CONTAINER_ENGINE) run --rm -v $(WORKDIR):/workdir:Z -w /workdir \
+		$(LINUX_IMAGE) /bin/bash -c "ENABLE_PERSISTENCE=$(ENABLE_PERSISTENCE) WORKFLOW_IMAGE_TAG=$(IMAGE_TAG) ${SCRIPTS_DIR}/gen_manifests.sh workflows/$(WORKFLOW_ID)"
+	@echo "Manifests are available in workdir $(WORKDIR)/workflows/$(WORKFLOW_ID)/manifests"
 
 remove-trailing-whitespaces:
 	@echo "Removing all trailing whitespaces from application.properties files"

@@ -5,7 +5,7 @@ on:
   push:
     branches: [ "main" ]
     paths:
-      - 'greeting/**'
+      - 'workflows/greeting/**'
       - 'pipeline/**'
       - .github/workflows/greeting.yml
       - .github/workflows/main.yml

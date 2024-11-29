@@ -6,7 +6,7 @@ on:
     branches:
       - main
     paths:
-      - 'move2kube/**'
+      - 'workflows/move2kube/**'
       - 'pipeline/**'
       - .github/workflows/move2kube-e2e.yaml
       - .github/workflows/m2k-func.yaml

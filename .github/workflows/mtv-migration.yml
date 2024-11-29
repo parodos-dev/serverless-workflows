@@ -5,7 +5,7 @@ on:
   push:
     branches: ["main"]
     paths:
-      - "mtv-migration/**"
+      - "workflows/mtv-migration/**"
       - "pipeline/**"
       - .github/workflows/mtv-migration.yml
       - .github/workflows/main.yml

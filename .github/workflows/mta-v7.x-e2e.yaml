@@ -6,10 +6,10 @@ on:
     branches:
       - main
     paths:
-      - 'mta-v7.x/**'
+      - 'workflows/mta-v7.x/**'
       - 'pipeline/**'
       - '!e2e/mta-v7.x.sh'
-      - '!mta-v7.x/*.svg'
+      - '!workflows/mta-v7.x/*.svg'
       - .github/workflows/mta-v7.x-e2e.yaml
       - .github/workflows/main.yml
 
