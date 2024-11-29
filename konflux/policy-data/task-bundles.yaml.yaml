@@ -22,6 +22,6 @@
 #   https://github.com/securesign/rekor/commit/b724cd24baecb4edc660638e3eb623dbfe77083c
 #
 trusted_tasks:
-  oci://quay.io/orchestrator/konflux-task-copy-ta:v1:
-  - ref: sha256:dec0a1ced84b41190f223ce296fce30758b2a926a82cc6f9accb1391ecc01e52
-    effective_on: 2024-11-08T00:00:00Z
+  oci://quay.io/orchestrator/konflux-task-copy-ta:v2:
+  - ref: sha256:99a6bead6284c8dc43f744b3f8ad04bc459c16470e990bf5b27715399a8dcc1e
+    effective_on: 2024-11-29T00:00:00Z

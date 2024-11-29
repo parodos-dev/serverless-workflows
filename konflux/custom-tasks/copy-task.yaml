@@ -18,8 +18,8 @@ spec:
     - name: ociStorage
       description: The OCI repository where the Trusted Artifacts are stored.
       type: string
-    - name: workflowId
-      description: The workflow ID from the repository
+    - name: workflowDirectoryPath
+      description: The workflow directory path from the repository
       type: string
   results:
     - name: SOURCE_ARTIFACT
@@ -44,9 +44,10 @@ spec:
       workingDir: /var/workdir/
       script: |
         ls -al
-        cp -R source/shared source/$(params.workflowId)/shared
-        cp source/LICENSE source/$(params.workflowId)/LICENSE
-        ls -al source/$(params.workflowId)
+        ls -al source
+        cp -R source/workflows/shared source/$(params.workflowDirectoryPath)/shared
+        cp source/LICENSE source/$(params.workflowDirectoryPath)/LICENSE
+        ls -al source/$(params.workflowDirectoryPath)
     - name: create-trusted-artifact
       image: quay.io/redhat-appstudio/build-trusted-artifacts:latest@sha256:81c4864dae6bb11595f657be887e205262e70086a05ed16ada827fd6391926ac
       args:
