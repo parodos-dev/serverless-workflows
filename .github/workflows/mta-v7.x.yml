@@ -5,7 +5,7 @@ on:
   push:
     branches: [ "main" ]
     paths:
-      - 'mta-v7.x/**'
+      - 'workflows/mta-v7.x/**'
       - 'pipeline/**'
       - .github/workflows/mta-v7.x.yml
       - .github/workflows/main.yml

@@ -7,7 +7,7 @@ metadata:
     build.appstudio.redhat.com/pull_request_number: '{{pull_request_number}}'
     build.appstudio.redhat.com/target_branch: '{{target_branch}}'
     pipelinesascode.tekton.dev/max-keep-runs: "3"
-    pipelinesascode.tekton.dev/on-cel-expression: event == "pull_request" && target_branch == "main" && ( "mta-v7.x/***".pathChanged() || ".tekton/mta-serverless-workflow-pull-request.yaml".pathChanged() || "pipeline/workflow-builder.Dockerfile".pathChanged() )
+    pipelinesascode.tekton.dev/on-cel-expression: event == "pull_request" && target_branch == "main" && ( "workflows/mta-v7.x/***".pathChanged() || ".tekton/mta-serverless-workflow-pull-request.yaml".pathChanged() || "pipeline/workflow-builder.Dockerfile".pathChanged() )
   creationTimestamp: null
   labels:
     appstudio.openshift.io/application: serverless-workflows
@@ -26,13 +26,13 @@ spec:
   - name: output-image
     value: quay.io/redhat-user-workloads/orchestrator-releng-tenant/serverless-workflows/mta-serverless-workflow:on-pr-{{revision}}
   - name: path-context
-    value: mta-v7.x
+    value: workflows/mta-v7.x
   - name: revision
     value: '{{revision}}'
   - name: build-source-image
     value: "true"
   - name: build-args-file
-    value: mta-v7.x/argfile.conf
+    value: workflows/mta-v7.x/argfile.conf
   pipelineSpec:
     finally:
     - name: show-sbom

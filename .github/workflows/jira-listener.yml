@@ -5,7 +5,7 @@ on:
   push:
     branches: [ "main" ]
     paths:
-      - 'escalation/jira-listener/**'
+      - 'workflows/escalation/jira-listener/**'
       - 'pipeline/**'
       - 'scripts/**'
       - .github/workflows/jira-listener.yml

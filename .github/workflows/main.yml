@@ -88,7 +88,7 @@ jobs:
           APPLICATION_ID=${{ inputs.application_id }} \
           PR_OR_COMMIT_URL=${PR_OR_COMMIT_URL} \
           gen-manifests
-        echo manifests_dir=${{ runner.temp }}/serverless-workflows/${{ inputs.workflow_id }}/manifests >> "$GITHUB_OUTPUT"
+        echo manifests_dir=${{ runner.temp }}/serverless-workflows/workflows/${{ inputs.workflow_id }}/manifests >> "$GITHUB_OUTPUT"
 
     - name: Archive manifests
       uses: actions/upload-artifact@v4

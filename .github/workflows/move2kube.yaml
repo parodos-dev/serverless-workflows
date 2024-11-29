@@ -5,7 +5,7 @@ on:
   push:
     branches: [ "main" ]
     paths:
-      - 'move2kube/**'
+      - 'workflows/move2kube/**'
       - 'pipeline/**'
       - 'e2e/move2kube.sh'
       - .github/workflows/move2kube-e2e.yaml

@@ -5,7 +5,7 @@ on:
   push:
     branches: ["main"]
     paths:
-      - "rpj/**"
+      - "workflows/rpj/**"
       - "pipeline/**"
       - .github/workflows/rpj.yml
       - .github/workflows/main.yml

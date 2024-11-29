@@ -5,7 +5,7 @@ on:
   push:
     branches: [ "main" ]
     paths:
-      - 'create-ocp-project/**'
+      - 'workflows/create-ocp-project/**'
       - 'pipeline/**'
       - .github/workflows/create-ocp-project.yaml
       - .github/workflows/main.yml

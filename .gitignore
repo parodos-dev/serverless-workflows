@@ -1,8 +1,8 @@
 # Serverless workflows generated files
-*/manifests/
+workflows/*/manifests/
 
 #Maven
-target/
+**/target/
 pom.xml.tag
 pom.xml.releaseBackup
 pom.xml.versionsBackup

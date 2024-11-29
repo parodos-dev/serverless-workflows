@@ -5,7 +5,7 @@ on:
   push:
     branches: [ "main" ]
     paths:
-      - 'modify-vm-resources/**'
+      - 'workflows/modify-vm-resources/**'
       - 'pipeline/**'
       - .github/workflows/modify-vm-resources.yaml
       - .github/workflows/main.yml

@@ -24,11 +24,11 @@ spec:
   - name: output-image
     value: quay.io/redhat-user-workloads/orchestrator-releng-tenant/serverless-workflows/m2k-func:{{revision}}
   - name: dockerfile
-    value: move2kube/m2k-func/src/main/docker/Dockerfile.jvm
+    value: workflows/move2kube/m2k-func/src/main/docker/Dockerfile.jvm
   - name: path-context
     value: move2kube/m2k-func
   - name: build-args-file
-    value: move2kube/m2k-func/argfile.conf
+    value: workflows/move2kube/m2k-func/argfile.conf
   pipelineSpec:
     finally:
     - name: show-sbom

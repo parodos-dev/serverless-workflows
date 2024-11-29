@@ -5,7 +5,7 @@ on:
   push:
     branches: [ "main" ]
     paths:
-      - 'escalation/**'
+      - 'workflows/escalation/**'
       - 'pipeline/**'
       - 'scripts/**'
       - .github/workflows/escalation.yml

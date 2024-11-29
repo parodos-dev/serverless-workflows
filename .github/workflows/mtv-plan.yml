@@ -5,7 +5,7 @@ on:
   push:
     branches: ["main"]
     paths:
-      - "mtv-plan/**"
+      - "workflows/mtv-plan/**"
       - "pipeline/**"
       - .github/workflows/mtv-plan.yml
       - .github/workflows/main.yml
