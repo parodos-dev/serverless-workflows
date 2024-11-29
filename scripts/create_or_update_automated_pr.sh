@@ -41,17 +41,6 @@ for pr in $prs; do
             git config --global user.email "${USER_EMAIL}"
             git config --global user.name "${USER_NAME}"
             # Get the PR details (branch)
-            pr_labels=$(gh pr view "$pr" --repo "$REPO" --json labels --jq '.labels[].name')
-            for label in "${pr_labels[@]}"
-            do
-                if [[ "$label" =~ "do-not-merge" ]]
-                then
-                    echo "PR $pr is labeled with do-not-merge, ignoring it"
-                    exit 0
-                fi
-            done
-            
-
             pr_branch=$(gh pr view "$pr" --repo "$REPO" --json headRefName --jq '.headRefName')
 
             gh repo clone "${REPO}" config-repo
