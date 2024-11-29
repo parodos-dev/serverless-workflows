@@ -234,7 +234,7 @@ spec:
           value: task
         resolver: bundles
       params:
-      - name: workflowId
+      - name: workflowDirectoryPath
         value: $(params.path-context)
       - name: SOURCE_ARTIFACT
         value: $(tasks.clone-repository.results.SOURCE_ARTIFACT)
