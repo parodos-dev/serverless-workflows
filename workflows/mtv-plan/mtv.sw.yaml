@@ -9,7 +9,7 @@ dataInputSchema: schemas/mtv-input.json
 extensions:
   - extensionid: workflow-uri-definitions
     definitions:
-      notifications: "https://raw.githubusercontent.com/parodos-dev/serverless-workflows/main/shared/specs/notifications-openapi.yaml"
+      notifications: "https://raw.githubusercontent.com/parodos-dev/serverless-workflows/main/workflows/shared/specs/notifications-openapi.yaml"
   - extensionid: workflow-output-schema
     outputSchema: schemas/workflow-output-schema.json
 start: CreatePlan
