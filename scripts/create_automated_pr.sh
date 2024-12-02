@@ -16,7 +16,7 @@ git switch -c "${WORKFLOW_ID}"-autopr-"${TIMESTAMP}"
 
 ./hack/bump_chart_version.sh "${WORKFLOW_ID}" --bump-tag-version
 mkdir -p charts/"${WORKFLOW_ID}"/templates
-cp "${WORKDIR}"/"${WORKFLOW_ID}"/manifests/* charts/"${WORKFLOW_ID}"/templates
+cp "${WORKDIR}"/workflows/"${WORKFLOW_ID}"/manifests/* charts/"${WORKFLOW_ID}"/templates
 git add -A
 
 git commit -m "(${WORKFLOW_ID}) Automated PR"
