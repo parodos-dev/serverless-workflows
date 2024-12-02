@@ -9,7 +9,7 @@ MVN_OPTS=$6
 
 VERSION="2.0.0"
 
-cd "${WORKDIR}"/"${WORKFLOW_ID}"/"${APPLICATION_ID}"/move2kubeAPI || exit
+cd "${WORKDIR}"/workflows/"${WORKFLOW_ID}"/"${APPLICATION_ID}"/move2kubeAPI || exit
 curl https://raw.githubusercontent.com/konveyor/move2kube-api/main/assets/openapi.json -o openapi.json
 
 rm -rf java-client
@@ -21,5 +21,5 @@ ${CONTAINER_ENGINE} run --rm -v "${PWD}":/tmp -e GENERATE_PERMISSIONS=true opena
   --group-id dev.parodos --artifact-id move2kube --artifact-version v${VERSION} \
   --library apache-httpclient
 
-${CONTAINER_ENGINE} run --rm -v "${WORKDIR}":/workdir -e MVN_OPTS="${MVN_OPTS}" -w /workdir/"${WORKFLOW_ID}" \
+${CONTAINER_ENGINE} run --rm -v "${WORKDIR}":/workdir -e MVN_OPTS="${MVN_OPTS}" -w /workdir/workflows/"${WORKFLOW_ID}" \
   "${JDK_IMAGE}" mvn "${MVN_OPTS}" -q clean install -DskipTests
