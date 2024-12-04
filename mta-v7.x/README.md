@@ -56,7 +56,7 @@ For running and testing the workflow refer to [mta testing](https://github.com/p
 
 # Installation
 
-See [official installation guide](https://github.com/parodos-dev/serverless-workflows-config/blob/main/docs/release-1.3/mta-v7.x)
+See [official installation guide](https://github.com/parodos-dev/serverless-workflows-config/tree/main/docs/release-1.3/mta-v7.x)
 
 [1]: https://developers.redhat.com/products/mta/download
 [2]: https://github.com/parodos-dev/serverless-workflows/blob/v1.3.x/assessment/schema/workflow-options-output-schema.json  
