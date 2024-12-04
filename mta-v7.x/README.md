@@ -52,11 +52,11 @@ All the configuration items are on [./application.properties]
 For running and testing the workflow refer to [mta testing](https://github.com/parodos-dev/serverless-workflows/tree/main/mta-v7.x#output).
 
 # Workflow Diagram
-![mta workflow diagram](https://github.com/parodos-dev/serverless-workflows/blob/main/mta-v7.x/mta.svg?raw=true)
+![mta workflow diagram](https://github.com/parodos-dev/serverless-workflows/blob/v1.3.x/mta-v7.x/mta.svg?raw=true)
 
 # Installation
 
-See [official installation guide](https://github.com/parodos-dev/serverless-workflows-config/blob/main/docs/main/mta-v7.x)
+See [official installation guide](https://github.com/parodos-dev/serverless-workflows-config/blob/main/docs/release-1.3/mta-v7.x)
 
 [1]: https://developers.redhat.com/products/mta/download
 [2]: https://github.com/parodos-dev/serverless-workflows/blob/main/assessment/schema/workflow-options-output-schema.json  
