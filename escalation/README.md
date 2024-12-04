@@ -1,4 +1,4 @@
-# Simple escalation workflow
+ocp-onboarding-schema# Simple escalation workflow
 An escalation workflow integrated with Atlassian JIRA using [SonataFlow](https://sonataflow.org/serverlessworkflow/latest/index.html).
 
 ## Prerequisite
@@ -6,7 +6,7 @@ An escalation workflow integrated with Atlassian JIRA using [SonataFlow](https:/
 * Access to an OpenShift cluster with `admin` Role
 
 ## Workflow diagram
-![Escalation workflow diagram](https://github.com/parodos-dev/serverless-workflows/blob/main/escalation/ticketEscalation.svg?raw=true)
+![Escalation workflow diagram](https://raw.githubusercontent.com/parodos-dev/serverless-workflows/refs/heads/v1.3.x/escalation/ticketEscalation.svg)
 
 **Note**:
 The value of the `.jiraIssue.fields.status.statusCategory.key` field is the one to be used to identify when the `done` status is reached, all the other
