@@ -4,9 +4,10 @@
 set -o errexit
 
 WORKFLOW_FOLDER=$1
+WORKFLOW_ID=$2
 WORKFLOW_IMAGE_REGISTRY="${WORKFLOW_IMAGE_REGISTRY:-quay.io}"
 WORKFLOW_IMAGE_NAMESPACE="${WORKFLOW_IMAGE_NAMESPACE:-orchestrator}"
-WORKFLOW_IMAGE_REPO="${WORKFLOW_IMAGE_REPO:-serverless-workflow-${WORKFLOW_FOLDER}}"
+WORKFLOW_IMAGE_REPO="${WORKFLOW_IMAGE_REPO:-serverless-workflow-${WORKFLOW_ID}}"
 WORKFLOW_IMAGE_TAG="${WORKFLOW_IMAGE_TAG:-latest}"
 
 # helper binaries should be either on the developer machine or in the helper
@@ -71,7 +72,7 @@ if [ "${ENABLE_PERSISTENCE}" = true ]; then
               \"name\": \"sonataflow-psql-postgresql\",
               \"port\": 5432,
               \"databaseName\": \"sonataflow\",
-              \"databaseSchema\": \"${WORKFLOW_FOLDER}\"
+              \"databaseSchema\": \"${WORKFLOW_ID}\"
             }
           }
         }
