@@ -81,7 +81,7 @@ jobs:
       - name: Deploy sonataflow-operator
         run: |
           helm repo add orchestrator https://parodos-dev.github.io/orchestrator-helm-chart
-          helm install orchestrator orchestrator/orchestrator-k8s
+          helm install orchestrator orchestrator/orchestrator-k8s --set platform.eventing.broker.name=""
 
           kubectl get sfp -A
           kubectl wait --for=condition=Ready=true pods -l "app.kubernetes.io/name=backstage" --timeout=10m
