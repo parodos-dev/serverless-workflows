@@ -168,7 +168,7 @@ save-oci: build-image
 gen-manifests: prepare-workdir
 	cd $(WORKDIR)
 	$(CONTAINER_ENGINE) run --rm -v $(WORKDIR):/workdir:Z -w /workdir \
-		$(LINUX_IMAGE) /bin/bash -c "ENABLE_PERSISTENCE=$(ENABLE_PERSISTENCE) WORKFLOW_IMAGE_TAG=$(IMAGE_TAG) ${SCRIPTS_DIR}/gen_manifests.sh workflows/$(WORKFLOW_ID)"
+		$(LINUX_IMAGE) /bin/bash -c "ENABLE_PERSISTENCE=$(ENABLE_PERSISTENCE) WORKFLOW_IMAGE_TAG=$(IMAGE_TAG) ${SCRIPTS_DIR}/gen_manifests.sh workflows/$(WORKFLOW_ID) $(WORKFLOW_ID)"
 	@echo "Manifests are available in workdir $(WORKDIR)/workflows/$(WORKFLOW_ID)/manifests"
 
 remove-trailing-whitespaces:
