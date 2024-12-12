@@ -1,4 +1,4 @@
-name: Move2kube Workflow end to end tests 
+name: Move2kube Workflow end to end tests
 
 on:
   workflow_dispatch:
@@ -80,7 +80,7 @@ jobs:
 
       - name: Deploy sonataflow-operator
         run: |
-          helm repo add orchestrator https://parodos-dev.github.io/orchestrator-helm-chart
+          helm repo add orchestrator https://rhdhorchestrator.github.io/orchestrator-helm-chart
           helm install orchestrator orchestrator/orchestrator-k8s --set platform.eventing.broker.name=""
 
           kubectl get sfp -A
@@ -95,7 +95,7 @@ jobs:
             -n knative-serving \
             --type merge \
             -p '{"data":{"kubernetes.podspec-init-containers": "enabled", "kubernetes.podspec-securitycontext": "enabled"}}'
-          
+
           yq  --inplace '.spec.podTemplate.container |= ( . +  {"env": [{"name": "K_SINK", "value": "http://broker-ingress.knative-eventing.svc.cluster.local/sonataflow-infra/default"}]} )' manifests/0?-sonataflow_m2k.yaml
 
           # reuse orchestrator psql persistence for e2e tests
@@ -125,7 +125,7 @@ jobs:
           yq --inplace ".data.NOTIFICATIONS_BEARER_TOKEN=\"$BACKEND_SECRET\"" manifests/0?-secret_m2k.yaml # notsecret
           cat manifests/0?-secret_m2k.yaml
 
-          # deploy the manifests created by the  ${{ steps.build-image.outputs.image }}"                                                                    
+          # deploy the manifests created by the  ${{ steps.build-image.outputs.image }}"
           kubectl apply -f manifests
           sleep 5
           kubectl get deployment m2k -o yaml
@@ -134,7 +134,7 @@ jobs:
           sleep 15
           kubectl get pods -o wide
           kubectl wait --for=condition=Ready=true pods -l "app=m2k" --timeout=1m
-          
+
           kubectl patch configmap/m2k-props \
             --type merge \
             -p '{"data": {"application.properties" :"move2kube_url=http://move2kube-instance-svc.default.svc.cluster.local:8080\nquarkus.rest-client.move2kube_yaml.url=http://move2kube-instance-svc.default.svc.cluster.local:8080\nquarkus.rest-client.notifications.url=http://orchestrator-backstage.default.svc.cluster.local:7007/"}}'

@@ -15,7 +15,7 @@ dataInputSchema:
 extensions:
   - extensionid: workflow-uri-definitions
     definitions:
-      notifications: "https://raw.githubusercontent.com/parodos-dev/serverless-workflows/main/workflows/shared/specs/notifications-openapi.yaml"
+      notifications: "https://raw.githubusercontent.com/rhdhorchestrator/serverless-workflows/main/workflows/shared/specs/notifications-openapi.yaml"
   - extensionid: workflow-output-schema
     outputSchema: schemas/workflow-output-schema.json
 functions:
@@ -98,7 +98,7 @@ functions:
     type: expression
     operation: '{
         exitMessage: "There are no trackerProjectIssueTypes in the trackerProject with the id " + (.trackerProject.id|tostring) + " of the tracker with the id "+ (.tracker.id|tostring) +", cannot export to the issue manager"
-      }'                 
+      }'
   - name: successResult
     type: expression
     operation: '{

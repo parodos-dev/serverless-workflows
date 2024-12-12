@@ -34,8 +34,8 @@ Application properties can be initialized from environment variables before runn
 - `OCP project to create` [required] - the OCP project to be created on the OCP cluster.
 
 ## Workflow diagram
-![Create OpenShift Project diagram](https://github.com/parodos-dev/serverless-workflow-examples/blob/main/create-ocp-project/create-ocp-project.svg?raw=true)
+![Create OpenShift Project diagram](https://github.com/rhdhorchestrator/serverless-workflow-examples/blob/main/create-ocp-project/create-ocp-project.svg?raw=true)
 
 ## Installation
 
-See [official installation guide](https://github.com/parodos-dev/serverless-workflows-config/blob/main/docs/main/create-ocp-project)
+See [official installation guide](https://github.com/rhdhorchestrator/serverless-workflows-config/blob/main/docs/main/create-ocp-project)

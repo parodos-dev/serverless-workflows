@@ -5,7 +5,7 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
   <artifactId>m2k-func</artifactId>
-  <groupId>dev.parodos</groupId>
+  <groupId>io.rhdhorchestrator</groupId>
   <version>1.0.0-SNAPSHOT</version>
   <properties>
     <failsafe.useModulePath>false</failsafe.useModulePath>
@@ -131,9 +131,9 @@
       <version>2.14.0</version>
       <scope>test</scope>
     </dependency>
-    <!--    
+    <!--
     <dependency>
-      <groupId>dev.parodos</groupId>
+      <groupId>io.rhdhorchestrator</groupId>
       <artifactId>move2kube</artifactId>
       <version>${move2kube.version}</version>
     </dependency>
@@ -311,9 +311,9 @@
                     <output>${project.build.directory}/generated-sources/openapi</output>
                     <inputSpec>${project.basedir}/src/main/resources/move2kube-openapi.yaml</inputSpec>
                     <generatorName>java</generatorName>
-                    <invokerPackage>dev.parodos.move2kube</invokerPackage>
-                    <modelPackage>dev.parodos.move2kube.client.model</modelPackage>
-                    <apiPackage>dev.parodos.move2kube.api</apiPackage>
+                    <invokerPackage>io.rhdhorchestrator.move2kube</invokerPackage>
+                    <modelPackage>io.rhdhorchestrator.move2kube.client.model</modelPackage>
+                    <apiPackage>io.rhdhorchestrator.move2kube.api</apiPackage>
                     <library>apache-httpclient</library>
                     <artifactId>move2kube</artifactId>
                     <artifactVersion>${move2kube.version}</artifactVersion>
