@@ -11,9 +11,9 @@ on:
 env:
   WORKDIR: workflows/move2kube/m2k-func
   MVN_OPTS: ""
-  WF_CONFIG_REPO: parodos-dev/serverless-workflows-config
+  WF_CONFIG_REPO: rhdhorchestrator/serverless-workflows-config
   REGISTRY_REPO: orchestrator
-  GH_TOKEN: ${{ secrets.HELM_REPO_TOKEN }}  
+  GH_TOKEN: ${{ secrets.HELM_REPO_TOKEN }}
 
 jobs:
   build-and-push-m2k-func:
@@ -69,7 +69,7 @@ jobs:
 
     - name: Print image url
       run: echo "Image pushed to ${{ steps.push-to-quay.outputs.registry-paths }}"
-    
+
     - uses: actions/github-script@v7
       id: get_pr_data
       with:
@@ -85,7 +85,7 @@ jobs:
     - name: Send PRs to config repo
       if: ${{ ! inputs.it_mode }}
       env:
-        GH_TOKEN: ${{ secrets.HELM_REPO_TOKEN }}  
+        GH_TOKEN: ${{ secrets.HELM_REPO_TOKEN }}
       run: |
           # determine pr or commit url
           if [ ${{ fromJSON(steps.get_pr_data.outputs.result)}} != "" ]; then
@@ -99,7 +99,7 @@ jobs:
             ${PR_OR_COMMIT_URL} \
             "yq --inplace '.kfunction.image=\"quay.io/orchestrator/serverless-workflow-m2k-kfunc:${GITHUB_SHA}\"' charts/move2kube/values.yaml" \
             scripts/create_automated_m2k_kfunc_pr.sh \
-            ${{ github.event.head_commit.author.email || 'parodos@redhat.com' }} \
+            ${{ github.event.head_commit.author.email || 'rhdhorchestrator@redhat.com' }} \
             ${{ github.event.head_commit.author.name || github.triggering_actor }} \
             ${{ env.WORKDIR }} \
             ${{ env.GH_TOKEN }} \

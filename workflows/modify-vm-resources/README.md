@@ -1,6 +1,6 @@
 # VM Updater workflow
 The VM updater workflow is a workflow that demonstrates the following features of the serverless workflow technology:
-* Integration with external service, in this case, OCP cluster via its OpenAPI 
+* Integration with external service, in this case, OCP cluster via its OpenAPI
 * Conditional branching
 * Using the Notifications plugin to send notifications to the user
 
@@ -35,8 +35,8 @@ Application properties can be initialized from environment variables before runn
 - `Recipients` [mandatory] - A list of recipients for the notification in the format of `user:<namespace>/<username>` or `group:<namespace>/<groupname>`, i.e. `user:default/jsmith`.
 
 ## Workflow diagram
-![VM Updater diagram](https://github.com/parodos-dev/serverless-workflows/blob/main/modify-vm-resources/modify-vm-resources.svg?raw=true)
+![VM Updater diagram](https://github.com/rhdhorchestrator/serverless-workflows/blob/main/modify-vm-resources/modify-vm-resources.svg?raw=true)
 
 ## Installation
 
-See [official installation guide](https://github.com/parodos-dev/serverless-workflows-config/blob/main/docs/main/modify-vm-resources)
+See [official installation guide](https://github.com/rhdhorchestrator/serverless-workflows-config/blob/main/docs/main/modify-vm-resources)

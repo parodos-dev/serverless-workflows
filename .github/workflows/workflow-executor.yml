@@ -16,7 +16,7 @@ on:
         default: true
 
 env:
-  WF_CONFIG_REPO: parodos-dev/serverless-workflows-config
+  WF_CONFIG_REPO: rhdhorchestrator/serverless-workflows-config
   REGISTRY_REPO: orchestrator
   GH_TOKEN: ${{ secrets.HELM_REPO_TOKEN }}
 
@@ -78,7 +78,7 @@ jobs:
           gen-manifests
 
         # TODO Push manifests to repo
-    
+
     - name: Push manifests to CD repo
       if: ${{ ! inputs.it_mode }}
       run: |
@@ -90,7 +90,7 @@ jobs:
         fi
 
         WORKDIR=${{ runner.temp }}/serverless-workflows
-        
+
         make WORKFLOW_ID=${{ inputs.workflow_id }} \
           WORKDIR=${WORKDIR} \
           APPLICATION_ID=${{ inputs.application_id }} \

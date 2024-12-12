@@ -51,7 +51,7 @@ Follow these steps to successfully add a new workflow:
 6. Create a PR to [serverless-workflows-config repository][3] and make sure its merge.
 7. Now the PR from 4 can be merged and an automatic PR will be created with the generated manifests. Review and merge.
 
-See [Continuous Integration with make](https://github.com/parodos-dev/serverless-workflows/blob/main/make.md) for implementation details of the CI pipeline.
+See [Continuous Integration with make](https://github.com/rhdhorchestrator/serverless-workflows/blob/main/make.md) for implementation details of the CI pipeline.
 
 ### Builder image
 
@@ -68,5 +68,5 @@ For every PR merged in the workflow directory, a GitHub Action runs an image bui
 
 [1]: https://github.com/serverlessworkflow/specification/tree/main?tab=readme-ov-file#documentation
 [2]: https://github.com/apache/incubator-kie-kogito-serverless-operator/
-[3]: https://github.com/parodos-dev/serverless-workflows-config
-[4]: https://github.com/parodos-dev/serverless-workflows/blob/main/best-practices.md
+[3]: https://github.com/rhdhorchestrator/serverless-workflows-config
+[4]: https://github.com/rhdhorchestrator/serverless-workflows/blob/main/best-practices.md

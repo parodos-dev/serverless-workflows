@@ -15,10 +15,10 @@ curl https://raw.githubusercontent.com/konveyor/move2kube-api/main/assets/openap
 rm -rf java-client
 ${CONTAINER_ENGINE} run --rm -v "${PWD}":/tmp -e GENERATE_PERMISSIONS=true openapitools/openapi-generator-cli \
   generate -i /tmp/openapi.json -g java -o /tmp/java-client \
-  --invoker-package dev.parodos.move2kube \
-  --model-package dev.parodos.move2kube.client.model \
-  --api-package dev.parodos.move2kube.api \
-  --group-id dev.parodos --artifact-id move2kube --artifact-version v${VERSION} \
+  --invoker-package io.rhdhorchestrator.move2kube \
+  --model-package io.rhdhorchestrator.move2kube.client.model \
+  --api-package io.rhdhorchestrator.move2kube.api \
+  --group-id io.rhdhorchestrator --artifact-id move2kube --artifact-version v${VERSION} \
   --library apache-httpclient
 
 ${CONTAINER_ENGINE} run --rm -v "${WORKDIR}":/workdir -e MVN_OPTS="${MVN_OPTS}" -w /workdir/workflows/"${WORKFLOW_ID}" \

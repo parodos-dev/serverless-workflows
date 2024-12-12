@@ -11,7 +11,7 @@ start: CreateTicket
 extensions:
   - extensionid: workflow-uri-definitions
     definitions:
-      notifications: "https://raw.githubusercontent.com/parodos-dev/serverless-workflows/main/workflows/shared/specs/notifications-openapi.yaml"
+      notifications: "https://raw.githubusercontent.com/rhdhorchestrator/serverless-workflows/main/workflows/shared/specs/notifications-openapi.yaml"
 dataInputSchema:
   failOnValidationErrors: true
   schema: schemas/ticket-escalation-schema.json
@@ -31,7 +31,7 @@ functions:
 events:
   - name: approvalEvent
     source: ticket.listener
-    type: dev.parodos.escalation
+    type: io.rhdhorchestrator.escalation
 states:
   - name: CreateTicket
     type: operation

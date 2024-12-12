@@ -12,7 +12,7 @@ The generated event includes only the relevant data, e.g.:
     "workFlowInstanceId":"500",
     "workflowName":"escalation",
     "status":"done"
-}  
+}
 ```
 
 No events are generated for discarded webhooks.
@@ -24,7 +24,7 @@ The following environment variables can modify the configuration properties:
 
 | Variable | Description | Default value |
 |----------|-------------|---------------|
-| CLOUD_EVENT_TYPE | The value of `ce-type` header in the generated `CloudEvent` | `dev.parodos.escalation` |
+| CLOUD_EVENT_TYPE | The value of `ce-type` header in the generated `CloudEvent` | `io.rhdhorchestrator.escalation` |
 | CLOUD_EVENT_SOURCE | The value of `ce-source` header in the generated `CloudEvent` | `ticket.listener` |
 | WORKFLOW_INSTANCE_ID_LABEL | The name part of the Jira ticket label that contains the ID of the relates SWF instance (e.g. `workflowInstanceId=123`)  | `workflowInstanceId` |
 | WORKFLOW_NAME_LABEL | The name part of the Jira ticket label that contains the name of the SWF (e.g. `workflowName=escalation`)  | `workflowName` |
@@ -33,7 +33,7 @@ The following environment variables can modify the configuration properties:
 
 ### Event modeling
 Instead of leveraging on the [Jira Java SDK](https://developer.atlassian.com/server/jira/platform/java-apis/), we used a simplified model of the relevant data,
-defined in the [WebhookEvent](./src/main/java/dev/parodos/jiralistener/model/WebhookEvent.java) Java class. This way we can simplify the dependency stack
+defined in the [WebhookEvent](./src/main/java/io/rhdhorchestrator/jiralistener/model/WebhookEvent.java) Java class. This way we can simplify the dependency stack
 and also limit the risk of parsing failures due to unexpected changes in the payload format.
 
 Parsing was derived from the original example in [this Backstage repo](https://github.com/tiagodolphine/backstage/blob/eedfe494dd313a3ad6a484c0596ba12d6199c1a8/plugins/swf-backend/src/service/JiraService.ts#L66C19-L66C40)
@@ -90,10 +90,10 @@ apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
   annotations:
-    haproxy.router.openshift.io/timeout: 600s 
+    haproxy.router.openshift.io/timeout: 600s
     kubernetes.io/tls-acme: "true"
-  name: jira-listener 
-  namespace: knative-serving-ingress 
+  name: jira-listener
+  namespace: knative-serving-ingress
 ...
 ```
 
@@ -130,7 +130,7 @@ protocol instead of the expected `https`.
 
 To overcome this issue, you can define a different name for the `jira-listener` service by setting the property `jiralistener.name` as in:
 ```bash
-helm upgrade -n default escalation-eda helm/escalation-eda --set jiralistener.name=my-jira-listener --debug 
+helm upgrade -n default escalation-eda helm/escalation-eda --set jiralistener.name=my-jira-listener --debug
 ```
 
 ### Troubleshooting the SAN short enough to fit in CN issue
