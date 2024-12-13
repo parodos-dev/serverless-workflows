@@ -13,7 +13,7 @@ WORKDIR=$8
 GH_TOKEN=$9
 GITHUB_SHA=${10}
 
-# Get all automated PRs opened by orchestrator-ci for the repository
+echo "Get all automated PRs opened by orchestrator-ci for the repository"
 prs=$(gh pr list --repo "${REPO}" -A orchestrator-ci --json number --jq '.[].number') || exit
 echo "${prs}"
 STOP=false
