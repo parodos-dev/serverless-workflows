@@ -26,7 +26,8 @@
       "title": "Memory",
       "description": "The new guest memory of the VM",
       "type": "string",
-      "examples": ["2Gi"]
+      "examples": ["2Gi"],
+      "pattern": "^([+-]?[0-9.]+)([eEinumkKMGTP]*[-+]?[0-9]*)$"
     },
     "vm_new_cpu_cores": {
       "title": "CPU Cores",
