@@ -47,7 +47,7 @@ functions:
     operation: '{
         "result": {
           "completedWith":"error",
-          "message": "VM " + .vm_name + " in namespace " + .vm_namespace + " using image " + .vm_image +" not ready after " + .vmStatusRunningRetries + " retries: " + .vm.status
+          "message": "VM " + .vm_name + " in namespace " + .vm_namespace + " using image " + .vm_image +" not ready after " + (.vmStatusRunning|tostring) + " retries: " + .vm.status
         }
       }'
   - name: errorAuthorizationDeniedResult
@@ -315,7 +315,7 @@ states:
                   entityRef: .recipients
                 payload:
                   title: '"VM " + .vm_name + " in namespace "+.vm_namespace + " not ready"'
-                  description: '"VM " + .vm_name + " in namespace " + .vm_namespace + " using image " + .vm_image +" not ready after " + .vmStatusRunningRetries + " retries: " + .vm.status'
+                  description: '"VM " + .vm_name + " in namespace " + .vm_namespace + " using image " + .vm_image +" not ready after " + (.vmStatusRunningRetries|tostring) + " retries: " + .vm.status'
                   topic: "Request VM on CNV workflow"
                   severity: "high"
       - name: setOutput
