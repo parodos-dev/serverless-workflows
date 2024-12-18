@@ -49,7 +49,7 @@ functions:
     operation: '{
         "result": {
           "completedWith":"success",
-          "message": "VM" + .vm_name + " in namespace " + .vm_namespace + " updated.",
+          "message": "VM " + .vm_name + " in namespace " + .vm_namespace + " updated.",
           "outputs":[
             {
                 "key":"Console URL",
@@ -64,7 +64,7 @@ functions:
     operation: '{
         "result": {
           "completedWith":"error",
-          "message": "VM" + .vm_name + " in namespace " + .vm_namespace + " not ready after the update after checking" + .vmStatusRunningRetries + " times: " + .vm.status
+          "message": "VM " + .vm_name + " in namespace " + .vm_namespace + " not ready after the update after checking" + .vmStatusRunningRetries + " times: " + .vm.status
         }
       }'
   - name: errorAuthorizationDeniedResult
@@ -184,7 +184,7 @@ states:
                   type: "entity"
                   entityRef: .recipients
                 payload:
-                  title: '"Authorization granted to update VM" + .vm_name + " in namespace " + .vm_namespace'
+                  title: '"Authorization granted to update VM " + .vm_name + " in namespace " + .vm_namespace'
                   description: '"Authorization granted to update VM " + .vm_name + " in namespace " + .vm_namespace + ". Memory: " + .vm_new_memory + ". CPU cores: " + (.vm_new_cpu_cores|tostring) + ". CPU threads: " + (.vm_new_cpu_threads|tostring) + ". CPU sockets: " + (.vm_new_cpu_sockets|tostring) + ". Auto restart: " + (if .vm_auto_restart == true then "yes" else "no" end)'
                   topic: "Modify VM Resources workflow"
                   severity: "normal"
@@ -289,8 +289,8 @@ states:
                   type: "entity"
                   entityRef: .recipients
                 payload:
-                  title: '"VM" + .vm_name + " in namespace " + .vm_namespace + " updated and ready"'
-                  description: '"VM" + .vm_name + " in namespace " + .vm_namespace + " updated."' # " + .vm.status.currentCPUTopology + " -- " + .vm.status.memory'
+                  title: '"VM " + .vm_name + " in namespace " + .vm_namespace + " updated and ready"'
+                  description: '"VM " + .vm_name + " in namespace " + .vm_namespace + " updated."' # " + .vm.status.currentCPUTopology + " -- " + .vm.status.memory'
                   topic: "Modify VM Resources workflow"
                   # There are more dynamic ways to get the JIRA URL, but for simplicity, we are using a hardcoded URL
                   link: '$SECRET.cluster_console_url + "/k8s/ns/" + .vm_namespace + "/kubevirt.io~v1~VirtualMachine/" + .vm_name + "/console/standalone"'
@@ -321,8 +321,8 @@ states:
                   type: "entity"
                   entityRef: .recipients
                 payload:
-                  title: '"VM" + .vm_name + " in namespace " + .vm_namespace + " not ready"'
-                  description: '"VM" + .vm_name + " in namespace " + .vm_namespace + " not ready after the update after checking" + .vmStatusRunningRetries + " times: " + .vm.status'
+                  title: '"VM " + .vm_name + " in namespace " + .vm_namespace + " not ready"'
+                  description: '"VM " + .vm_name + " in namespace " + .vm_namespace + " not ready after the update after checking" + .vmStatusRunningRetries + " times: " + .vm.status'
                   topic: "Modify VM Resources workflow"
                   severity: "high"
       - name: setOutput
@@ -351,7 +351,7 @@ states:
                   type: "entity"
                   entityRef: .recipients
                 payload:
-                  title: '"Authorization denied to create VM" + .vm_name + " in namespace " + .vm_namespace'
+                  title: '"Authorization denied to create VM " + .vm_name + " in namespace " + .vm_namespace'
                   description: '"Authorization denied to update VM " + .vm_name + " in namespace " + .vm_namespace + ". Memory: " + .vm_new_memory + ". CPU cores: " + (.vm_new_cpu_cores|tostring) + ". CPU threads: " + (.vm_new_cpu_threads|tostring) + ". CPU sockets: " + (.vm_new_cpu_sockets|tostring)'
                   topic: "Modify VM Resources workflow"
                   link: '$SECRET.jira_url + "/jira/servicedesk/projects/" + .projectKey + "/issues/" + .jiraCreateIssueResult.key'
