@@ -32,7 +32,7 @@ functions:
     operation: '{
         "result": {
           "completedWith":"success",
-          "message": "VM" + .vm_name + " in namespace "+.vm_namespace + " using image "+ .vm_image +" ready and running.",
+          "message": "VM " + .vm_name + " in namespace "+.vm_namespace + " using image "+ .vm_image +" ready and running.",
           "outputs":[
             {
                 "key":"Console URL",
@@ -47,7 +47,7 @@ functions:
     operation: '{
         "result": {
           "completedWith":"error",
-          "message": "VM" + .vm_name + " in namespace "+.vm_namespace + " using image "+ .vm_image +" not ready after "+ .vmStatusRunningRetries + " retries: " + .vm.status
+          "message": "VM " + .vm_name + " in namespace " + .vm_namespace + " using image " + .vm_image +" not ready after " + .vmStatusRunningRetries + " retries: " + .vm.status
         }
       }'
   - name: errorAuthorizationDeniedResult
@@ -99,7 +99,7 @@ states:
             payload:
               title: '"JIRA ticket created for VM " + .vm_name'
               description: '"JIRA ticket created to request authorization to create VM " + .vm_name + " in namespace "+.vm_namespace'
-              topic: "Request CM on CNV workflow"
+              topic: "Request VM on CNV workflow"
               # There are more dynamic ways to get the JIRA URL, but for simplicity, we are using a hardcoded URL
               link: '$SECRET.jira_url + "/jira/servicedesk/projects/" + .projectKey + "/issues/" + .jiraCreateIssueResult.key'
               severity: "normal"
@@ -151,7 +151,7 @@ states:
                 payload:
                   title: '"Authorization granted to create VM" + .vm_name + " in namespace "+.vm_namespace'
                   description: '"Authorization granted to create VM" + .vm_name + " in namespace "+.vm_namespace + " using image "+ .vm_image +". A notification will be sent once the VM is ready."'
-                  topic: "Request CM on CNV workflow"
+                  topic: "Request VM on CNV workflow"
                   severity: "normal"
     transition: Create VM
   - name: Create VM
@@ -283,9 +283,9 @@ states:
                   type: "entity"
                   entityRef: .recipients
                 payload:
-                  title: '"VM" + .vm_name + " in namespace "+.vm_namespace + " ready"'
-                  description: '"VM" + .vm_name + " in namespace "+.vm_namespace + " using image "+ .vm_image +" ready and running."'
-                  topic: "Request CM on CNV workflow"
+                  title: '"VM " + .vm_name + " in namespace "+.vm_namespace + " ready"'
+                  description: '"VM " + .vm_name + " in namespace "+.vm_namespace + " using image "+ .vm_image +" ready and running."'
+                  topic: "Request VM on CNV workflow"
                   link: '$SECRET.cluster_console_url + "/k8s/ns/" + .vm_namespace + "/kubevirt.io~v1~VirtualMachine/" + .vm_name + "/console/standalone"'
                   severity: "normal"
       - name: setOutput
@@ -314,9 +314,9 @@ states:
                   type: "entity"
                   entityRef: .recipients
                 payload:
-                  title: '"VM" + .vm_name + " in namespace "+.vm_namespace + " not ready"'
-                  description: '"VM" + .vm_name + " in namespace "+.vm_namespace + " using image "+ .vm_image +" not ready after "+ .vmStatusRunningRetries + " retries: " + .vm.status'
-                  topic: "Request CM on CNV workflow"
+                  title: '"VM " + .vm_name + " in namespace "+.vm_namespace + " not ready"'
+                  description: '"VM " + .vm_name + " in namespace " + .vm_namespace + " using image " + .vm_image +" not ready after " + .vmStatusRunningRetries + " retries: " + .vm.status'
+                  topic: "Request VM on CNV workflow"
                   severity: "high"
       - name: setOutput
         actions:
@@ -346,7 +346,7 @@ states:
                 payload:
                   title: '"Authorization denied to create VM" + .vm_name + " in namespace "+.vm_namespace'
                   description: '"Authorization denied to create VM" + .vm_name + " in namespace "+.vm_namespace + " using image "+ .vm_image '
-                  topic: "Request CM on CNV workflow"
+                  topic: "Request VM on CNV workflow"
                   link: '$SECRET.jira_url + "/jira/servicedesk/projects/" + .projectKey + "/issues/" + .jiraCreateIssueResult.key'
                   severity: "high"
       - name: setOutput
