@@ -64,7 +64,7 @@ functions:
     operation: '{
         "result": {
           "completedWith":"error",
-          "message": "VM " + .vm_name + " in namespace " + .vm_namespace + " not ready after the update after checking" + .vmStatusRunningRetries + " times: " + .vm.status
+          "message": "VM " + .vm_name + " in namespace " + .vm_namespace + " not ready after the update after checking" + (.vmStatusRunningRetries|tostring) + " times: " + .vm.status
         }
       }'
   - name: errorAuthorizationDeniedResult
@@ -322,7 +322,7 @@ states:
                   entityRef: .recipients
                 payload:
                   title: '"VM " + .vm_name + " in namespace " + .vm_namespace + " not ready"'
-                  description: '"VM " + .vm_name + " in namespace " + .vm_namespace + " not ready after the update after checking" + .vmStatusRunningRetries + " times: " + .vm.status'
+                  description: '"VM " + .vm_name + " in namespace " + .vm_namespace + " not ready after the update after checking" + (.vmStatusRunningRetries|tostring) + " times: " + .vm.status'
                   topic: "Modify VM Resources workflow"
                   severity: "high"
       - name: setOutput
