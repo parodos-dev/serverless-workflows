@@ -55,7 +55,7 @@ functions:
     operation: '{
         "result": {
           "completedWith":"error",
-          "message": "Authorization denied to create VM" + .vm_name + " in namespace "+.vm_namespace + " using image "+ .vm_image,
+          "message": "Authorization denied to create VM " + .vm_name + " in namespace "+.vm_namespace + " using image "+ .vm_image,
           "outputs":[
             {
                 "key":"Jira issue",
@@ -149,8 +149,8 @@ states:
                   type: "entity"
                   entityRef: .recipients
                 payload:
-                  title: '"Authorization granted to create VM" + .vm_name + " in namespace "+.vm_namespace'
-                  description: '"Authorization granted to create VM" + .vm_name + " in namespace "+.vm_namespace + " using image "+ .vm_image +". A notification will be sent once the VM is ready."'
+                  title: '"Authorization granted to create VM " + .vm_name + " in namespace "+.vm_namespace'
+                  description: '"Authorization granted to create VM " + .vm_name + " in namespace "+.vm_namespace + " using image "+ .vm_image +". A notification will be sent once the VM is ready."'
                   topic: "Request VM on CNV workflow"
                   severity: "normal"
     transition: Create VM
@@ -344,8 +344,8 @@ states:
                   type: "entity"
                   entityRef: .recipients
                 payload:
-                  title: '"Authorization denied to create VM" + .vm_name + " in namespace "+.vm_namespace'
-                  description: '"Authorization denied to create VM" + .vm_name + " in namespace "+.vm_namespace + " using image "+ .vm_image '
+                  title: '"Authorization denied to create VM " + .vm_name + " in namespace "+.vm_namespace'
+                  description: '"Authorization denied to create VM " + .vm_name + " in namespace "+.vm_namespace + " using image "+ .vm_image '
                   topic: "Request VM on CNV workflow"
                   link: '$SECRET.jira_url + "/jira/servicedesk/projects/" + .projectKey + "/issues/" + .jiraCreateIssueResult.key'
                   severity: "high"
