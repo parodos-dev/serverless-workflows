@@ -6,7 +6,6 @@
 
 WORKFLOWS = \
 	greeting \
-	extendable-workflow \
 	escalation \
 	move2kube \
 	mta-v7.x \

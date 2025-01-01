@@ -6,7 +6,6 @@ This repository contains multiple workflows. Each workflow is represented by a d
 |----------------------------------|---------------------------------------------------|
 | `create-ocp-project`             | Sets up an OpenShift Container Platform (OCP) project. |
 | `escalation`                     | Demos workflow ticket escalation.          |
-| `extendable-workflow`            | Provides a flexible, extendable workflow setup.   |
 | `greeting`                       | Sample greeting workflow.                         |
 | `modify-vm-resources`            | Modifies resources allocated to virtual machines. |
 | `move2kube`                      | Workflow for Move2Kube tasks and transformation.  |
