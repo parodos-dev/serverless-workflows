@@ -5,7 +5,7 @@ The greeting workflow simply greets the user in the language chosen by the user 
 - `language` [optional] - the language
 
 ## Workflow diagram
-![Greeting workflow diagram](https://github.com/rhdhorchestrator/serverless-workflows/blob/main/greeting/greeting.svg?raw=true)
+![Greeting workflow diagram](https://github.com/rhdhorchestrator/serverless-workflows/blob/main/workflows/greeting/greeting.svg?raw=true)
 
 ## Installation
 
