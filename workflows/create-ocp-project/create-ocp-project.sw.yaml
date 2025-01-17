@@ -32,7 +32,6 @@ functions:
     type: expression
     operation: '{
         "result": {
-          "completedWith":"success",
           "message": "Project " + .projectName + " active",
           "outputs":[]
         }
@@ -41,7 +40,6 @@ functions:
     type: expression
     operation: '{
         "result": {
-          "completedWith":"error",
           "message": "Project " + .projectName + " not active"
         }
       }'
@@ -49,7 +47,6 @@ functions:
     type: expression
     operation: '{
         "result": {
-          "completedWith":"error",
           "message": "Creation of project " + .projectName + " denied",
           "outputs":[
             {
@@ -173,6 +170,32 @@ states:
           arguments:
             name: .projectName
     transition:
+      nextState: "[Audit]: Close issue on Jira"
+  - name: "[Audit]: Close issue on Jira"
+    type: operation
+    actionMode: sequential
+    actions:
+      - name: get transition id
+        actionDataFilter:
+          toStateData: .jiraGetTransitionResult
+        functionRef:
+          refName: jiraGetIssueTransitions
+          arguments:
+            issueIdOrKey: .auditJiraCreateIssueResult.id
+      - name: Close issue on Jira due to Timeout
+        actionDataFilter:
+          toStateData: .jiraCloseIssueResult
+        functionRef:
+          refName: jiraCloseIssue
+          arguments:
+            issueIdOrKey: .auditJiraCreateIssueResult.id
+            transition:
+              id: .jiraGetTransitionResult.transitions[] | select(.to.name | contains("Done")) | .id
+            update:
+              comment:
+                - add:
+                    body: '"Project " + .projectName + " is " + .project.status.phase'
+    transition:
       nextState: "Post operation: check project resource created successfully"
   - name: "Post operation: check project resource created successfully"
     type: switch
@@ -201,10 +224,11 @@ states:
       - name: setOutput
         functionRef:
           refName: successResult
-    transition:
-      nextState: "[Audit]: Close issue on Jira"
+    end: true
   - name: Notify project not active
     type: operation
+    metadata:
+      errorMessage: '"Project " + .projectName + " not active"'
     actions:
       - name: "Create notification: project not active"
         functionRef:
@@ -221,36 +245,12 @@ states:
       - name: setOutput
         functionRef:
           refName: errorProjectNotActiveResult
-    transition:
-      nextState: "[Audit]: Close issue on Jira"
-  - name: "[Audit]: Close issue on Jira"
-    type: operation
-    actionMode: sequential
-    actions:
-      - name: get transition id
-        actionDataFilter:
-          toStateData: .jiraGetTransitionResult
-        functionRef:
-          refName: jiraGetIssueTransitions
-          arguments:
-            issueIdOrKey: .auditJiraCreateIssueResult.id
-      - name: Close issue on Jira due to Timeout
-        actionDataFilter:
-          toStateData: .jiraCloseIssueResult
-        functionRef:
-          refName: jiraCloseIssue
-          arguments:
-            issueIdOrKey: .auditJiraCreateIssueResult.id
-            transition:
-              id: .jiraGetTransitionResult.transitions[] | select(.to.name | contains("Done")) | .id
-            update:
-              comment:
-                - add:
-                    body: '"Project " + .projectName + " is " + .project.status.phase'
     end: true
   - name: "[Audit]: Close issue on Jira - Project Creation Denied"
     type: operation
     actionMode: sequential
+    metadata:
+      errorMessage: '"Creation of project " + .projectName + " denied"'
     actions:
       - name: setOutput
         functionRef:

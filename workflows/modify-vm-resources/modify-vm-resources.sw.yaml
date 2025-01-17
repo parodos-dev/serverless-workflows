@@ -48,7 +48,6 @@ functions:
     type: expression
     operation: '{
         "result": {
-          "completedWith":"success",
           "message": "VM " + .vm_name + " in namespace " + .vm_namespace + " updated.",
           "outputs":[
             {
@@ -63,7 +62,6 @@ functions:
     type: expression
     operation: '{
         "result": {
-          "completedWith":"error",
           "message": "VM " + .vm_name + " in namespace " + .vm_namespace + " not ready after the update after checking" + (.vmStatusRunningRetries|tostring) + " times: " + (.vm.status|tostring)
         }
       }'
@@ -71,7 +69,6 @@ functions:
     type: expression
     operation: '{
         "result": {
-          "completedWith":"error",
           "message": "Authorization denied to update VM " + .vm_name + " in namespace " + .vm_namespace + ". Memory: " + .vm_new_memory + ". CPU cores: " + (.vm_new_cpu_cores|tostring) + ". CPU threads: " + (.vm_new_cpu_threads|tostring) + ". CPU sockets: " + (.vm_new_cpu_sockets|tostring),
           "outputs":[
             {
@@ -303,6 +300,8 @@ states:
     end: true
   - name: Notify VM not running
     type: parallel
+    metadata:
+      errorMessage: '"VM " + .vm_name + " in namespace " + .vm_namespace + " not ready"'
     branches:
       - name: printSystemOut
         actions:
@@ -333,6 +332,8 @@ states:
     end: true
   - name: Notify VM update denied
     type: parallel
+    metadata:
+      errorMessage: '"Authorization denied to create VM " + .vm_name + " in namespace " + .vm_namespace'
     branches:
       - name: printSystemOut
         actions:

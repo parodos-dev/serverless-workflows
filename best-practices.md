@@ -22,7 +22,6 @@ states:
      type: inject
      data:
        result:
-          completedWith: success
           message: A human-readable description of the successful status. Or an error.
           outputs:
             - key: Foo Bar human readable name which will be shown in the UI

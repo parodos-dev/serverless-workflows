@@ -84,6 +84,8 @@ states:
         nextState: GetPlan
   - name: PlanFailure
     type: operation
+    metadata:
+      errorMessage: '"MTV plan " + .migrationName + " is not ready for migration"'
     actions:
       - name: setPlanErrorMessage
         actionDataFilter:
@@ -103,7 +105,7 @@ states:
               topic: "MTV plan assessment workflow"
               severity: "critical"
     stateDataFilter:
-      output: '{result: {completedWith: "error", message: .planErrorMessage}}'
+      output: '{result: {message: .planErrorMessage}}'
     end: true
   - name: PlanReady
     type: operation
@@ -121,5 +123,5 @@ states:
               topic: "MTV plan assessment workflow"
               severity: "normal"
     stateDataFilter:
-      output: '{result: {completedWith: "success", message: "MTV plan successful", "nextWorkflows": [{id: "mtv-migration", name: "MTV migration workflow"}], "outputs": [] }}'
+      output: '{result: {message: "MTV plan successful", "nextWorkflows": [{id: "mtv-migration", name: "MTV migration workflow"}], "outputs": [] }}'
     end: true
