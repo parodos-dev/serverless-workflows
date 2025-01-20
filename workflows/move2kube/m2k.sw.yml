@@ -51,7 +51,6 @@ functions:
     type: expression
     operation: '{
         "result": {
-          "completedWith":"success",
           "message": "Move2Kube workflow  " + $WORKFLOW.instanceId + " on workspace " + .workspaceId + " and project " + .projectId + " was successful; the output is available in the branch " + .targetBranch + " of your git repository "+ .repositoryURL,
           "outputs": [
             {
@@ -70,7 +69,6 @@ functions:
     type: expression
     operation: '{
         "result": {
-          "completedWith":"error",
           "message": "Move2Kube workflow  " + $WORKFLOW.instanceId + " on workspace " + .workspaceId + " and project " + .projectId + " failed ",
           "outputs":[
             {

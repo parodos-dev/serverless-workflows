@@ -30,7 +30,6 @@ functions:
     type: expression
     operation: '{
         "result": {
-          "completedWith":"success",
           "message": "RPJ workflow  " + $WORKFLOW.instanceId + " was successful",
           "outputs": [
             {
@@ -48,7 +47,6 @@ functions:
     type: expression
     operation: '{
         "result": {
-          "completedWith":"error",
           "message": "RPJ workflow  " + $WORKFLOW.instanceId + " failed",
           "outputs": [
             {
@@ -116,6 +114,8 @@ states:
     end: true
   - name: NotifyFailureBackstage
     type: operation
+    metadata:
+      errorMessage: '"RPJ run failed for launch " + .launchId'
     actions:
       - name: printSystemOut
         functionRef:

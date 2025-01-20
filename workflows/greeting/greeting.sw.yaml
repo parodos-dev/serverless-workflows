@@ -18,7 +18,6 @@ functions:
     type: expression
     operation: '{
         "result": {
-          "completedWith":"success",
           "message": "Greeting workflow completed successfully",
           "outputs":[
             {

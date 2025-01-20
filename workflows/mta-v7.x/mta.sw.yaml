@@ -102,7 +102,6 @@ functions:
   - name: successResult
     type: expression
     operation: '{
-        "completedWith":"success",
         "message": "MTA v7.x analysis completed for " + .repositoryURL,
         "outputs":[
           {
@@ -126,7 +125,6 @@ functions:
   - name: mandatoriesIncidentsResult
     type: expression
     operation: '{
-        "completedWith": "warning",
         "message": "MTA analysis for " + .application.repository.url + " completed with " + (.application.mandatoriesIncidents|tostring) + " incidents in mandatory issues that need to be fixed before being able to provide any next possible workflow. Check the analysis report." + (if .migrationWaveJiraTicket != null then " Application was exported to issue manager." else "" end),
         "outputs": [
           {
@@ -144,7 +142,6 @@ functions:
   - name: errorResult
     type: expression
     operation: '{
-        "completedWith":"error",
         "message": "MTA analysis for " + .application.repository.url + " failed: " + .exitMessage + ". Check logs of task pod: " + .taskgroup.tasks[0].pod
       }'
 
