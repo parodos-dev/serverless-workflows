@@ -25,7 +25,8 @@ git commit -m "(m2k-kfunc) Automated PR"
 echo "Automated PR from ${PR_OR_COMMIT_URL}" | git commit --amend --file=-
 git remote set-url origin https://"${GH_TOKEN}"@github.com/"${WF_CONFIG_REPO}"
 git push origin HEAD
-gh pr create -f --title "m2k-kfunc: Automatic manifests generation" \
+CURRENT_BRANCH=$(git branch --show-current)
+gh pr create -f --head "${CURRENT_BRANCH}" --title "m2k-kfunc: Automatic manifests generation" \
 --body "
 Updating generated manifests for m2k-kfunc application
 
