@@ -22,6 +22,8 @@ functions:
   - name: filterApplication
     type: expression
     operation: "{application: .applications|map(select(.repository.url == .repositoryURL))[0]}"
+  - name: deleteTaskGroup
+    operation: specs/mta.json#deleteTaskGroup
   - name: getApplication
     operation: specs/mta.json#getApplications
   - name: getApplicationAnalysis
@@ -102,47 +104,61 @@ functions:
   - name: successResult
     type: expression
     operation: '{
-        "message": "MTA v7.x analysis completed for " + .repositoryURL,
-        "outputs":[
-          {
-              "key":"MTA Analysis Result URL",
-              "value": $SECRET.mta.url + "/hub/applications/" + (.application.id|tostring) + "/analysis/report",
-              "format":"link"
-          },
-          {
-              "key":"Migration Wave Ticket URL",
-              "value": (if .migrationWaveJiraTicket != null then .migrationWaveJiraTicket.link else "" end),
-              "format":"link"
-          }
-        ],
-        "nextWorkflows":[
-          {
-              "id":"m2k",
-              "name":"Move2Kube workflow"
-          }
-        ]
+        result: {
+          message: "MTA v7.x analysis completed for " + .repositoryURL,
+          outputs:[
+            {
+                key:"MTA Analysis Result URL",
+                value: $SECRET.mta.url + "/hub/applications/" + (.application.id|tostring) + "/analysis/report",
+                format:"link"
+            },
+            {
+                key:"Migration Wave Ticket URL",
+                value: (if .migrationWaveJiraTicket != null then .migrationWaveJiraTicket.link else "" end),
+                format:"link"
+            }
+          ],
+          nextWorkflows:[
+            {
+                id:"m2k",
+                name:"Move2Kube workflow"
+            }
+          ]
+        }
       }'
   - name: mandatoriesIncidentsResult
     type: expression
     operation: '{
-        "message": "MTA analysis for " + .application.repository.url + " completed with " + (.application.mandatoriesIncidents|tostring) + " incidents in mandatory issues that need to be fixed before being able to provide any next possible workflow. Check the analysis report." + (if .migrationWaveJiraTicket != null then " Application was exported to issue manager." else "" end),
-        "outputs": [
-          {
-              "key":"MTA Analysis Result URL",
-            "value": ($SECRET.mta.url + "/hub/applications/" + (.application.id|tostring) + "/analysis/report"),
-            "format": "link"
-          },
-          {
-              "key":"Migration Wave Ticket URL",
-            "value": (if .migrationWaveJiraTicket != null then .migrationWaveJiraTicket.link else "" end),
-            "format": "link"
-          }
-        ]
+        result: {
+          message: "MTA analysis for " + .application.repository.url + " completed with " + (.application.mandatoriesIncidents|tostring) + " incidents in mandatory issues that need to be fixed before being able to provide any next possible workflow. Check the analysis report." + (if .migrationWaveJiraTicket != null then " Application was exported to issue manager." else "" end),
+          outputs: [
+            {
+                key:"MTA Analysis Result URL",
+              value: ($SECRET.mta.url + "/hub/applications/" + (.application.id|tostring) + "/analysis/report"),
+              format: "link"
+            },
+            {
+                key:"Migration Wave Ticket URL",
+              value: (if .migrationWaveJiraTicket != null then .migrationWaveJiraTicket.link else "" end),
+              format: "link"
+            }
+          ]
+        }
       }'
   - name: errorResult
     type: expression
     operation: '{
-        "message": "MTA analysis for " + .application.repository.url + " failed: " + .exitMessage + ". Check logs of task pod: " + .taskgroup.tasks[0].pod
+        result: {
+          message: "MTA analysis for " + .application.repository.url + " failed: " + .exitMessage + ". Check logs of task pod: " + .taskgroup.tasks[0].pod
+        }
+      }'
+
+  - name: abortResult
+    type: expression
+    operation: '{
+        result: {
+          message: "MTA analysis for " + .application.repository.url + " aborted, all in progress tasks were cancelled."
+        }
       }'
 
 states:
@@ -188,6 +204,7 @@ states:
   - name: SubmitAnalysis
     type: operation
     actionMode: sequential
+    compensatedBy: CancelTaskOnAbort
     actions:
       - name: submitTaskgroup
         functionRef:
@@ -210,15 +227,9 @@ states:
     transition: pollResults
   - name: pollResults
     type: operation
+    compensatedBy: CancelTaskOnAbort
     actionMode: sequential
     actions:
-      - name: "SleepBeforeChecking"
-        functionRef:
-          refName: "logInfo"
-          arguments:
-            message: '"Sleeping before checking the analysis result "'
-        sleep:
-          after: PT30S
       - name: "getTaskgroup"
         functionRef:
           refName: getTaskgroup
@@ -226,13 +237,11 @@ states:
             id: ".taskgroup.id"
         actionDataFilter:
           toStateData: .taskgroup
-      - name: "logTaskGroup"
-        functionRef:
-          refName: "logInfo"
-          arguments:
-            message: "\"Logging data: \\(.)\""
+        sleep:
+          before: PT30S
     transition: checkReportDone
   - name: checkReportDone
+    compensatedBy: CancelTaskOnAbort
     type: switch
     dataConditions:
       - condition: (.taskgroup.state == "Ready" and (.taskgroup.tasks[0].state == "Running" or (.taskgroup.tasks[0].state == "Pending" or .taskgroup.tasks[0].state == "Postponed")))
@@ -270,11 +279,6 @@ states:
           toStateData: .application.mandatoriesIncidents
         functionRef:
           refName: countMandatoriesIncidents
-      - name: "logMandatoriesIncidents"
-        functionRef:
-          refName: "logInfo"
-          arguments:
-            message: "\"Mandatory incidents: \\(.application.mandatoriesIncidents|tostring)\""
     transition: CountNonMandatoriesIncidents
   - name: CountNonMandatoriesIncidents
     type: operation
@@ -285,11 +289,6 @@ states:
           toStateData: .application.nonMandatoriesIncidents
         functionRef:
           refName: countNonMandatoriesIncidents
-      - name: "logNonMandatoriesIncidents"
-        functionRef:
-          refName: "logInfo"
-          arguments:
-            message: "\"Non-mandatory incidents: \\(.application.nonMandatoriesIncidents|tostring)\""
     transition: CheckMandatoriesIncidents
   - name: CheckMandatoriesIncidents
     type: switch
@@ -441,11 +440,6 @@ states:
     type: operation
     actionMode: sequential
     actions:
-      - name: logInfo
-        functionRef:
-          refName: "logInfo"
-          arguments:
-            message: "\"Logging data: \\(.)\""
       - name: "CreateTickets"
         functionRef:
           refName: createTicket
@@ -493,18 +487,9 @@ states:
               topic: "MTA Analysis Workflow"
               link: '$SECRET.mta.url + "/hub/applications/" + (.application.id|tostring) + "/analysis/report"'
               severity: "normal"
-    transition: reportCompletion
-  - name: reportCompletion
-    type: operation
-    actionMode: sequential
-    actions:
       - name: reportCompletion
         functionRef:
           refName: successResult
-        actionDataFilter:
-          toStateData: ".result"
-    stateDataFilter:
-      output: ". += .result"
     end: true
   - name: NotifyMandatoriesIncidentsInApplication
     type: operation
@@ -521,17 +506,9 @@ states:
               topic: "MTA Analysis Workflow"
               link: '$SECRET.mta.url + "/hub/applications/" + (.application.id|tostring) + "/analysis/report"'
               severity: "high"
-    transition: reportCompletionWithMandatoriesIncidentsInApplication
-  - name: reportCompletionWithMandatoriesIncidentsInApplication
-    type: operation
-    actions:
       - name: reportCompletionWithMandatoriesIncidentsInApplication
         functionRef:
           refName: mandatoriesIncidentsResult
-        actionDataFilter:
-          toStateData: ".result"
-    stateDataFilter:
-      output: ". += .result"
     end: true
   - name: NotifyFailureBackstage
     type: operation
@@ -556,8 +533,35 @@ states:
       - name: reportFailure
         functionRef:
           refName: errorResult
-        actionDataFilter:
-          toStateData: ".result"
-    stateDataFilter:
-      output: ". += .result"
     end: true
+  - name: CancelTaskOnAbort
+    type: operation
+    metadata:
+      errorMessage: '"MTA analysis for " + .application.repository.url + " aborted"'
+    usedForCompensation: true
+    actions:
+      - name: logInfo
+        functionRef:
+          refName: logInfo
+          arguments:
+            message: '${"MTA workflow: " + $WORKFLOW.instanceId + " was aborted while task was still in progress}"'
+      - name: "abortTasks"
+        functionRef:
+          refName: deleteTaskGroup
+          arguments:
+            id: ".taskgroup.id"
+      - name: createNotification
+        functionRef:
+          refName: createNotification
+          arguments:
+            recipients:
+              type: "entity"
+              entityRef: .recipients
+            payload:
+              title: "MTA analysis aborted"
+              description: '"MTA analysis for " + .application.repository.url + " aborted while tasks still in progress, tasks were cancelled"'
+              topic: "MTA Analysis Workflow"
+              severity: "critical"
+      - name: reportAbort
+        functionRef:
+          refName: abortResult
