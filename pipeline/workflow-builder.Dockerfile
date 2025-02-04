@@ -3,7 +3,7 @@
 
 ARG BUILDER_IMAGE
 
-# The default builder image is the released OSL 1.33 https://catalog.redhat.com/software/containers/openshift-serverless-1/logic-swf-builder-rhel8/6614edd826a5be569c111884?container-tabs=gti
+# The default builder image is the latest publicly released OSL https://catalog.redhat.com/software/containers/openshift-serverless-1/logic-swf-builder-rhel8/6614edd826a5be569c111884?container-tabs=gti
 FROM ${BUILDER_IMAGE:-registry.redhat.io/openshift-serverless-1/logic-swf-builder-rhel8@sha256:5590b799420769ee2fe316bc0425bec10f7a29433765244702a23348150e621e} AS builder
 
 #ENV MAVEN_REPO_URL=https://maven.repository.redhat.com/earlyaccess/all
