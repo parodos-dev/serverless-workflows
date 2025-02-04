@@ -34,7 +34,7 @@ Application properties can be initialized from environment variables before runn
 - `OCP project to create` [required] - the OCP project to be created on the OCP cluster.
 
 ## Workflow diagram
-![Create OpenShift Project diagram](https://github.com/rhdhorchestrator/serverless-workflow-examples/blob/main/create-ocp-project/create-ocp-project.svg?raw=true)
+![Create OpenShift Project diagram](https://github.com/rhdhorchestrator/serverless-workflows/blob/main/workflows/create-ocp-project/create-ocp-project.svg?raw=true)
 
 ## Installation
 
