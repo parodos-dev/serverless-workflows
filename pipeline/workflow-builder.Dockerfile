@@ -13,7 +13,7 @@ FROM ${BUILDER_IMAGE:-registry.redhat.io/openshift-serverless-1/logic-swf-builde
 # When using nightly:
 # ARG QUARKUS_EXTENSIONS=org.kie:kogito-addons-quarkus-jobs-knative-eventing:999-SNAPSHOT,org.kie:kie-addons-quarkus-persistence-jdbc:999-SNAPSHOT,io.quarkus:quarkus-jdbc-postgresql:3.8.4,io.quarkus:quarkus-agroal:3.8.4,org.kie:kie-addons-quarkus-monitoring-prometheus:999-SNAPSHOT,org.kie:kie-addons-quarkus-monitoring-sonataflow:999-SNAPSHOT
 # When using prod:
-ARG QUARKUS_EXTENSIONS=org.kie:kogito-addons-quarkus-jobs-knative-eventing:9.102.0.redhat-00004,org.kie:kie-addons-quarkus-persistence-jdbc:9.102.0.redhat-00004,io.quarkus:quarkus-jdbc-postgresql:3.8.6.redhat-00004,io.quarkus:quarkus-agroal:3.8.6.redhat-00004
+ARG QUARKUS_EXTENSIONS=org.kie:kie-addons-quarkus-monitoring-sonataflow:10.0.0,org.kie:kogito-addons-quarkus-jobs-knative-eventing:10.0.0,org.kie:kie-addons-quarkus-persistence-jdbc:10.0.0,io.quarkus:quarkus-jdbc-postgresql:3.8.6.redhat-00004,io.quarkus:quarkus-agroal:3.8.6.redhat-00004
 
 # Args to pass to the Quarkus CLI
 # add extension command
