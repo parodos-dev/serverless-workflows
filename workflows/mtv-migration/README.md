@@ -20,7 +20,7 @@ Application properties can be initialized from environment variables before runn
 
 ## Installation
 
-See [official installation guide](https://github.com/parodos-dev/serverless-workflows-config/blob/main/docs/main/mtv-migration)
+See [official installation guide](https://github.com/rhdhorchestrator/serverless-workflows-config/blob/main/docs/main/mtv-migration)
 
 ## How to run
 Example of POST to trigger the flow (see input schema [mtv-input.json](./schema/mtv-input.json)):
