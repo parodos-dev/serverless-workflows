@@ -49,7 +49,7 @@ The use case has the following components:
 
 ## Installation
 
-See [official installation guide](https://github.com/parodos-dev/serverless-workflows-config/blob/main/docs/main/move2kube)
+See [official installation guide](https://github.com/rhdhorchestrator/serverless-workflows-config/blob/main/docs/main/move2kube)
 
 ## Usage
 1. Create a workspace and a project under it in your move2kube instance

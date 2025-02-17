@@ -18,7 +18,7 @@ In this project, a side proxy application was created in order to avoid self-sig
 If you RPJ is configured properly (i.e: without self-signed certificates), you can remove the proxy application.
 
 # Workflow Diagram
-![rpj workflow diagram](https://github.com/parodos-dev/serverless-workflows/blob/main/rpj/rpj.svg?raw=true)
+![rpj workflow diagram](https://github.com/rhdhorchestrator/serverless-workflows/blob/main/rpj/rpj.svg?raw=true)
 
 # Workflow application configuration
 Application properties can be initialized from environment variables before running the application:
