@@ -20,7 +20,7 @@ Application properties can be initialized from environment variables before runn
 
 ## Installation
 
-See [official installation guide](https://github.com/parodos-dev/serverless-workflows-config/blob/main/docs/main/mtv-plan)
+See [official installation guide](https://github.com/rhdhorchestrator/serverless-workflows-config/blob/main/docs/main/mtv-plan)
 
 
 ## How to run
