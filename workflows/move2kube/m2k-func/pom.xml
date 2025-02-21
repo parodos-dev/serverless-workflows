@@ -11,7 +11,7 @@
     <failsafe.useModulePath>false</failsafe.useModulePath>
     <move2kube.version>v2.0.1</move2kube.version>
     <jgit-version>7.1.0.202411261347-r</jgit-version>
-    <compiler-plugin.version>3.13.0</compiler-plugin.version>
+    <compiler-plugin.version>3.14.0</compiler-plugin.version>
     <maven.compiler.release>17</maven.compiler.release>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
