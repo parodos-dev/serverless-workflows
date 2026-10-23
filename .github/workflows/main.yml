@@ -17,8 +17,9 @@ on:
         type: boolean
         default: false
     secrets:
+      # Test-only mode skips token-authenticated publishing and can omit this.
       HELM_REPO_TOKEN:
-        required: true
+        required: false
 
 permissions:
   contents: write
@@ -33,6 +34,17 @@ jobs:
   build:
     runs-on: ubuntu-24.04
     steps:
+
+    - name: Check GH_TOKEN for publishing mode
+      if: ${{ !inputs.it_mode }}
+      env:
+        GH_TOKEN: ${{ secrets.HELM_REPO_TOKEN }}
+      run: |
+        if [[ -z "$GH_TOKEN" ]]; then
+          echo "::error::HELM_REPO_TOKEN is required when it_mode is false."
+          exit 1
+        fi
+        gh auth status
 
     - uses: actions/checkout@v4
 
@@ -84,12 +96,6 @@ jobs:
     needs: build
     runs-on: ubuntu-24.04
     steps:
-    - name: Check GH_TOKEN
-      run: |
-        export GH_TOKEN
-        echo "Checking gh auth status..."
-        gh auth status
-
     - uses: actions/checkout@v4
     - name: Generate Manifests
       id: generate-manifests

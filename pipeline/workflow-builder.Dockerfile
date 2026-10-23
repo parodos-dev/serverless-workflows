@@ -21,7 +21,7 @@ FROM ${BUILDER_IMAGE:-quay.io/orchestrator/logic-swf-builder-rhel8:1.36.0-discon
 # When using nightly:
 # ARG QUARKUS_EXTENSIONS=org.kie:kogito-addons-quarkus-jobs-knative-eventing:999-SNAPSHOT,org.kie:kie-addons-quarkus-persistence-jdbc:999-SNAPSHOT,io.quarkus:quarkus-jdbc-postgresql:3.8.4,io.quarkus:quarkus-agroal:3.8.4,org.kie:kie-addons-quarkus-monitoring-prometheus:999-SNAPSHOT,org.kie:kie-addons-quarkus-monitoring-sonataflow:999-SNAPSHOT
 # When using prod:
-ARG QUARKUS_EXTENSIONS=io.quarkiverse.openapi.generator:quarkus-openapi-generator:2.9.1-lts,org.kie:kie-addons-quarkus-monitoring-sonataflow,org.kie:kogito-addons-quarkus-jobs-knative-eventing,org.kie:kie-addons-quarkus-persistence-jdbc,io.quarkus:quarkus-jdbc-postgresql:3.15.4.redhat-00001,io.quarkus:quarkus-agroal:3.15.4.redhat-00001
+ARG QUARKUS_EXTENSIONS=io.quarkiverse.openapi.generator:quarkus-openapi-generator:2.9.1-lts,org.kie:kie-addons-quarkus-monitoring-sonataflow,org.kie:kogito-addons-quarkus-jobs-knative-eventing,org.kie:kie-addons-quarkus-persistence-jdbc,io.quarkus:quarkus-jdbc-postgresql,io.quarkus:quarkus-agroal
 ARG WORKFLOW_ID
 ENV WORKFLOW_ID=${WORKFLOW_ID}
 

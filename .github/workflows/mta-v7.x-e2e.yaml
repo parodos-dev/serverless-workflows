@@ -15,6 +15,13 @@ on:
 
 jobs:
   build:
+    # The build needs registry credentials, which GitHub withholds from fork PRs.
+    # Keep manual dispatch and same-repository PR runs enabled.
+    if: >-
+      ${{
+        github.event_name != 'pull_request' ||
+        github.event.pull_request.head.repo.full_name == github.repository
+      }}
     uses: ./.github/workflows/main.yml
     secrets: inherit
     with:
